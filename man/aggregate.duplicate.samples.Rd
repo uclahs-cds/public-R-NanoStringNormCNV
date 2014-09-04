@@ -1,0 +1,15 @@
+\name{aggregate.duplicate.samples}
+\alias{aggregate.duplicate.samples}
+\title{Collapse counts for duplicate samples}
+\description{Collapse counts for duplicate samples. Only applicable if there are replicates}
+\usage{
+aggregate.duplicate.samples(nano.df, annot)
+}
+\arguments{
+  \item{nano.df}{The NanoString data-frame with normalized counts}
+  \item{annot}{Annotations for the samples, must include the field Name}
+}
+\details{Collapse counts for duplicate samples. Only applicable if there are replicates. Collapsing is done with the mean count}
+\value{A data-frame with collapsed counts for any duplicates}
+\author{Cindy Yao}
+\seealso{aggregate.genes}
