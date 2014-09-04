@@ -23,7 +23,7 @@ invariant.probe.norm <- function(nano.df){
 	# step 2B
 	# plot the counts for the invariant probes. It is BAD to have counts < 100 for these probes as it signifies
 	# low DNA input, leading to unreliable CNA calls. Especially if the low counts are in the reference samples!!
-	plot.invariant.probe.counts(nano.df['Invariant' == nano.df$CodeClass, grep.cols], fname.stem = 'invariant_probe');
+	make.invariant.probe.plot(nano.df['Invariant' == nano.df$CodeClass, grep.cols], fname.stem = 'invariant_probe');
 
 	# step 3
 	# calculate normalization factor by mean.inv.avg / inv.avg

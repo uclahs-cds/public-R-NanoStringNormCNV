@@ -5,7 +5,7 @@ positive.control.norm <- function(nano.df){
 	target.conc <- target.conc*171.23 + 214.12;
 
 	# only keep the rows pertaining to positive code class
-	nano.pos <- nano.df['Positive' == nano.raw$CodeClass,];
+	nano.pos <- nano.df['Positive' == nano.df$CodeClass,];
 	nano.pos <- nano.pos[with(nano.pos, order(Name)),];
 
 	# initiate object to store R2

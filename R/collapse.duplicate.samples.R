@@ -1,5 +1,5 @@
 
-aggregate.duplicate.samples <- function(nano.df, annot){
+collapse.duplicate.samples <- function(nano.df, annot){
 	# for each sample that are duplicated, merge the counts so you get a single count
 	nano.df.aggr <- nano.df[,c('CodeClass', 'Name', 'Accession')];
 

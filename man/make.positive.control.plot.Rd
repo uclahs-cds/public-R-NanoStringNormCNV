@@ -1,9 +1,9 @@
-\name{plot.positive.control.correlations}
-\alias{plot.positive.control.correlations}
+\name{make.positive.control.plot}
+\alias{make.positive.control.plot}
 \title{Make heatmaps of correlations}
 \description{Make heatmaps of correlation between target concentration and actual counts}
 \usage{
-plot.positive.control.correlations(corr.df, fname.stem)
+make.positive.control.plot(corr.df, fname.stem)
 }
 \arguments{
   \item{corr.df}{The correlation data-frame with the correlation in the first column}

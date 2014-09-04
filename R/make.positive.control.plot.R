@@ -1,5 +1,5 @@
 
-plot.positive.control.correlations <- function(corr.df, fname.stem){		### TO DO: Add in covariates and allow clustering
+make.positive.control.plot <- function(corr.df, fname.stem){		### TO DO: Add in covariates and allow clustering
 	# order matrix according to correlation
 	corr.df <- corr.df[order(corr.df[,1]) ,];
 	create.heatmap(
@@ -7,7 +7,7 @@ plot.positive.control.correlations <- function(corr.df, fname.stem){		### TO DO:
 		filename = generate.filename(fname.stem, 'full_range', 'png'),
 		main = 'Positive Probe Correlations',
 		main.cex = 2,
-		cluster.dimension = 'none',
+		cluster.dimensions = 'none',
 		height = 2,
 		scale.data=F,
 		xat = seq(0, nrow(corr.df), by = 20),
@@ -22,7 +22,7 @@ plot.positive.control.correlations <- function(corr.df, fname.stem){		### TO DO:
 		filename = generate.filename(fname.stem, 'zoomed', 'png'),
 		main = 'Positive Probe Correlations',
 		main.cex = 2,
-		cluster.dimension = 'none',
+		cluster.dimensions = 'none',
 		height = 2,
 		scale.data=F,
 		xat = seq(0, nrow(corr.df), by = 20),

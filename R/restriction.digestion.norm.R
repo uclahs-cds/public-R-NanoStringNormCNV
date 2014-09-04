@@ -64,5 +64,5 @@ restriction.fragmentation.norm <- function(nano.df){
         }
 
 		# plot the ratios
-		plot_restr_digest_controls(nano.restr.avg, which.low);
+		make.restr.digest.plot(nano.restr.avg, which.low);
 	}

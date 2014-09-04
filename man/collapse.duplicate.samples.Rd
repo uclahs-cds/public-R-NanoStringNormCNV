@@ -1,9 +1,9 @@
-\name{aggregate.duplicate.samples}
-\alias{aggregate.duplicate.samples}
+\name{collapse.duplicate.samples}
+\alias{collapse.duplicate.samples}
 \title{Collapse counts for duplicate samples}
 \description{Collapse counts for duplicate samples. Only applicable if there are replicates}
 \usage{
-aggregate.duplicate.samples(nano.df, annot)
+collapse.duplicate.samples(nano.df, annot)
 }
 \arguments{
   \item{nano.df}{The NanoString data-frame with normalized counts}
@@ -12,4 +12,4 @@ aggregate.duplicate.samples(nano.df, annot)
 \details{Collapse counts for duplicate samples. Only applicable if there are replicates. Collapsing is done with the mean count}
 \value{A data-frame with collapsed counts for any duplicates}
 \author{Cindy Yao}
-\seealso{aggregate.genes}
+\seealso{collapse.genes}

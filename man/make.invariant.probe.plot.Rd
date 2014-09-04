@@ -1,9 +1,9 @@
-\name{plot.invariant.probe.counts}
-\alias{plot.invariant.probe.counts}
+\name{make.invariant.probe.plot}
+\alias{make.invariant.probe.plot}
 \title{Make diagnostic plots for invariant probes}
 \description{Make diagnostic plots for invariant probes}
 \usage{
-plot.invariant.probe.counts(inv.probe.counts, fname.stem)
+make.invariant.probe.plot(inv.probe.counts, fname.stem)
 }
 \arguments{
   \item{inv.probe.counts}{Counts for invariant probes}

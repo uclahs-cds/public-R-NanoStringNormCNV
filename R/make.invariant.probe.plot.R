@@ -2,7 +2,7 @@
 # plot the counts for the invariant probes. It is BAD to have counts < 100 for these probes as it signifies
 # low DNA input, leading to unreliable CNA calls. Especially if the low counts are in the reference samples!!
 
-plot.invariant.probe.counts <- function(inv.probe.counts, fname.stem){
+make.invariant.probe.plot <- function(inv.probe.counts, fname.stem){
 	mean.counts <- apply(inv.probe.counts, 1, mean);
 	splot.df <- melt(cbind(probe=c(paste0('probe', 1:nrow(inv.probe.counts))), inv.probe.counts));
 	colnames(splot.df) <- qw("probe sample count");
@@ -26,7 +26,7 @@ plot.invariant.probe.counts <- function(inv.probe.counts, fname.stem){
 	create.scatterplot(
 		log10(count) ~ jitter(probe.id),
 		data = splot.df,
-		filename = generate.filename('invariant_probe', 'counts', 'png'),
+		filename = generate.filename(fname.stem, 'counts', 'png'),
 		main = 'Invariant Probe Counts',
 		main.cex = 2,
 		col = splot.df$cols,
@@ -46,7 +46,7 @@ plot.invariant.probe.counts <- function(inv.probe.counts, fname.stem){
 		curves.to = (seq(1:nrow(inv.probe.counts)) + 0.45),
 		curves.col = 'cyan',
 		curves.exprs = curves.list,
-		res = 500
+		resolution = 500
 		);
 
 

@@ -1,9 +1,9 @@
-\name{plot_restr_digest_controls}
-\alias{plot_restr_digest_controls}
+\name{make.restr.digest.plot}
+\alias{make.restr.digest.plot}
 \title{Plot the ratio of restriction digestion probes}
 \description{Plot the ratio of restriction digestion probes and highlight those with low-ratios}
 \usage{
-plot_restr_digest_controls(restr.data, low.ratio.samples = NULL)
+make.restr.digest.plot(restr.data, low.ratio.samples = NULL)
 }
 \arguments{
   \item{restr.data}{A data-frame with the raw counts for the restriction digestion probes}

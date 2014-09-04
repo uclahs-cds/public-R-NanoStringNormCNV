@@ -1,6 +1,6 @@
 
 
-plot_restr_digest_controls <- function(restr.data, low.ratio.samples = NULL){
+make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 	# reformat for plotting
 	restr.df <- melt(data = t(restr.data));
 	colnames(restr.df) <- qw("sample site count");
@@ -93,7 +93,7 @@ plot_restr_digest_controls <- function(restr.data, low.ratio.samples = NULL){
 		ylimits = list(c(0,5000), c(0,3)),
 		xaxis.alternating = 1,
 		merge.legends = TRUE,
-		ylab.label = c(expression('log'[10]*'(ratio)'), 'Count\t\t'),
+		ylab.label = c(expression('\t\tlog'[10]*'(ratio)'), 'Count\t'),
 		ylab.cex = 2,
 		yaxis.cex = c(1, 1),
 		retrieve.plot.labels = TRUE,
