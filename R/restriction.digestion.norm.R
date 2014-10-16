@@ -44,6 +44,7 @@ restriction.fragmentation.norm <- function(nano.df){
 			# list out the sample names
 			flog.warn('Low count number!');
 			low.count <- paste(colnames(nano.restr.avg)[nano.restr.avg['C+D',] < 200], sep = '\n');
+			print(low.count);
 			}
 
 	# check if average of A and B and average of C and D has a 10-fold difference in counts
@@ -65,4 +66,12 @@ restriction.fragmentation.norm <- function(nano.df){
 
 		# plot the ratios
 		make.restr.digest.plot(nano.restr.avg, which.low);
+
+		out.df <- data.frame(
+			CD = as.numeric(t(nano.restr.avg['C+D',])),
+			AB = as.numeric(t(nano.restr.avg['A+B', ])),
+			ratio = as.numeric(t(nano.restr.avg['C+D',]/nano.restr.avg['A+B',]))
+			);
+		rownames(out.df) <- colnames(nano.restr.avg);
+		return(out.df);
 	}

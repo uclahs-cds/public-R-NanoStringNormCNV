@@ -3,7 +3,7 @@
 call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, to.round = TRUE, to.log = FALSE, multi.factor = 2) {
 
 	# assign header names
-	header.names <- c('CodeClass', 'Name', 'Accession');
+	header.names <- c('Code.Class', 'CodeClass', 'Name', 'Accession');
 
 	# grep X and Y-chromosome genes
 	x.genes <- input$Name[grep(x = input$Name, pattern = 'chrX')];
@@ -22,6 +22,10 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 			# make the rest of the data NA and only keeping the headers
 			out.cna[,which.cna] <- NA;
 			}
+	else{
+		out.cna <- input;
+		out.cna <- NA;
+		}
 
 	# see if user asks for per.chip
 	if (per.chip) {
@@ -41,6 +45,13 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 					this.chip <- paste0('Chip ', perm.i);
 					to.keep   <- chip.info$Chip %in% this.chip & chip.info$SampleID %in% ref.backup;
 					reference <- chip.info$SampleID[to.keep];
+
+					# when per chip is requested, but there are no reference samples on the chip, use pooled references then
+					if(length(reference) < 1){
+						next;
+#						to.keep   <- chip.info$SampleID %in% ref.backup;
+#						reference <- chip.info$SampleID[to.keep];
+						}
 					which.cna <- chip.info$SampleID[this.chip == chip.info$Chip];
 					which.cna <- c(which.cna[!which.cna %in% reference], reference);
 					}
@@ -57,8 +68,10 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 
 			# loop over each sample
 			for (this.sample in which.cna) {
-
 					# divide each test samples probe value by corresponding probes in the reference samples
+				if(any(input[,reference] == 0)){
+						input[,reference][input[,reference] == 0] <- 1;
+						}
 					tmp.ratio <- input[,this.sample] / input[,reference];
 
 					# multiply ratio by multiplication factor
@@ -71,7 +84,16 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 
 			# round the numbers to the nearest integer ** rounding 1.5 and 2.5 to 2 and 3 respectively **
 			which.cna     <- colnames(out.cna)[!colnames(out.cna) %in% header.names];
-			out.cna.round <- round(out.cna[,which.cna], digits = 1);
+			which.n <- which(colnames(out.cna) %in% which.cna);
+			# need to exclude columns with all NAs (occurs when perchip=T and there are no reference samples on that chip!)
+			if(any(apply(out.cna[, which.n, drop = FALSE], 2, function(f) all(is.na(f))))){
+				all.na <- which(apply(out.cna[, which.n, drop = FALSE], 2, function(f) all(is.na(f))));
+				which.n <- which.n[-all.na];
+				out.cna[,which.n] <- round(out.cna[,which.n, drop = FALSE], digits = 1);
+				out.cna.round <- out.cna[, which.cna, drop = FALSE];
+			}else{
+				out.cna.round <- round(out.cna[,which.cna, drop = FALSE], digits = 1);
+				}
 
 			# loop over each gene
 			for (row.ind in 1:nrow(out.cna.round)) {

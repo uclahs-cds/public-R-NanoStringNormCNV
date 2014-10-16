@@ -9,7 +9,7 @@ invariant.probe.norm <- function(nano.df){
 
 	#--- invariant probe normalization ---------------------------------------------------------------#
 	# step 1
-	# get average values for all the invariant probes (manual says 10 but I have 50?) Check with DW
+	# get average values for all the invariant probes 
 	inv.avg <- apply(
 		X = nano.df['Invariant' == nano.df$CodeClass, grep.cols],
 		MARGIN = 2,
@@ -23,14 +23,15 @@ invariant.probe.norm <- function(nano.df){
 	# step 2B
 	# plot the counts for the invariant probes. It is BAD to have counts < 100 for these probes as it signifies
 	# low DNA input, leading to unreliable CNA calls. Especially if the low counts are in the reference samples!!
-	make.invariant.probe.plot(nano.df['Invariant' == nano.df$CodeClass, grep.cols], fname.stem = 'invariant_probe');
+#	make.invariant.probe.plot(nano.df['Invariant' == nano.df$CodeClass, grep.cols], fname.stem = 'invariant_probe');
 
 	# step 3
 	# calculate normalization factor by mean.inv.avg / inv.avg
 	norm.factor <- mean.inv.avg / inv.avg;
 
 	# create a new object for nano.norm
-	rows.to.norm <- nano.df$CodeClass %in% c('Invariant', 'Endogenous');
+#	rows.to.norm <- nano.df$CodeClass %in% c('Invariant', 'Endogenous');
+	rows.to.norm <- 1:nrow(nano.df);
 	nano.norm    <- nano.df[rows.to.norm, c('CodeClass', 'Name', 'Accession')];
 	nano.norm[,grep.cols] <- NA;
 
