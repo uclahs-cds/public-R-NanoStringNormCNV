@@ -13,7 +13,7 @@ get.ari <- function(data, feature, discrete.data = FALSE){
 		cor.dendo <- hclust(cor.dist, method = 'complete'); # 
 		feature <- factor(feature, levels = unique(feature));
 		predicted.feature <- cutree(cor.dendo, length(levels(feature)));
-		ari <- adjustedRandIndex(predicted.feature, features);
+		ari <- adjustedRandIndex(predicted.feature, feature);
 		}
 
 	return(ari);
