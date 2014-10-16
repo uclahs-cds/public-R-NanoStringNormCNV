@@ -1,7 +1,7 @@
 Package: NanoStringNormCNV
 Type: Package
 Title: Helper functions to normalize NanoString CNV data
-Version: 0.0.2
+Version: 0.0.3
 Date: 2014-10-16
 Author: Cindy Yao and Emilie Lalonde
 Maintainer: <emilie.lalonde@oicr.on.ca>
