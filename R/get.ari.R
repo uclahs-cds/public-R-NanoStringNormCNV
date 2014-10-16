@@ -1,7 +1,7 @@
 
 get.ari <- function(data, feature, discrete.data = FALSE){
 	# if data isn't continuous, use Jaccard and Ward combo
-	if(data){
+	if(discrete.data){
 		dist.matrix <- dist(x=discrete.data, method = 'jaccard');
 		corr.hc <- hclust(dist.matrix, method = 'ward');
 		predicted.feature <- cutree(corr.hc, length(unique(feature)));
