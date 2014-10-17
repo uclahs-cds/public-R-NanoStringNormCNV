@@ -10,7 +10,7 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 	y.genes <- input$Name[grep(x = input$Name, pattern = 'chrY')];
 
 	# remove y.genes from input	  TO DO: get gender info to determine whether this should be done!
-	input <- input[!input$Name %in% y.genes,];
+	#input <- input[!input$Name %in% y.genes,];
 
 	# create empty data-frame to store data
 	out.cna <- input;
@@ -30,8 +30,8 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 	if (per.chip)       { n.chip <- length(unique(chip.info$Chip)); }
 	else if (!per.chip) { n.chip <- 1;                              }
 
-	# define samples.to.loop here
-	samples.to.loop <- colnames(out.cna)[!colnames(out.cna) %in% reference];
+	# define samples.to.loop here so the reference sample is placed at the end
+	samples.to.loop <- c(colnames(out.cna)[!colnames(out.cna) %in% reference], reference);
 
 	# loop over n.chip
 	for (perm.i in 1:n.chip) {
@@ -44,13 +44,13 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 
 			# get the tmp.ref for chip specifically
 			this.chip <- paste0('Chip ', perm.i);
-			tmp.ref <- chip.info$SampleID[this.chip == chip.info$Chip & reference == chip.info$SampleID];
+			tmp.ref <- chip.info$SampleID[chip.info$Chip %in% this.chip & chip.info$SampleID %in% reference];
 
 			# when per chip is requested, but there are no ref samples on the chip, use pooled refs then
 			if (length(tmp.ref) < 1) { next; }
 
 			samples.to.loop <- chip.info$SampleID[this.chip == chip.info$Chip];
-			samples.to.loop <- samples.to.loop[!samples.to.loop %in% tmp.ref];
+			samples.to.loop <- c(samples.to.loop[!samples.to.loop %in% tmp.ref], tmp.ref);
 			}
 
 		# if length of tmp.ref is greater than 1, take the average of the tmp.ref
@@ -72,13 +72,6 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 
 			# multiply ratio by multiplication factor
 			out.cna[,this.sample] <- tmp.ratio * multi.factor;
-			}
-
-		# do the above separately for reference samples
-		if (tmp.ref != 'avg.ref') {
-
-			tmp.ratio <- input[,tmp.ref] / input[,tmp.ref];
-			out.cna[,tmp.ref] <- tmp.ratio * multi.factor;
 			}
 		}
 
@@ -131,7 +124,7 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 			);
 
 		# return out.cna.round
-		return(out.cna.round);
+		return (out.cna.round);
 		}
 
 	# else return out.cna

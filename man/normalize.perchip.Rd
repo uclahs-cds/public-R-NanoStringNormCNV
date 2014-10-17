@@ -3,7 +3,9 @@
 \title{Wrapper function to call all normalization function requested}
 \description{Wrapper function to call all normalization function requested, processing one cartridge at a time}
 \usage{
-normalize.per.chip(pheno, raw.data, cc, bc, sc, do.nsn, do.rcc.inv, covs, plot.types = 'all')
+normalize.per.chip(
+	pheno, raw.data, cc, bc, sc, do.nsn, do.rcc.inv, covs, plot.types = 'all'
+	)
 }
 \arguments{
   \item{pheno}{A data-frame with the annotations for each sample, which must include a 'cartridge' field}
