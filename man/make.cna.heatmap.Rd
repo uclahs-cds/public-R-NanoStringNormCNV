@@ -3,7 +3,10 @@
 \title{Make a heatmap for CNAs}
 \description{Make a heatmap for CNAs}
 \usage{
-make.cna.heatmap(nano.cnas, fname.stem, covs.rows = NULL, covs.cols = NULL, covs.legend = NULL, rounded = FALSE, clust.dim = 'both')
+make.cna.heatmap(
+	nano.cnas, fname.stem, covs.rows = NULL, covs.cols = NULL, covs.legend = NULL,
+	rounded = FALSE, clust.dim = 'both'
+	)
 }
 \arguments{
   \item{nano.cnas}{A matrix with CNA info, genes X samples}

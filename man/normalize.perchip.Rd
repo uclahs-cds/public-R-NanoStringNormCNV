@@ -18,8 +18,7 @@ normalize.per.chip(
   \item{covs}{A data-frame with covariates for which to assess batch effects in NanoStringNorm}
   \item{plot.types}{Which NSN plots to generate, if any, after normalization. Defaults to all}
 }
-\details{Normalize all data in study one cartridge at a time using NanoStringNorm and/or invariant probe normalizaiton. See individual normalization functions for more details}.
-}
+\details{Normalize all data in study one cartridge at a time using NanoStringNorm and/or invariant probe normalizaiton. See individual normalization functions for more details.}
 \value{A data-frame with normalized data, with all cartridges combined}
 \author{Cindy Yao and Emilie Lalonde}
 \seealso{NanoStringNorm::NanoStringNorm}

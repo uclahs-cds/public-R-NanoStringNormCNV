@@ -3,7 +3,10 @@
 \title{Determine the copy number state from counts}
 \description{Subtract the reference signal from the test sample}
 \usage{
-call.copy.number.state(input, reference, per.chip = FALSE, chip.info = NULL, to.round = TRUE, to.log = FALSE, multi.factor = 2)
+call.copy.number.state(
+	input, reference, per.chip = FALSE, chip.info = NULL, to.round = TRUE, to.log = FALSE,
+	multi.factor = 2
+	)
 }
 \arguments{
   \item{input}{The NanoString normalized counts for both test and control samples}
