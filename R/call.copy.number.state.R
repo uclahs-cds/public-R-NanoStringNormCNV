@@ -1,16 +1,37 @@
 
 # create a function for calling copy number changes
-call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, to.round = TRUE, to.log = FALSE, multi.factor = 2) {
+call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', to.log = FALSE, multi.factor = 2, kd.vals = c(0.85,0.95)) {
 
-	# assign header names
-	header.names <- c('Code.Class', 'CodeClass', 'Name', 'Accession');
+	# Check input
+	if(! thresh.method %in% qw("round KD kd none")){
+		stop("Sorry method isn't currently supported. Please try one of round, KD, or none.");
+		}
+
+	if(toupper(thresh.method) == 'KD' & 2 != length(kd.vals)){
+		stop("Please specify two values for KD thresholds. The first should be for heterozygous and the second for homozygous.");
+		}
+
+	if(toupper(thresh.method) == 'KD' & kd.vals[1] > kd.vals[2]){
+		stop("Invalid KD thresholds-- the first should be for heterozygous and the second for homozygous.");
+		}
 
 	# grep X and Y-chromosome genes
 	x.genes <- input$Name[grep(x = input$Name, pattern = 'chrX')];
 	y.genes <- input$Name[grep(x = input$Name, pattern = 'chrY')];
+	if(length(x.genes) > 0){
+		warning("*** AT THE MOMENT WE IGNORE GENES/PROBES ON CHRX AND CHRY!!!****");
+		# remove x.genes from input	  TO DO: get gender info to determine whether this should be done!
+		input <- input[!input$Name %in% x.genes,];
+		}
+	if(length(y.genes) > 0){
+		warning("*** AT THE MOMENT WE IGNORE GENES/PROBES ON CHRX AND CHRY!!!****");
+		# remove y.genes from input	  TO DO: get gender info to determine whether this should be done!
+		input <- input[!input$Name %in% y.genes,];
+		}
 
-	# remove y.genes from input	  TO DO: get gender info to determine whether this should be done!
-	#input <- input[!input$Name %in% y.genes,];
+	### Analysis
+	# assign header names
+	header.names <- c('Code.Class', 'CodeClass', 'Name', 'Accession');
 
 	# create empty data-frame to store data
 	out.cna <- input;
@@ -75,8 +96,8 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 			}
 		}
 
-	# if user specified to.round then do the following
-	if (to.round) {
+	# if user specified to round then do the following (based on NS recommendataions)
+	if (thresh.method == 'round') {
 
 		# round the numbers to the nearest integer ** rounding 1.5 and 2.5 to 2 and 3 respectively **
 		which.cna <- colnames(out.cna)[!colnames(out.cna) %in% header.names];
@@ -93,6 +114,8 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 		if (any(na.counts)) {
 			all.na <- which(na.counts);
 			which.n <- which.n[-all.na];
+			print(paste("dropping:", all.na));
+			which.cna <- which.cna[which.n];
 			out.cna[,which.n] <- round(out.cna[,which.n, drop = FALSE], digits = 1);
 			out.cna.round <- out.cna[, which.cna, drop = FALSE];
 			}
@@ -104,10 +127,10 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 
 			# get a list of genes with the following criteria (should 0.5 CN be classified as 1?)
 			which.0 <- which(out.cna.round[row.ind,] <= 0.4);
-			which.1 <- which(out.cna.round[row.ind,] >= 0.6 & out.cna.round[row.ind,] <= 1.4);
-			which.2 <- which(out.cna.round[row.ind,] >= 1.6 & out.cna.round[row.ind,] <= 2.4);
-			which.3 <- which(out.cna.round[row.ind,] >= 2.6 & out.cna.round[row.ind,] <= 3.4);
-			which.4 <- which(out.cna.round[row.ind,] >= 3.6);
+			which.1 <- which(out.cna.round[row.ind,] > 0.4 & out.cna.round[row.ind,] <= 1.5);	# changed from 1.4 to 1.5
+			which.2 <- which(out.cna.round[row.ind,] > 1.5 & out.cna.round[row.ind,] <= 2.5);	# changed from 2.4 to 2.5
+			which.3 <- which(out.cna.round[row.ind,] > 2.5 & out.cna.round[row.ind,] <= 3.5);	# changed from 3.4 to 3.5
+			which.4 <- which(out.cna.round[row.ind,] > 3.5);	# changed from >= 3.6 to >3.6
 
 			# convert value to the nearest integer
 			out.cna.round[row.ind, which.0] <- 0;
@@ -125,6 +148,44 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 
 		# return out.cna.round
 		return (out.cna.round);
+		}
+	else if(thresh.method == 'KD'){
+		which.cna <- colnames(out.cna)[!colnames(out.cna) %in% header.names];
+		which.n   <- which(colnames(out.cna) %in% which.cna);
+
+		# pull below into a separate object
+		# pull below into a separate object
+		na.counts <- apply(
+			X = out.cna[,which.n, drop = FALSE],
+			MARGIN = 2,
+			FUN = function(f) { all(is.na(f)) }
+			);
+
+		# need to exclude columns with all NAs (occurs when perchip=T and there are no reference samples on that chip!)
+		if (any(na.counts)) {
+			all.na <- which(na.counts);
+			print(paste("dropping:", all.na));
+			which.n <- which.n[-all.na];
+			which.cna <- which.cna[which.n];
+			out.cna.round <- out.cna[, which.cna, drop = FALSE];
+			}
+		else{
+			out.cna.round <- out.cna[, which.cna, drop = FALSE];
+			}
+
+		# loop over each sample
+		for (col.ind in 1:ncol(out.cna.round)) {
+			cna.thresh.single <- get.sample.specific.cna.thresholds(method = 4, data = out.cna.round[ , col.ind], percent = kd.vals[1])[1:2];
+			cna.thresh.multi <- get.sample.specific.cna.thresholds(method = 4, data = out.cna.round[ , col.ind], percent = kd.vals[2])[1:2];
+			out.cna.round[ , col.ind] <- as.vector(call.cna.states(data.frame(log2ratio=out.cna.round[ , col.ind]), c(cna.thresh.multi[1], cna.thresh.single, cna.thresh.multi[2]))$CN) + 2;
+			}
+		# add the probe information back to out.cna.round
+		out.cna.round <- cbind(
+			input[,colnames(input)[colnames(input) %in% header.names], drop = FALSE],
+			out.cna.round
+			);
+		return(out.cna.round);
+
 		}
 
 	# else return out.cna
