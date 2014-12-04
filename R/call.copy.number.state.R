@@ -7,12 +7,17 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 		stop("Sorry method isn't currently supported. Please try one of round, KD, or none.");
 		}
 
-	if(toupper(thresh.method) == 'KD' & 2 != length(kd.vals)){
-		stop("Please specify two values for KD thresholds. The first should be for heterozygous and the second for homozygous.");
+	if(toupper(thresh.method) == 'KD' & (2 != length(kd.vals) & 4 != length(kd.vals))){
+		stop("Please specify two or four values for KD thresholds. The first should be for heterozygous and the second for homozygous if length 2. If length 4, the order should be hom deletion, het deletion, het gain, hom gain.");
 		}
 
-	if(toupper(thresh.method) == 'KD' & kd.vals[1] > kd.vals[2]){
+	# make sure kd values make sense
+	if(toupper(thresh.method) == 'KD' & 2 == length(kd.vals) & kd.vals[1] > kd.vals[2]){
 		stop("Invalid KD thresholds-- the first should be for heterozygous and the second for homozygous.");
+		}
+	if(toupper(thresh.method) == 'KD' & 4 == length(kd.vals) & (kd.vals[1] > kd.vals[2] | kd.vals[3] > kd.vals[4])){
+		print(kd.vals);
+		stop("Invalid KD thresholds-- the order should be hom deletion, het deletion, het gain, hom gain.");
 		}
 
 	# grep X and Y-chromosome genes
@@ -175,9 +180,18 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 
 		# loop over each sample
 		for (col.ind in 1:ncol(out.cna.round)) {
-			cna.thresh.single <- get.sample.specific.cna.thresholds(method = 4, data = out.cna.round[ , col.ind], percent = kd.vals[1])[1:2];
-			cna.thresh.multi <- get.sample.specific.cna.thresholds(method = 4, data = out.cna.round[ , col.ind], percent = kd.vals[2])[1:2];
-			out.cna.round[ , col.ind] <- as.vector(call.cna.states(data.frame(log2ratio=out.cna.round[ , col.ind]), c(cna.thresh.multi[1], cna.thresh.single, cna.thresh.multi[2]))$CN) + 2;
+			if(2 == length(kd.vals)){
+				cna.thresh.single <- get.sample.specific.cna.thresholds(method = 4, data = out.cna.round[ , col.ind], percent = kd.vals[1])[1:2];
+				cna.thresh.multi <- get.sample.specific.cna.thresholds(method = 4, data = out.cna.round[ , col.ind], percent = kd.vals[2])[1:2];
+				out.cna.round[ , col.ind] <- as.vector(call.cna.states(data.frame(log2ratio=out.cna.round[ , col.ind]), c(cna.thresh.multi[1], cna.thresh.single, cna.thresh.multi[2]))$CN) + 2;
+			}else if(4 == length(kd.vals)){
+				thresh <- vector(length = 4);
+				thresh[1] <- get.sample.specific.cna.thresholds(method = 4, data = out.cna.round[ , col.ind], percent = kd.vals[1])[1];	# hom del
+				thresh[2] <- get.sample.specific.cna.thresholds(method = 4, data = out.cna.round[ , col.ind], percent = kd.vals[2])[1];	# het del
+				thresh[3] <- get.sample.specific.cna.thresholds(method = 4, data = out.cna.round[ , col.ind], percent = kd.vals[3])[2];	# het gain
+				thresh[4] <- get.sample.specific.cna.thresholds(method = 4, data = out.cna.round[ , col.ind], percent = kd.vals[4])[2];	# hom gain
+				out.cna.round[ , col.ind] <- as.vector(call.cna.states(data.frame(log2ratio=out.cna.round[ , col.ind]), thresh)$CN) + 2;
+				}
 			}
 		# add the probe information back to out.cna.round
 		out.cna.round <- cbind(
