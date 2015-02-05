@@ -3,11 +3,10 @@
 \title{Determine the copy number state from counts}
 \description{Determine the copy number state from counts using predefined thresholds as defined by NanoString}
 \usage{
-apply.ns.cna.thresh(output, headers)
+apply.ns.cna.thresh(tmr2ref)
 }
 \arguments{
-  \item{output}{The data-frame to be filled with CNA states}
-  \item{headers}{Column names referring to gene information instead of samples}
+  \item{tmr2ref}{The data-frame with tumour-normal signals to be converted to CNA states}
 }
 \details{Determine the copy number state for each gene in each sample based on predefined log2ratio thresholds.}
 \value{A data-frame with copy number states}

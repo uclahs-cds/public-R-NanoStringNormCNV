@@ -62,7 +62,7 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 	# if user specified to round then do the following (based on NS recommendataions)
 	if (thresh.method == 'round') {
 		# segment using NS predifined thresholds
-		out.cna.round <- apply.ns.cna.thresh(out.cna, header.names);
+		out.cna.round <- apply.ns.cna.thresh(out.cna);
 
 		# add the probe information back to out.cna.round
 		out.cna.round <- cbind(
@@ -75,7 +75,7 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 		}
 	else if(thresh.method == 'KD'){
 		# segment using kernel density
-		out.cna.round <- apply.kd.cna.thresh(out.cna, header.names, kd.vals);
+		out.cna.round <- apply.kd.cna.thresh(out.cna, kd.vals);
 		
 		# add the probe information back to out.cna.round
 		out.cna.round <- cbind(
