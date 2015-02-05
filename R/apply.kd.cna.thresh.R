@@ -1,5 +1,5 @@
 
-apply.kd.cna.thresh <- function(output, headers, kd.thresh);
+apply.kd.cna.thresh <- function(output, headers, kd.thresh){
 	which.cna <- colnames(output)[!colnames(output) %in% headers];
 	which.n   <- which(colnames(output) %in% which.cna);
 
