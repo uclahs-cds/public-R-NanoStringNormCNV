@@ -56,7 +56,7 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 	if (per.chip)       { n.chip <- length(unique(chip.info$Chip)); }
 	else if (!per.chip) { n.chip <- 1;                              }
 
-	out.cna <- get.tumour.normal.ratio(reference, n.chip, chip.info, out.cna);
+	out.cna <- get.tumour.normal.ratio(reference, n.chip, chip.info, input, out.cna);
 	out.cna <- out.cna * multi.factor;
 
 	# if user specified to round then do the following (based on NS recommendataions)
