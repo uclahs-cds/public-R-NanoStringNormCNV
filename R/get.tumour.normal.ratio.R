@@ -9,8 +9,7 @@ get.tumour.normal.ratio <- function(ref, nchips, chips.annot, ns.counts, output)
 		# define a tmp.ref every time before the start of a new iteration
 		tmp.ref <- ref;
 
-		# if per.chip is TRUE
-		if (per.chip) {
+		if (length(nchips)>1) {
 
 			# get the tmp.ref for chip specifically
 			this.chip <- paste0('Chip ', perm.i);
