@@ -5,7 +5,7 @@
 \usage{
 call.copy.number.state(
 	input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', 
-	to.log = FALSE, multi.factor = 2, kd.vals = c(0.85,0.95)
+	to.log = FALSE, multi.factor = 2, kd.vals = c(0.85,0.95), adjust = F
 	)
 }
 \arguments{
@@ -17,6 +17,7 @@ call.copy.number.state(
   \item{to.log}{Whether to log the normalized data prior to copy number state calculation.}
   \item{multi.factor}{A number to multiply the test/ref ratio. NanoString recommends 2 (default), otherwise use 1 for no amplification/boosting}
   \item{kd.vals}{A two value vector which is only used when thresh.method ='KD'. The first value is used to call heterozygous CNAs and the 2nd for homozygous CNAs}
+  \item{adjust}{Whether or not to center the data at 2 prior to calling CNAs, default is FALSE}
 }
 \details{Determine the copy number state for each gene in each sample based on counts in the test and reference set.}
 \value{A data-frame with copy number states}
