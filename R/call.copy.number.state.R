@@ -1,6 +1,6 @@
 
 # create a function for calling copy number changes
-call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', to.log = FALSE, multi.factor = 2, kd.vals = c(0.85,0.95)) {
+call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', to.log = FALSE, multi.factor = 2, kd.vals = c(0.85,0.95), adjust = F) {
 
 	# Check input
 	if(! thresh.method %in% qw("round KD kd none")){
@@ -15,7 +15,7 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 	if(toupper(thresh.method) == 'KD' & 2 == length(kd.vals) & kd.vals[1] > kd.vals[2]){
 		stop("Invalid KD thresholds-- the first should be for heterozygous and the second for homozygous.");
 		}
-	if(toupper(thresh.method) == 'KD' & 4 == length(kd.vals) & (kd.vals[1] > kd.vals[2] | kd.vals[3] > kd.vals[4])){
+	if(toupper(thresh.method) == 'KD' & 4 == length(kd.vals) & (kd.vals[1] < kd.vals[2] | kd.vals[3] > kd.vals[4])){
 		print(kd.vals);
 		stop("Invalid KD thresholds-- the order should be hom deletion, het deletion, het gain, hom gain.");
 		}
@@ -58,6 +58,11 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 
 	out.cna <- get.tumour.normal.ratio(reference, n.chip, chip.info, input, out.cna);
 	out.cna <- out.cna * multi.factor;
+
+	# if user specified to make the median CN=2, adjust the values
+	if(adjust){
+		out.cna <- apply(out.cna, 2, function(f) f - (median(f) -2 ));
+		}
 
 	# if user specified to round then do the following (based on NS recommendataions)
 	if (thresh.method == 'round') {
