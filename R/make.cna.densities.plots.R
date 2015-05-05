@@ -1,5 +1,5 @@
 
-make.gene.densities.plot <- function(cnas, fname.stem, xlab){
+make.cna.densities.plots <- function(cnas, fname.stem, xlab){
 
 	### per gene
 	gene.list <- lapply(seq(1:nrow(cnas)), function(f) cnas[f,]);
