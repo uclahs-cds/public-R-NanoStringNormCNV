@@ -22,7 +22,7 @@ normalize.per.chip <- function(pheno, raw.data, cc, bc, sc, do.nsn, do.rcc.inv, 
 				anno = raw.data[, 1:3]
 				);
 			pdf(paste0('NanoStringNorm_plots_chip', chip, '.pdf'));
-			Plot.NanoStringNorm(x=nano.parts[[chip]], label.best.guess=T, plot.type=qw('cv mean.sd norm.factors missing RNA.estimates positive.controls'));
+			Plot.NanoStringNorm(x=nano.parts[[chip]], label.best.guess=T, plot.type=unlist(strsplit("cv mean.sd norm.factors missing RNA.estimates positive.controls", "\\s")));
 			dev.off();
 			nano.parts[[chip]] <- nano.parts[[chip]]$normalized.data;
 			colnames(nano.parts[[chip]])[1] <- 'CodeClass';

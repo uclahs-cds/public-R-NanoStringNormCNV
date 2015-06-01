@@ -15,7 +15,7 @@ normalize.global <- function(raw.data, cc, bc, sc, do.nsn, do.rcc.inv, covs, plo
 		normalized.data <- nano.norm$normalized.data;
 		colnames(normalized.data)[1] <- 'CodeClass';
 		pdf('NanoStringNorm_plots_all.pdf');
-		Plot.NanoStringNorm(x=nano.norm, label.best.guess=T, plot.type=qw('cv mean.sd batch.effects norm.factors missing RNA.estimages positive.controls'));
+		Plot.NanoStringNorm(x=nano.norm, label.best.guess=T, plot.type=unlist(strsplit("cv mean.sd batch.effects norm.factors missing RNA.estimages positive.controls","\\s")));
 		dev.off();
 		}
 	else{

@@ -3,7 +3,7 @@
 make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 	# reformat for plotting
 	restr.df <- melt(data = t(restr.data));
-	colnames(restr.df) <- qw("sample site count");
+	colnames(restr.df) <- unlist(strsplit("sample site count","\\s"));
 	restr.df$sample.id <- rep(seq(1:ncol(restr.data)), 2);
 
 	# barplot first

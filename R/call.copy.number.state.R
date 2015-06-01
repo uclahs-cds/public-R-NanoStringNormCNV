@@ -3,7 +3,7 @@
 call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', to.log = FALSE, multi.factor = 2, kd.vals = c(0.85,0.95), adjust = F) {
 
 	# Check input
-	if(! thresh.method %in% qw("round KD kd none")){
+	if(! thresh.method %in% (unlist(strsplit("round KD kd none","\\s")))){
 		stop("Sorry method isn't currently supported. Please try one of round, KD, or none.");
 		}
 

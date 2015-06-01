@@ -11,7 +11,3 @@ positive.control.norm(nano.df)
 \description{Find the correlation of positive control probes and the expected amounts based on NanoString manual (y=171.23x + 214.12)}
 \value{A data-frame with SampleName and R2 for Pearson correlations}
 \author{Cindy Yao and Emilie Lalonde}
-\examples{
-
-
-}
