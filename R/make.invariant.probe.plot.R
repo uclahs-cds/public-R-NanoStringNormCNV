@@ -26,7 +26,7 @@ make.invariant.probe.plot <- function(inv.probe.counts, fname.stem){
 	create.scatterplot(
 		log10(count) ~ jitter(probe.id),
 		data = splot.df,
-		filename = generate.filename(fname.stem, 'counts', 'png'),
+		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'counts', 'png'),
 		main = 'Invariant Probe Counts',
 		main.cex = 2,
 		col = splot.df$cols,
@@ -61,7 +61,7 @@ make.invariant.probe.plot <- function(inv.probe.counts, fname.stem){
 	create.barplot(
 		sample.id ~ n.low.counts,# ~ sample.id,
 		data = bplot.df,
-		filename = generate.filename(fname.stem, 'low_counts_per_sample', 'png'),
+		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'low_counts_per_sample', 'png'),
 		yaxis.lab = bplot.df$samples,
 		yat = seq(1,nrow(bplot.df), by = 1),
 		yaxis.cex = 1,

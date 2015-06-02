@@ -11,7 +11,7 @@ make.cna.heatmap <- function(
 
 	create.heatmap(
 		x = nano.cnas,
-		filename = generate.filename(fname.stem, 'cna_heatmap', 'png'),
+		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'cna_heatmap', 'png'),
 		cluster.dimensions = clust.dim,
 		clustering.method = 'centroid',
 		xlab.label = 'Genes',

@@ -9,7 +9,7 @@ make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 	# barplot first
 	bplot <- create.barplot(
 		formula = count ~ sample.id,
-		groups = site,
+		groups = restr.df$site,
 		data = restr.df,
 		stack = TRUE,
 		ylab.label = 'Count',
@@ -29,7 +29,7 @@ make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 		col.rectangle = 'pink',
 		legend = list(
 			  inside = list(
-					fun = draw.key,
+					fun = lattice::draw.key,
 					args = list(
 						key = list(
 						   points = list(
@@ -85,7 +85,7 @@ make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 	create.multiplot(
 		plot.objects = list(bplot,splot),
 		main = 'Restriction Digestion Norm',
-		filename = generate.filename('NanoString', 'restriction_digestion_ratios-mplot', 'png'),
+		filename = BoutrosLab.utilities::generate.filename('NanoString', 'restriction_digestion_ratios-mplot', 'png'),
 		panel.heights = c(1, 3),
 		main.cex = 2,
 		xlab.label = 'Samples',

@@ -1,2 +1,2 @@
 exportPattern("^[[:alpha:]]+")
-import(testthat,"BoutrosLab.plotting.general", "BoutrosLab.utilities.copynumber", "NanoStringNorm", "futile.logger", "mclust", "reshape2");
+import("testthat","lattice","BoutrosLab.utilities","BoutrosLab.plotting.general", "BoutrosLab.utilities.copynumber", "NanoStringNorm", "futile.logger", "mclust", "reshape2");

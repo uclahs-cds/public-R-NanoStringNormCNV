@@ -10,7 +10,7 @@ make.counts.heatmap <- function(nano.counts, fname.stem, covs.rows = NULL, covs.
 		}
 	create.heatmap(
 		x = nano.counts,
-		filename = generate.filename(fname.stem, 'counts_heatmap', 'png'),
+		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'counts_heatmap', 'png'),
 		cluster.dimensions = clust.dim,
 		rows.distance.method = clust.method,
 		cols.distance.method = clust.method,

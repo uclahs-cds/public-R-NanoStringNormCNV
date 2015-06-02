@@ -7,7 +7,7 @@ make.cna.densities.plots <- function(cnas, fname.stem, xlab){
 
 	create.densityplot(
 		x = gene.list,
-		filename = generate.filename(fname.stem, 'gene_density', 'png'),
+		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'gene_density', 'png'),
 		xlab.label = xlab,
 		xlab.cex = 2,
 		main = 'Density per gene',
@@ -30,7 +30,7 @@ make.cna.densities.plots <- function(cnas, fname.stem, xlab){
 
 	create.densityplot(
 		x = sample.list,
-		filename = generate.filename(fname.stem, 'sample_density', 'png'),
+		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'sample_density', 'png'),
 		xlab.label = xlab,
 		xlab.cex = 2,
 		main = 'Density per sample',
@@ -53,7 +53,7 @@ make.cna.densities.plots <- function(cnas, fname.stem, xlab){
 
 	create.densityplot(
 		x = sample.list,
-		filename = generate.filename(fname.stem, 'sample_density-logged', 'png'),
+		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'sample_density-logged', 'png'),
 		xlab.label = xlab,
 		xlab.cex = 2,
 		main = 'Density per sample',
