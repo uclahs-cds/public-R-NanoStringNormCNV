@@ -8,7 +8,6 @@ apply.kd.cna.thresh <- function(tmr2ref, kd.thresh){
 	which.n   <- which(colnames(tmr2ref) %in% which.cna);
 
 	# pull below into a separate object
-	# pull below into a separate object
 	na.counts <- apply(
 		X = tmr2ref[,which.n, drop = FALSE],
 		MARGIN = 2,
@@ -29,7 +28,6 @@ apply.kd.cna.thresh <- function(tmr2ref, kd.thresh){
 
 	# Determine the thresholds based on all patients combined (shown to be more stable if only considering small subset of patients)
 	if(2 == length(kd.thresh)){
-		print(head(c(cna.output)));
 		cna.thresh.single <- get.sample.specific.cna.thresholds(method = 4, data = unlist(cna.output), percent = kd.thresh[1])[1:2];
 		cna.thresh.multi <- get.sample.specific.cna.thresholds(method = 4, data = unlist(cna.output), percent = kd.thresh[2])[1:2];
 		# loop over each sample
@@ -44,7 +42,7 @@ apply.kd.cna.thresh <- function(tmr2ref, kd.thresh){
 		thresh[4] <- get.sample.specific.cna.thresholds(method = 4, data = unlist(cna.output), percent = kd.thresh[4])[2];	# hom gain
 		# loop over each sample
 		for (col.ind in 1:ncol(cna.output)) {
-			cna.output[ , col.ind] <- as.vector(call.cna.states(data.frame(log2ratio=cna.output[ , col.ind]), thresh)$CN) + 2;
+			cna.output[ , col.ind] <- as.vector(BoutrosLab.utilities.copynumber::call.cna.states(data.frame(log2ratio=cna.output[ , col.ind]), unlist(thresh))$CN) + 2;
 			}
 		}
 	

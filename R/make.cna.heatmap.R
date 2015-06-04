@@ -5,15 +5,16 @@ make.cna.heatmap <- function(
 	) {
 
 	# define parameters up front
-	dist.method <- ifelse(rounded, 'jaccard', 'correlation');
+	dist.method <- ifelse(rounded, 'jaccard', 'euclidean');
 	plot.at <- seq(floor(min(nano.cnas, na.rm = TRUE)), ceiling(max(nano.cnas, na.rm = TRUE)), 0.1);
-	plot.seq <- seq(min(plot.at), max(plot.at), 5);
+	plot.seq <- seq(min(plot.at), max(plot.at));
 
 	create.heatmap(
 		x = nano.cnas,
 		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'cna_heatmap', 'png'),
 		cluster.dimensions = clust.dim,
-		clustering.method = 'centroid',
+		clustering.method = 'diana',
+		#clustering.method = 'centroid',
 		xlab.label = 'Genes',
 		ylab.cex = 2,
 		ylab.label = 'Samples',

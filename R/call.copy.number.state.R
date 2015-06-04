@@ -1,6 +1,6 @@
 
 # create a function for calling copy number changes
-call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', to.log = FALSE, multi.factor = 2, kd.vals = c(0.85,0.95), adjust = F) {
+call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', to.log = FALSE, multi.factor = 2, kd.vals = c(0.85,0.95), adjust = F, cna.thresh = c(0.4, 1.5, 2.5, 3.5)) {
 
 	# Check input
 	if(! thresh.method %in% (unlist(strsplit("round KD kd none","\\s")))){
@@ -8,7 +8,7 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 		}
 
 	if(toupper(thresh.method) == 'KD' & (2 != length(kd.vals) & 4 != length(kd.vals))){
-		stop("Please specify two or four values for KD thresholds. The first should be for heterozygous and the second for homozygous if length 2. If length 4, the order should be hom deletion, het deletion, het gain, hom gain.");
+		stop("Please specify two or four values for KD thresholds.  multi.factore first should be for heterozygous and the second for homozygous if length 2. If length 4, the order should be hom deletion, het deletion, het gain, hom gain.");
 		}
 
 	# make sure kd values make sense
@@ -61,13 +61,13 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 
 	# if user specified to make the median CN=2, adjust the values
 	if(adjust){
-		out.cna <- apply(out.cna, 2, function(f) f - (median(f) -2 ));
+		out.cna <- apply(out.cna, 2, function(f) f - (median(f) - multi.factor));
 		}
 
 	# if user specified to round then do the following (based on NS recommendataions)
 	if (thresh.method == 'round') {
 		# segment using NS predifined thresholds
-		out.cna.round <- apply.ns.cna.thresh(out.cna);
+		out.cna.round <- apply.ns.cna.thresh(out.cna, cna.thresh);
 
 		# add the probe information back to out.cna.round
 		out.cna.round <- cbind(

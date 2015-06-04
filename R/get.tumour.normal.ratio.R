@@ -1,6 +1,7 @@
 
 get.tumour.normal.ratio <- function(ref, nchips, chips.annot, ns.counts, output){
 	# define samples.to.loop here so the reference sample is placed at the end
+	#samples.to.loop <- colnames(output)[!colnames(output) %in% ref];
 	samples.to.loop <- c(colnames(output)[!colnames(output) %in% ref], ref);
 
 	# loop over nchips
@@ -9,6 +10,8 @@ get.tumour.normal.ratio <- function(ref, nchips, chips.annot, ns.counts, output)
 		# define a tmp.ref every time before the start of a new iteration
 		tmp.ref <- ref;
 
+		flog.info('nchips %s', nchips);
+		
 		if (length(nchips)>1) {
 
 			# get the tmp.ref for chip specifically
@@ -32,14 +35,11 @@ get.tumour.normal.ratio <- function(ref, nchips, chips.annot, ns.counts, output)
 			tmp.ref <- 'avg.ref';
 			}
 
-		# loop over each sample first and then do the processing for reference samples!
-		for (this.sample in samples.to.loop) {
+		# avoid divisions by 0 by adding a pseudo-count if needed
+		if (any(0 == ns.counts[,tmp.ref])) { ns.counts[,tmp.ref][0 == ns.counts[,tmp.ref]] <- 1; }
 
-			# divide each test samples probe value by corresponding probes in the ref samples
-			if (any(0 == ns.counts[,tmp.ref])) { ns.counts[,tmp.ref][0 == ns.counts[,tmp.ref]] <- 1; }
-			tmp.ratio <- ns.counts[,this.sample] / ns.counts[,tmp.ref];
-			output[,this.sample] <- tmp.ratio;
-			}
+		# divide each test samples probe value by corresponding probes in the ref samples
+		output[ , samples.to.loop] <- ns.counts[ , samples.to.loop] / ns.counts[ , tmp.ref];
 		}
 
 	return(output);

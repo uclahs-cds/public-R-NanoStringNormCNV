@@ -72,7 +72,7 @@ make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 		cex = 1,
 		xaxis.tck = 0.5,
 		xlimits = c(1,col(restr.data)),
-		abline.h = 1,
+		abline.h = log10(50),	#1,
 		ylab.label = 'C+D / A+B',
 		ylab.cex = 2,
 		xaxis.lab = seq(20, nrow(restr.df),by=20),
