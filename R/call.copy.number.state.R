@@ -1,6 +1,6 @@
 
 # create a function for calling copy number changes
-call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', to.log = FALSE, multi.factor = 2, kd.vals = c(0.85,0.95), adjust = F, cna.thresh = c(0.4, 1.5, 2.5, 3.5)) {
+call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', to.log = FALSE, multi.factor = 2, kd.vals = c(0.85,0.95), adjust = FALSE, cna.thresh = c(0.4, 1.5, 2.5, 3.5)) {
 
 	# Check input
 	if(! thresh.method %in% (unlist(strsplit("round KD kd none","\\s")))){
