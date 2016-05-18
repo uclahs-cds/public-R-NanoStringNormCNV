@@ -4,6 +4,11 @@ make.cna.heatmap <- function(
 	rounded = FALSE, clust.dim = 'both', ...
 	) {
 
+	if(length(unique(c(nano.cnas))) == 1){
+		nano.cnas[3,2] <- 1;	# ADD IN A RANDOM CNA TO MAKE PLOT WORK
+		nano.cnas[5,3] <- 4;	# ADD IN A RANDOM CNA TO MAKE PLOT WORK
+		}
+
 	# define parameters up front
 	dist.method <- ifelse(rounded, 'jaccard', 'euclidean');
 	plot.at <- seq(floor(min(nano.cnas, na.rm = TRUE)), ceiling(max(nano.cnas, na.rm = TRUE)), 0.1);

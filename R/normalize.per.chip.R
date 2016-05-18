@@ -1,6 +1,6 @@
 
 ### normalize data for each chip separately
-normalize.per.chip <- function(pheno, raw.data, cc, bc, sc, do.nsn, do.rcc.inv, covs, plot.types = 'all'){
+normalize.per.chip <- function(pheno, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, plot.types = 'all'){
 	nano.parts <- list();
 	cartridges <- unique(pheno$cartridge);
 	for(chip in 1:length(unique(pheno$cartridge))){
@@ -16,6 +16,7 @@ normalize.per.chip <- function(pheno, raw.data, cc, bc, sc, do.nsn, do.rcc.inv, 
 				CodeCount = cc,
 				Background = bc,
 				SampleContent = sc,
+				Other = oth,
 				round.values = FALSE,
 				take.log = FALSE,
 				traits = use.covs,

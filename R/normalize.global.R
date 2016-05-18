@@ -1,12 +1,13 @@
 
 ### normalize all data in one batch
-normalize.global <- function(raw.data, cc, bc, sc, do.nsn, do.rcc.inv, covs, plot.types = 'all'){
+normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, plot.types = 'all'){
 	if(do.nsn){
 		nano.norm <- NanoStringNorm(
 			x = raw.data[, -c(1:3)],
 			CodeCount = cc,
 			Background = bc,
 			SampleContent = sc,
+			OtherNorm = oth,
 			round.values = FALSE,
 			take.log = FALSE,
 			traits = covs,

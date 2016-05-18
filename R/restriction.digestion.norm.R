@@ -49,10 +49,10 @@ restriction.fragmentation.norm <- function(nano.df){
 
 	# check if average of A and B and average of C and D has a 10-fold difference in counts
 	which.low <- NULL;
-	if (!all((nano.restr.avg['C+D',]/nano.restr.avg['A+B',]) > 50)) {
+	if (!all((nano.restr.avg['C+D',]/nano.restr.avg['A+B',]) > 55)) {
 
 		# gives a warning, record the ratio and see if these should be removed
-		which.low <- which((nano.restr.avg['C+D',]/nano.restr.avg['A+B',]) <= 50);
+		which.low <- which((nano.restr.avg['C+D',]/nano.restr.avg['A+B',]) <= 55);
 
         # get the data-frame
         low.ratio <- nano.restr.avg[,which.low];
