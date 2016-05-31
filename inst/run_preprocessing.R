@@ -26,7 +26,7 @@ if(interactive()){	# *** this is useful for development / troubleshooting- let's
 	opts$perchip <- 0;	# 0 means don't process per chip (process all samples together), 1 means process samples per cartridge
 	opts$ccn <- 0;	# code count norm option: 0 = none, 1 = geo.mean *** implement other options! ***
 	opts$bc <- 0;	# background correction option: 0 = none, 1 = mean.2sd *** implement other options! ***
-	opts$scc <- 4; # sample content correction: 1 = housekeeping.geo.mean, 2 = top.geo.mean, 3 = invariant probe normalization (via NSNCNV) *** add an option for none?
+	opts$scc <- 3; # sample content correction: 1 = housekeeping.geo.mean, 2 = top.geo.mean, 3 = invariant probe normalization (via NSNCNV) *** add an option for none?
 	opts$oth <- 0;	# other normalization (not sure this works... to be double checked!)
 	opts$matched <- 0; # whether (1) or not (0) to use matched normals for reference. If not, a pooled normal reference is used from all available reference samples.
 	opts$kd <- 1;	# how to call CNAs from log2ratio values. 0 = NanoString-defined thresholds from documentation, 1-4 = different kernal density (KD) values. 1 = define thresholds based on log2ratio values observed in reference samples (see lines 244-247) and 2-4 are values I defined based on my dataset, and probably not at all generic. *** In reality we should provide 1 set of default KD values, and have another option where users can define them (instead of 3 predefined value sets (kd = 2-4) like we have now). See lines 156-166 for the values currently being used.
