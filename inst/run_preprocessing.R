@@ -15,22 +15,22 @@ load_all("~/svn/BoutrosLab/Resources/code/R/prostate.acgh.biomarkers");
 load_all("~/svn/BoutrosLab/Resources/code/R/NanoStringNormCNV/");
 source("~/svn/BoutrosLab/Training/elalonde/OncoScan_reprocess/cna.plotting.functions.R");
 source("~/svn/BoutrosLab/Resources/code/R/ParameterEval/R/generate.covariates.R")
-source("~/svn/BoutrosLab/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
+source("~/svn/BoutrosLab/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R");	# *** many functions in here may need to be copied to package ***
 source("~/svn/BoutrosLab/Collaborators/RobBristow/nanostring_validation/normalization/call_signature_pga.R")
 
 
 ### FUNCTIONS #################################################################################
-if(interactive()){
-	#perchip0 <- ccn1 <- bc1 <- scc3 <- other2 <- matched0 <- kd1 <- col0
+### Get user-specified options (these are translated to NSN nomenclature on lines 131-154. Perhaps we should just accept NSN nomenclature instead (*** TO DO ***) 
+if(interactive()){	# *** this is useful for development / troubleshooting- let's you manually set the command line parameters so that you can run the script interactively
 	opts <- list();
-	opts$perchip <- 0;
-	opts$ccn <- 0;
-	opts$bc <- 0;
-	opts$scc <- 4;
-	opts$oth <- 0;
-	opts$matched <- 0;
-	opts$kd <- 1;
-	opts$col <- 0;
+	opts$perchip <- 0;	# 0 means don't process per chip (process all samples together), 1 means process samples per cartridge
+	opts$ccn <- 0;	# code count norm option: 0 = none, 1 = geo.mean *** implement other options! ***
+	opts$bc <- 0;	# background correction option: 0 = none, 1 = mean.2sd *** implement other options! ***
+	opts$scc <- 4; # sample content correction: 1 = housekeeping.geo.mean, 2 = top.geo.mean, 3 = invariant probe normalization (via NSNCNV) *** add an option for none?
+	opts$oth <- 0;	# other normalization (not sure this works... to be double checked!)
+	opts$matched <- 0; # whether (1) or not (0) to use matched normals for reference. If not, a pooled normal reference is used from all available reference samples.
+	opts$kd <- 1;	# how to call CNAs from log2ratio values. 0 = NanoString-defined thresholds from documentation, 1-4 = different kernal density (KD) values. 1 = define thresholds based on log2ratio values observed in reference samples (see lines 244-247) and 2-4 are values I defined based on my dataset, and probably not at all generic. *** In reality we should provide 1 set of default KD values, and have another option where users can define them (instead of 3 predefined value sets (kd = 2-4) like we have now). See lines 156-166 for the values currently being used.
+	opts$col <- 0;	# whether (1) or not(0) to collapse probes to larger unit (e.g. usually 3 probes per gene)
 }else{
 	params <- matrix(
 		c(
@@ -79,14 +79,13 @@ data.raw <- read.markup.RCC(
 # only keep the counts and not the header
 nano.raw <- data.raw$x;
 
-# drop sample with all 0s
+# drop sample with all 0s *** need to check if any such samples and remove programatically! ***
 nano.raw <- nano.raw[ , which(colnames(nano.raw) != 'X20140807_Boutros3_36_12')];
 nano.raw <- nano.raw[ , which(colnames(nano.raw) != 'X20140910_Boutros23_272_08')];
 nano.raw <- nano.raw[ , which(colnames(nano.raw) != 'X20140917_Boutros28_326_02')];
-# and 339B1?
 
 
-### get phenodata
+### get phenodata (*** sample annotations-- will need to specify format of this data in docs so that this function can be published ***)
 setwd(out.dir);
 phenodata <- load.phenodata(rm.outliers = ifelse(dropoutliers == 1, T, F));
 
@@ -97,9 +96,6 @@ if(! check.sample.order(phenodata$Name, colnames(nano.raw)[-c(1:3)])){
 	stop("Sorry, sample order doesn't match after reading and parsing data, see above.");
 	}
 
-# rename column headers according to CPCG-ID
-cpcg.id <- phenodata$SampleID;
-colnames(nano.raw)[-c(1:3)] <- cpcg.id;
 
 # get signature info-- only used if collapsed = TRUE
 if(opts$col == 1){
@@ -143,8 +139,6 @@ if(opts$scc==1){
 }else if(opts$scc==3){
 	sc.val <- 'none';
 	do.rcc.inv.norm <- TRUE;
-}else if(opts$scc==4){
-	sc.val <- 'none';
 	}
 oth.val <- 'none';
 if(opts$oth == 1){
