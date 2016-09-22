@@ -4,7 +4,7 @@
 \description{Wrapper function to call all normalization function requested, processing one cartridge at a time}
 \usage{
 normalize.per.chip(
-	pheno, raw.data, cc, bc, sc, do.nsn, do.rcc.inv, covs, plot.types = 'all'
+	pheno, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, plot.types = 'all'
 	)
 }
 \arguments{
@@ -13,6 +13,7 @@ normalize.per.chip(
   \item{cc}{Requested CodeCount NSN normalization. Can be 'none', 'sum', and 'geo.mean'.}
   \item{bc}{Requested Background NSN normalization. Can be 'none', 'mean', 'mean.2sd' and 'max'.}
   \item{sc}{Requested SampleContent NSN normalization. Can be 'none', 'housekeeping.geo.mean', 'total.sum', 'top.geo.mean' and 'low.cv.geo.mean'.}
+  \item{oth}{Requested OtherNorm NSN normalization. Can be 'vsn', 'quant' and 'rank'.}
   \item{do.nsn}{Whether or not to even run NanoStringNorm (NSN). Should be inferred from 3 previous parameters}
   \item{do.rcc.inv}{Whether or not to run invariant probe normalization. This is run separately from NSN, and is the recommended method by NanoString.}
   \item{covs}{A data-frame with covariates for which to assess batch effects in NanoStringNorm}

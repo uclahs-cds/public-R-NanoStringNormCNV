@@ -10,8 +10,8 @@ positive.control.norm <- function(nano.df){
 
 	# initiate object to store R2
 	R2.results <- data.frame(
-        R2 = NA,
         SampleName = colnames(nano.pos)[4:ncol(nano.pos)],
+        R2 = NA,
         stringsAsFactors = FALSE
         );
 

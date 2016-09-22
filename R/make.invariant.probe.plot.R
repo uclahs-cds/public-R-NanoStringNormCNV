@@ -2,26 +2,21 @@
 # plot the counts for the invariant probes. It is BAD to have counts < 100 for these probes as it signifies
 # low DNA input, leading to unreliable CNA calls. Especially if the low counts are in the reference samples!!
 
-make.invariant.probe.plot <- function(inv.probe.counts, fname.stem){
+make.invariant.probe.plot <- function(inv.probe.counts, fname.stem, sample.type = NULL){
+	colnames(sample.type) <- qw("SampleID type");
 	mean.counts <- apply(inv.probe.counts, 1, mean);
-	splot.df <- melt(cbind(probe=c(paste0('probe', 1:nrow(inv.probe.counts))), inv.probe.counts));
+	splot.df <- melt(cbind(probe = c(paste0('probe', 1:nrow(inv.probe.counts))), inv.probe.counts));
 	colnames(splot.df) <- qw("probe sample count");
 	splot.df$cols <- 'black';
 	splot.df$cols[splot.df$count < 100] <- 'red';
 	splot.df$probe.id <- seq(1:nrow(inv.probe.counts));
 	
-	curves.list <- list(
-		function(x) log10(mean.counts[1]),
-		function(x) log10(mean.counts[2]),
-		function(x) log10(mean.counts[3]),
-		function(x) log10(mean.counts[4]),
-		function(x) log10(mean.counts[5]),
-		function(x) log10(mean.counts[6]),
-		function(x) log10(mean.counts[7]),
-		function(x) log10(mean.counts[8]),
-		function(x) log10(mean.counts[9])
-#		function(x) log10(mean.counts[10])
-		);
+	curves.list <- list();
+	for (i in 1:nrow(inv.probe.counts)) {
+		curve.expr <- function(x) {};
+		body(curve.expr) <- bquote(log10(mean.counts[.(i)]));
+		curves.list[[i]] <- curve.expr;
+		}
 
 	create.scatterplot(
 		log10(count) ~ jitter(probe.id),
@@ -42,24 +37,53 @@ make.invariant.probe.plot <- function(inv.probe.counts, fname.stem){
 		ylimits = c(1, max(log10(splot.df$count))+0.5),
 		alpha = 0.85,
 		add.curves = TRUE,
-		curves.from = (seq(1:nrow(inv.probe.counts)) - 0.45),
-		curves.to = (seq(1:nrow(inv.probe.counts)) + 0.45),
+		curves.from = (seq(1:nrow(inv.probe.counts)) - 0.25),
+		curves.to = (seq(1:nrow(inv.probe.counts)) + 0.25),
 		curves.col = 'cyan',
 		curves.exprs = curves.list,
-		resolution = 500
+		resolution = 500,
+		width = 6 + 0.15 * nrow(inv.probe.counts)
 		);
 
 
-	# TO DO: colour bars accoring to sample type
 	# plot the # of counts < 100 per sample
 	bplot.df <- data.frame(
-		n.low.counts = apply(inv.probe.counts, 2, function(f) length(which(f<100))),
+		n.low.counts = apply(inv.probe.counts, 2, function(f) length(which(f < 100))),
 		samples = colnames(inv.probe.counts)
 		);
 	bplot.df <- bplot.df[bplot.df$n.low.counts > 0 ,];
 	bplot.df$sample.id <- seq(1:nrow(bplot.df));
+
+	bar.cols   <- 'black';
+	bar.legend <- NULL;
+	if (!is.null(sample.type)) {
+		if (all(bplot.df$samples %in% sample.type$SampleID)) {
+			sample.type <- sample.type[sample.type$SampleID %in% bplot.df$samples,];
+
+			if (all(unique(as.character(sample.type$type)) %in% c('Reference', 'Tumour'))) {
+				bar.cols <- as.character(sample.type$type);
+				bar.cols[bar.cols == 'Tumour'] <- 'black';
+				bar.cols[bar.cols == 'Reference'] <- 'red';
+
+				bar.legend <- list(
+					right = list(
+						fun = draw.key,
+						args = list(
+							key = list(
+								points = list(pch = 22, cex = 2, fill = c('black', 'red')),
+								text   = list(lab = c('Tumour', 'Reference'))
+								)
+							)
+						)
+					);
+				}
+		} else {
+			flog.warn("Type data sample IDs do not match invariant probe data sample IDs!")
+			} 
+		}
+		
 	create.barplot(
-		sample.id ~ n.low.counts,# ~ sample.id,
+		sample.id ~ n.low.counts,
 		data = bplot.df,
 		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'low_counts_per_sample', 'png'),
 		yaxis.lab = bplot.df$samples,
@@ -68,8 +92,11 @@ make.invariant.probe.plot <- function(inv.probe.counts, fname.stem){
 		xlab.label = 'Invariant probes < 100 (N)',
 		xlab.cex = 1.6,
 		xlimits = c(0, nrow(inv.probe.counts) + 1),
-		xat = seq(0, nrow(inv.probe.counts), by= 2),
 		plot.horizontal = TRUE,
-		resolution = 600
+		resolution = 600,
+		legend = bar.legend,
+		col = bar.cols,
+		height = 5,
+		width = 8
 		);
 	}
