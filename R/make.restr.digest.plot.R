@@ -26,7 +26,8 @@ make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 		ybottom.rectangle = -1000,
 		xright.rectangle = low.ratio.samples + 0.5,
 		ytop.rectangle = max(restr.df$count) * 1.5,
-		col.rectangle = 'pink',
+		col.rectangle = 'blue',
+		alpha.rectangle = 0.5,
 		legend = list(
 			  inside = list(
 					fun = lattice::draw.key,
@@ -43,8 +44,8 @@ make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 						   cex = 1
 						   )
 						),
-				x = 0.75,
-				y = 0.50
+				x = 0.95,
+				y = 0.65
 				)
 			),
 	    width = 20,
@@ -57,12 +58,14 @@ make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 		samples = colnames(restr.data),
 		sample.id = seq(1:ncol(restr.data)),
 		ratio = t(restr.data['ratio' , ]),
-		cols = rep('black', ncol(restr.data))
+		cols = rep('black', ncol(restr.data)),
+		stringsAsFactors = FALSE
 		);
 	
 	if(! is.null(low.ratio.samples)){
 		splot.df$cols[low.ratio.samples] <- 'red';
 		}
+
 	splot <- create.scatterplot(
 		formula = log10(ratio) ~ sample.id,
 		data = splot.df,
@@ -72,7 +75,7 @@ make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 		cex = 1,
 		xaxis.tck = 0.5,
 		xlimits = c(1,col(restr.data)),
-		abline.h = log10(55),	#1,
+		abline.h = log10(55),
 		ylab.label = 'C+D / A+B',
 		ylab.cex = 2,
 		xaxis.lab = seq(20, nrow(restr.df),by=20),
@@ -82,21 +85,31 @@ make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 		resolution = 600
 		);
 	
+	pretty.bplot <- c(
+		floor(head(pretty(restr.df$count), 1)),
+		ceiling(tail(pretty(restr.df$count), 1))
+		);
+	pretty.splot <- c(
+		floor(head(pretty(log10(splot.df$ratio)), 1)),
+		ceiling(tail(pretty(log10(splot.df$ratio)), 1))
+		);
+
 	create.multiplot(
-		plot.objects = list(bplot,splot),
+		plot.objects = list(bplot, splot),
 		main = 'Restriction Digestion Norm',
 		filename = BoutrosLab.utilities::generate.filename('NanoString', 'restriction_digestion_ratios-mplot', 'png'),
-		panel.heights = c(1, 3),
+		panel.heights = c(1, 2.5),
 		main.cex = 2,
 		xlab.label = 'Samples',
 		x.relation = 'same',
-		ylimits = list(c(0,5000), c(0,3)),
+		y.relation = 'free',
+		ylimits = list(c(pretty.bplot[1], pretty.bplot[2]), c(pretty.splot[1], pretty.splot[2])),
+		yat = list(pretty(restr.df$count), c(pretty.splot[1]:pretty.splot[2])),
 		xaxis.alternating = 1,
 		merge.legends = TRUE,
-		ylab.label = c(expression('\t\tlog'[10]*'(ratio)'), 'Count\t'),
+		ylab.label = c(expression('\tlog'[10]*'(ratio)'), '\tCount'),
 		ylab.cex = 2,
 		yaxis.cex = c(1, 1),
-		retrieve.plot.labels = TRUE,
 		width = 20,
 		resolution = 600
 		);
