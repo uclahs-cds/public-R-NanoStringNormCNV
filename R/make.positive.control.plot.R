@@ -4,7 +4,7 @@ make.positive.control.plot <- function(corr.df, fname.stem){		### TO DO: Add in 
 	corr.df <- corr.df[order(corr.df[,1]), 1, drop = FALSE];
 	rownames(corr.df) <- NULL;
 	
-	create.heatmap(
+	BoutrosLab.plotting.general::create.heatmap(
 		x = as.matrix(corr.df),
 		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'full_range', 'png'),
 		main = 'Positive Probe Correlations',
@@ -21,7 +21,7 @@ make.positive.control.plot <- function(corr.df, fname.stem){		### TO DO: Add in 
 		right.padding = 2
 		);
 	
-	create.heatmap(
+	BoutrosLab.plotting.general::create.heatmap(
 		x = as.matrix(corr.df),
 		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'zoomed', 'png'),
 		main = 'Positive Probe Correlations',

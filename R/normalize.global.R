@@ -1,8 +1,8 @@
 
 ### normalize all data in one batch
-normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, plot.types = 'all'){
-	if(do.nsn){
-		nano.norm <- NanoStringNorm(
+normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, plot.types = 'all', pheno = NULL){
+	if (do.nsn) {
+		nano.norm <- NanoStringNorm::NanoStringNorm(
 			x = raw.data[, -c(1:3)],
 			CodeCount = cc,
 			Background = bc,
@@ -15,16 +15,20 @@ normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs
 			);
 		normalized.data <- nano.norm$normalized.data;
 		colnames(normalized.data)[1] <- 'CodeClass';
+
 		pdf('NanoStringNorm_plots_all.pdf');
-		Plot.NanoStringNorm(x=nano.norm, label.best.guess=T, plot.type=unlist(strsplit("cv mean.sd batch.effects norm.factors missing RNA.estimages positive.controls","\\s")));
+		NanoStringNorm::Plot.NanoStringNorm(
+			x = nano.norm,
+			label.best.guess = TRUE,
+			plot.type = unlist(strsplit("cv mean.sd batch.effects norm.factors missing RNA.estimages positive.controls","\\s"))
+			);
 		dev.off();
-		}
-	else{
+	} else {
 		normalized.data <- raw.data;
 		}
 
-	if(do.rcc.inv){
-		normalized.data <- NanoStringNormCNV::invariant.probe.norm(normalized.data);
+	if (do.rcc.inv) {
+		normalized.data <- NanoStringNormCNV::invariant.probe.norm(normalized.data, pheno);
 		}
 	return(normalized.data);
 	}

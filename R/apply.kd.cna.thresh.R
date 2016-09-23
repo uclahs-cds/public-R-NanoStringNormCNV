@@ -26,12 +26,12 @@ apply.kd.cna.thresh <- function(tmr2ref, kd.thresh){
 	# Determine the thresholds based on all patients combined
 	# shown to be more stable if only considering small subset of patients
 	if (2 == length(kd.thresh)) {
-		cna.thresh.single <- get.sample.specific.cna.thresholds(
+		cna.thresh.single <- BoutrosLab.utilities.copynumber::get.sample.specific.cna.thresholds(
 			method = 4,
 			data = unlist(cna.output),
 			percent = kd.thresh[1]
 			)[1:2];
-		cna.thresh.multi <- get.sample.specific.cna.thresholds(
+		cna.thresh.multi <- BoutrosLab.utilities.copynumber::get.sample.specific.cna.thresholds(
 			method = 4,
 			data = unlist(cna.output),
 			percent = kd.thresh[2]

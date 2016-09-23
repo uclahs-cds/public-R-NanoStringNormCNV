@@ -3,10 +3,11 @@
 \title{Normalize data using invariant probes}
 \description{Normalize data using invariant probes to control for differences in sample input}
 \usage{
-invariant.probe.norm(nano.df)
+invariant.probe.norm(nano.df, pheno = NULL)
 }
 \arguments{
   \item{nano.df}{The NanoString data-frame with normalized counts}
+  \item{pheno}{Data frame with fields 'SampleID' and 'type' (specifying whether Tumour or Reference). Defaults to NULL}
 }
 \details{Normalize data using invariant probes to control for differences in sample input. Counts are multiplied by a normalization factor (mean INV probe counts in sample / mean(mean INV probe count of each sample)).
 }

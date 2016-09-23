@@ -12,7 +12,7 @@ get.tumour.normal.ratio <- function(ref, nchips, chips.annot, ns.counts, output)
 
 		flog.info('nchips %s', nchips);
 		
-		if (length(nchips)>1) {
+		if (length(nchips) > 1) {
 
 			# get the tmp.ref for chip specifically
 			this.chip <- paste0('Chip ', perm.i);
@@ -33,7 +33,7 @@ get.tumour.normal.ratio <- function(ref, nchips, chips.annot, ns.counts, output)
 
 			# and change tmp.ref to 'avg.ref'
 			tmp.ref <- 'avg.ref';
-			}
+			}   
 
 		# avoid divisions by 0 by adding a pseudo-count if needed
 		if (any(0 == ns.counts[,tmp.ref])) { ns.counts[,tmp.ref][0 == ns.counts[,tmp.ref]] <- 1; }

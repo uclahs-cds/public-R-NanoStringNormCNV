@@ -1,5 +1,4 @@
 
-
 make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 	# reformat for plotting
 	restr.df <- melt(data = t(restr.data));
@@ -7,7 +6,7 @@ make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 	restr.df$sample.id <- rep(seq(1:ncol(restr.data)), 2);
 
 	# barplot first
-	bplot <- create.barplot(
+	bplot <- BoutrosLab.plotting.general::create.barplot(
 		formula = count ~ sample.id,
 		groups = restr.df$site,
 		data = restr.df,
@@ -66,7 +65,7 @@ make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 		splot.df$cols[low.ratio.samples] <- 'red';
 		}
 
-	splot <- create.scatterplot(
+	splot <- BoutrosLab.plotting.general::create.scatterplot(
 		formula = log10(ratio) ~ sample.id,
 		data = splot.df,
 		type = 'p',
@@ -94,7 +93,7 @@ make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 		ceiling(tail(pretty(log10(splot.df$ratio)), 1))
 		);
 
-	create.multiplot(
+	BoutrosLab.plotting.general::create.multiplot(
 		plot.objects = list(bplot, splot),
 		main = 'Restriction Digestion Norm',
 		filename = BoutrosLab.utilities::generate.filename('NanoString', 'restriction_digestion_ratios-mplot', 'png'),

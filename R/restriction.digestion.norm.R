@@ -1,5 +1,4 @@
 
-
 ### Step 2: Restriction fragmentation normalization
 restriction.fragmentation.norm <- function(nano.df){
 	#--- restriction fragmentation controls ----------------------------------------------------------#
@@ -65,7 +64,7 @@ restriction.fragmentation.norm <- function(nano.df){
         }
 
 		# plot the ratios
-		make.restr.digest.plot(nano.restr.avg, which.low);
+		NanoStringNormCNV::make.restr.digest.plot(nano.restr.avg, which.low);
 
 		out.df <- data.frame(
 			CD = as.numeric(t(nano.restr.avg['C+D',])),
