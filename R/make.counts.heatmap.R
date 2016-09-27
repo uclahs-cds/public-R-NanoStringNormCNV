@@ -1,14 +1,14 @@
 
-make.counts.heatmap <- function(nano.counts, fname.stem, covs.rows = NULL, covs.cols = NULL, covs.legend = NULL, clust.dim = 'both', clust.method='euclidean', print.ylab = NULL){
+make.counts.heatmap <- function(nano.counts, fname.stem, covs.rows = NULL, covs.cols = NULL, covs.legend = NULL, clust.dim = 'both', clust.method='euclidean', print.ylab = NULL) {
 	split.by <-  1;
-	if(max(nano.counts) > 5000){
+	if (max(nano.counts) > 5000) {
 		nano.counts <- log10(nano.counts + 1);
 		split.by <- 0.1;
-		}
-	else if(max(nano.counts) ==1){
+	} else if (max(nano.counts) == 1) {
 		split.by <- 0.5;
 		}
-	create.heatmap(
+
+	BoutrosLab.plotting.general::create.heatmap(
 		x = nano.counts,
 		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'counts_heatmap', 'png'),
 		cluster.dimensions = clust.dim,
@@ -24,8 +24,10 @@ make.counts.heatmap <- function(nano.counts, fname.stem, covs.rows = NULL, covs.
 		covariates.top = covs.cols,
 		covariate.legends = covs.legend,
 		colour.scheme = c('white', 'black'),
-		at = seq(0, max(nano.counts)+0.5, by = split.by),
-		resolution = 600
+		colourkey.cex = 2,
+		at = seq(0, max(nano.counts) + 0.5, by = split.by),
+		resolution = 600,
+		axis.xlab.padding = 1.5,
+		width = 7
 		);
-
 	}
