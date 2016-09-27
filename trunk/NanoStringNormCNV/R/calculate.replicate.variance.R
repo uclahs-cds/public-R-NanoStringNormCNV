@@ -13,7 +13,6 @@ calculate.replicate.variance <- function (input, pheno, gene.names, var.function
 				)
 			)
 		);
-	print(dim(out.table));
 
 	# loop over each unique sample from Name and create a difference matrix
 	for (this.sample in unique(pheno$Name)) {

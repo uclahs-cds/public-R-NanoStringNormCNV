@@ -1,9 +1,9 @@
 
 make.samples.correlation.heatmap <- function(data, cor.method = 'pearson', fname, covs, covs.legend){
-### get the inter-array correlations and plot
+	# get the inter-array correlations and plot
 	correlations <- cor(x = data, use = 'all.obs', method = cor.method);
 
-	create.heatmap(
+	BoutrosLab.plotting.general::create.heatmap(
 		x = correlations,
 		filename = fname,
 		clustering.method = 'complete',
@@ -16,7 +16,7 @@ make.samples.correlation.heatmap <- function(data, cor.method = 'pearson', fname
 		scale.data = FALSE,
 		colourkey.cex = 2.0,
 		xaxis.rot = 90,
-		resolution = 600
+		resolution = 600,
+		width = 7
 		);
 	}
-

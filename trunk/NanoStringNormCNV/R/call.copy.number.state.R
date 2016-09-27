@@ -3,19 +3,19 @@
 call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', to.log = FALSE, multi.factor = 2, kd.vals = c(0.85,0.95), adjust = FALSE, cna.thresh = c(0.4, 1.5, 2.5, 3.5)) {
 
 	# Check input
-	if(! thresh.method %in% (unlist(strsplit("round KD kd none","\\s")))){
+	if (! thresh.method %in% (unlist(strsplit("round KD kd none","\\s")))) {
 		stop("Sorry method isn't currently supported. Please try one of round, KD, or none.");
 		}
 
-	if(toupper(thresh.method) == 'KD' & (2 != length(kd.vals) & 4 != length(kd.vals))){
+	if (toupper(thresh.method) == 'KD' & (2 != length(kd.vals) & 4 != length(kd.vals))) {
 		stop("Please specify two or four values for KD thresholds.  multi.factore first should be for heterozygous and the second for homozygous if length 2. If length 4, the order should be hom deletion, het deletion, het gain, hom gain.");
 		}
 
 	# make sure kd values make sense
-	if(toupper(thresh.method) == 'KD' & 2 == length(kd.vals) & kd.vals[1] > kd.vals[2]){
+	if (toupper(thresh.method) == 'KD' & 2 == length(kd.vals) & kd.vals[1] > kd.vals[2]) {
 		stop("Invalid KD thresholds-- the first should be for heterozygous and the second for homozygous.");
 		}
-	if(toupper(thresh.method) == 'KD' & 4 == length(kd.vals) & (kd.vals[1] < kd.vals[2] | kd.vals[3] > kd.vals[4])){
+	if (toupper(thresh.method) == 'KD' & 4 == length(kd.vals) & (kd.vals[1] < kd.vals[2] | kd.vals[3] > kd.vals[4])) {
 		print(kd.vals);
 		stop("Invalid KD thresholds-- the order should be hom deletion, het deletion, het gain, hom gain.");
 		}
@@ -23,14 +23,16 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 	# grep X and Y-chromosome genes
 	x.genes <- input$Name[grep(x = input$Name, pattern = 'chrX')];
 	y.genes <- input$Name[grep(x = input$Name, pattern = 'chrY')];
-	if(length(x.genes) > 0){
+	if (length(x.genes) > 0) {
 		warning("*** AT THE MOMENT WE IGNORE GENES/PROBES ON CHRX AND CHRY!!!****");
-		# remove x.genes from input	  TO DO: get gender info to determine whether this should be done!
+		# remove x.genes from input
+		# TO DO: get gender info to determine whether this should be done!
 		input <- input[!input$Name %in% x.genes,];
 		}
-	if(length(y.genes) > 0){
+	if (length(y.genes) > 0) {
 		warning("*** AT THE MOMENT WE IGNORE GENES/PROBES ON CHRX AND CHRY!!!****");
-		# remove y.genes from input	  TO DO: get gender info to determine whether this should be done!
+		# remove y.genes from input
+		# TO DO: get gender info to determine whether this should be done!
 		input <- input[!input$Name %in% y.genes,];
 		}
 
@@ -46,28 +48,29 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 	if (any(header.names %in% to.keep)) { to.keep <- to.keep[!to.keep %in% header.names]; }
 
 	# make out.cna all NAs for data storage
-	out.cna <- out.cna[,to.keep];
+	out.cna <- out.cna[, to.keep, drop = FALSE];
 	out.cna[,to.keep] <- NA;
 
 	# remove to.keep
 	rm(to.keep);
 
 	# see if user asks for per.chip
-	if (per.chip)       { n.chip <- length(unique(chip.info$Chip)); }
-	else if (!per.chip) { n.chip <- 1;                              }
+	if (per.chip) {
+		n.chip <- length(unique(chip.info$Chip));
+	} else if (!per.chip) {
+		n.chip <- 1;
+		}
 
-	out.cna <- get.tumour.normal.ratio(reference, n.chip, chip.info, input, out.cna);
+	out.cna <- NanoStringNormCNV::get.tumour.normal.ratio(reference, n.chip, chip.info, input, out.cna);
 	out.cna <- out.cna * multi.factor;
 
 	# if user specified to make the median CN=2, adjust the values
-	if(adjust){
-		out.cna <- apply(out.cna, 2, function(f) f - (median(f) - multi.factor));
-		}
+	if (adjust) { out.cna <- apply(out.cna, 2, function(f) f - (median(f) - multi.factor)); }
 
-	# if user specified to round then do the following (based on NS recommendataions)
+	# round if specified (based on NS recommendataions)
 	if (thresh.method == 'round') {
-		# segment using NS predifined thresholds
-		out.cna.round <- apply.ns.cna.thresh(out.cna, cna.thresh);
+		# segment using NS pre-defined thresholds
+		out.cna.round <- NanoStringNormCNV::apply.ns.cna.thresh(out.cna, cna.thresh);
 
 		# add the probe information back to out.cna.round
 		out.cna.round <- cbind(
@@ -75,25 +78,20 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 			out.cna.round
 			);
 
-		# return out.cna.round
 		return (out.cna.round);
-		}
-	else if(thresh.method == 'KD'){
+	} else if(thresh.method == 'KD')  {
 		# segment using kernel density
-		out.cna.round <- apply.kd.cna.thresh(out.cna, kd.vals);
+		out.cna.round <- NanoStringNormCNV::apply.kd.cna.thresh(out.cna, kd.vals);
 		
 		# add the probe information back to out.cna.round
 		out.cna.round <- cbind(
 			input[,colnames(input)[colnames(input) %in% header.names], drop = FALSE],
 			out.cna.round
 			);
+
 		return(out.cna.round);
-
-		}
-
-	# else return out.cna
-	else {
-
+	} else {
+		# else return as is
 		return(
 			cbind(
 				input[,colnames(input)[colnames(input) %in% header.names], drop = FALSE],

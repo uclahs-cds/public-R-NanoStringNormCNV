@@ -2,7 +2,7 @@
 collapse.genes <- function(nano.df){
 	# generate nano.df.aggr gene-level data
 	nano.df.gene <- aggregate(
-			x = nano.df[,!colnames(nano.df) %in% c('CodeClass', 'Name', 'Accession')],
+			x = nano.df[, !colnames(nano.df) %in% c('CodeClass', 'Name', 'Accession')],
 			by = list(nano.df$Accession),
 			FUN = mean
 			);

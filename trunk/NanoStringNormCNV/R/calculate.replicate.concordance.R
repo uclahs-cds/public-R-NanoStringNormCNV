@@ -18,12 +18,11 @@ calculate.replicate.concordance <- function (input, pheno, gene.names) {
 		# get the samples pertaining to the name
 		this.ID <- pheno[pheno$Name == this.sample, 'SampleID'];
 
-		# calculate the per-gene variance of replicates
+		# calculate the per-gene CN concordance of replicates
 		per.gene.conc <- apply(
 			X = input[,which(colnames(input) == this.ID), drop = FALSE],
 			MARGIN = 1,
-			FUN = function(f)
-				ifelse(length(unique(as.numeric(f))) == 1, 1, 0)
+			FUN = function(f) { ifelse(length(unique(as.numeric(f))) == 1, 1, 0); }
 			);
 
 		# add that to the out.table
