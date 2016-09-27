@@ -5,7 +5,7 @@
 \usage{
 make.cna.heatmap(
 	nano.cnas, fname.stem, covs.rows = NULL, covs.cols = NULL, covs.legend = NULL,
-	rounded = FALSE, clust.dim = 'both', ...
+	rounded = FALSE, clust.dim = 'both', centering.value = 2, ...
 	)
 }
 \arguments{
@@ -16,6 +16,7 @@ make.cna.heatmap(
   \item{covs.legend}{A legend object to be passed directly to create.heatmap}
   \item{rounded}{Whether the CNA data has been rounded to the nearest integer. If false (default), correlation is used as the method. If true, jaccard is used}
   \item{clust.dim}{Which dimensions to cluster. Defaults to 'both'}
+  \item{centering.value}{The center value of the colour map. Defaults to 2}
   \item{...}{Other parameters to be passed to create.heatmap}
 }
 \details{Make a clustered heatmap for all samples and genes}
