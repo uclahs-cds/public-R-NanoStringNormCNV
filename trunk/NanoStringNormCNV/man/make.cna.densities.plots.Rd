@@ -1,9 +1,9 @@
-\name{make.gene.densities.plot}
-\alias{make.gene.densities.plot}
+\name{make.cna.densities.plots}
+\alias{make.cna.densities.plots}
 \title{Make density plots for normalized counts}
-\description{Make density plots for normalized counts per sample and per gene}
+\description{Make density plots for normalized CNA counts per sample and per gene}
 \usage{
-make.gene.densities.plot(cnas, fname.stem, xlab)
+make.cna.densities.plots(cnas, fname.stem, xlab)
 }
 \arguments{
   \item{cnas}{A matrix with CNA info, genes X samples}
