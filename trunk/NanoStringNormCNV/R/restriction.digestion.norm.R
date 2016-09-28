@@ -54,7 +54,7 @@ restriction.fragmentation.norm <- function(nano.df){
 		which.low <- which((nano.restr.avg['C+D',]/nano.restr.avg['A+B',]) <= 55);
 
         # get the data-frame
-        low.ratio <- nano.restr.avg[,which.low];
+        low.ratio <- nano.restr.avg[, which.low, drop = FALSE];
 
         # add a new row with the ratio
         low.ratio['ratio',] <- low.ratio['C+D',]/low.ratio['A+B',];
