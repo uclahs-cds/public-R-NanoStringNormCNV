@@ -26,41 +26,36 @@ apply.kd.cna.thresh <- function(tmr2ref, kd.thresh){
 	# Determine the thresholds based on all patients combined
 	# shown to be more stable if only considering small subset of patients
 	if (2 == length(kd.thresh)) {
-		cna.thresh.single <- BoutrosLab.utilities.copynumber::get.sample.specific.cna.thresholds(
-			method = 4,
-			data = unlist(cna.output),
+		cna.thresh.single <- NanoStringNormCNV::get.sample.specific.cna.thresholds(
+			cna.data = unlist(cna.output),
 			percent = kd.thresh[1]
-			)[1:2];
-		cna.thresh.multi <- BoutrosLab.utilities.copynumber::get.sample.specific.cna.thresholds(
-			method = 4,
-			data = unlist(cna.output),
+			);
+		cna.thresh.multi <- NanoStringNormCNV::get.sample.specific.cna.thresholds(
+			cna.data = unlist(cna.output),
 			percent = kd.thresh[2]
-			)[1:2];
+			);
 
 		# loop over each sample
 		for (col.ind in 1:ncol(cna.output)) {
-			cna.output[ , col.ind] <- as.vector(
-				BoutrosLab.utilities.copynumber::call.cna.states(
-					data.frame(log2ratio = cna.output[ , col.ind]),
-					c(cna.thresh.multi[1], cna.thresh.single, cna.thresh.multi[2])
-					)$CN
-				) + 2;
+			cna.output[ , col.ind] <- NanoStringNormCNV::call.cna.states(
+				cna.data = data.frame(log2ratio = cna.output[ , col.ind]),
+				thresholds = c(cna.thresh.multi[1], cna.thresh.single, cna.thresh.multi[2])
+				);
 			}
 	} else if (4 == length(kd.thresh)) {
 		thresh <- vector(length = 4);
-		thresh[1] <- get.sample.specific.cna.thresholds(method = 4, data = unlist(cna.output), percent = kd.thresh[1])[1];	# hom del
-		thresh[2] <- get.sample.specific.cna.thresholds(method = 4, data = unlist(cna.output), percent = kd.thresh[2])[1];	# het del
-		thresh[3] <- get.sample.specific.cna.thresholds(method = 4, data = unlist(cna.output), percent = kd.thresh[3])[2];	# het gain
-		thresh[4] <- get.sample.specific.cna.thresholds(method = 4, data = unlist(cna.output), percent = kd.thresh[4])[2];	# hom gain
+
+		thresh[1] <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output), percent = kd.thresh[1])[1]; # hom del
+		thresh[2] <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output), percent = kd.thresh[2])[1]; # het del
+		thresh[3] <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output), percent = kd.thresh[3])[2]; # het gain
+		thresh[4] <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output), percent = kd.thresh[4])[2]; # hom gain
 
 		# loop over each sample
 		for (col.ind in 1:ncol(cna.output)) {
-			cna.output[ , col.ind] <- as.vector(
-				BoutrosLab.utilities.copynumber::call.cna.states(
-					data.frame(log2ratio = cna.output[ , col.ind]),
-					unlist(thresh)
-					)$CN
-				) + 2;
+			cna.output[ , col.ind] <- NanoStringNormCNV::call.cna.states(
+				cna.data = data.frame(log2ratio = cna.output[ , col.ind]),
+				thresholds = unlist(thresh)
+				);
 			}
 		}
 
