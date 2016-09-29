@@ -1,9 +1,9 @@
-\name{make.samples.correlation.heatmap}
-\alias{make.samples.correlation.heatmap}
+\name{make.sample.correlations.heatmap}
+\alias{make.sample.correlations.heatmap}
 \title{Make a heatmap of the inter-sample correlations}
 \description{Make a heatmap for inter sample correlations based on code counts}
 \usage{
-make.samples.correlation.heatmap(data, cor.method = 'pearson', fname, covs, covs.legend)
+make.sample.correlations.heatmap(data, cor.method = 'pearson', fname, covs, covs.legend)
 }
 \arguments{
   \item{data}{A matrix with code count info, genes X samples. Can be normalized or raw.}

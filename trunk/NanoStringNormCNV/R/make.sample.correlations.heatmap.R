@@ -1,5 +1,5 @@
 
-make.samples.correlation.heatmap <- function(data, cor.method = 'pearson', fname, covs, covs.legend){
+make.sample.correlations.heatmap <- function(data, cor.method = 'pearson', fname, covs, covs.legend) {
 	# get the inter-array correlations and plot
 	correlations <- cor(x = data, use = 'all.obs', method = cor.method);
 
