@@ -11,27 +11,27 @@ restriction.fragmentation.norm <- function(nano.df){
 
 	# create a new data-frame
 	nano.restr.avg <- as.data.frame(
-			matrix(
-					ncol = length(grep.cols),
-					nrow = 2,
-					dimnames = list(
-							c('A+B', 'C+D'),
-							grep.cols
-							)
-					),
-			stringsAsFactors = FALSE
-			);
+		matrix(
+			ncol = length(grep.cols),
+			nrow = 2,
+			dimnames = list(
+				c('A+B', 'C+D'),
+				grep.cols
+				)
+			),
+		stringsAsFactors = FALSE
+		);
 
 	# grep A and B names
 	grep.AB <- c(
-			grep(x = nano.restr$Name, pattern = 'RESTRICTIONSITE+A', fixed = TRUE),
-			grep(x = nano.restr$Name, pattern = 'RESTRICTIONSITE+B', fixed = TRUE)
-			);
+		grep(x = nano.restr$Name, pattern = 'RESTRICTIONSITE+A', fixed = TRUE),
+		grep(x = nano.restr$Name, pattern = 'RESTRICTIONSITE+B', fixed = TRUE)
+		);
 
 	grep.CD <- c(
-			grep(x = nano.restr$Name, pattern = 'RESTRICTIONSITE-C', fixed = TRUE),
-			grep(x = nano.restr$Name, pattern = 'RESTRICTIONSITE-D', fixed = TRUE)
-			);
+		grep(x = nano.restr$Name, pattern = 'RESTRICTIONSITE-C', fixed = TRUE),
+		grep(x = nano.restr$Name, pattern = 'RESTRICTIONSITE-D', fixed = TRUE)
+		);
 
 	# calculate the count average for A,B and C,D
 	nano.restr.avg['A+B',] <- apply(X = nano.restr[grep.AB,grep.cols], MARGIN = 2, FUN = mean);
@@ -40,11 +40,11 @@ restriction.fragmentation.norm <- function(nano.df){
 	# if low counts is observed in RESTRICTIONSITE-C and RESTRICTIONSITE-D (<200), throw a warning
 	if (!all(nano.restr.avg['C+D',] >= 200)) {
 
-			# list out the sample names
-			flog.warn('Low count number!');
-			low.count <- paste(colnames(nano.restr.avg)[nano.restr.avg['C+D',] < 200], sep = '\n');
-			print(low.count);
-			}
+		# list out the sample names
+		flog.warn('Low count number!');
+		low.count <- paste(colnames(nano.restr.avg)[nano.restr.avg['C+D',] < 200], sep = '\n');
+		print(low.count);
+		}
 
 	# check if average of A and B and average of C and D has a 10-fold difference in counts
 	which.low <- NULL;
