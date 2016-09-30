@@ -1,6 +1,6 @@
 
 # create a function for calling copy number changes
-call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', to.log = FALSE, multi.factor = 2, kd.vals = c(0.85,0.95), adjust = FALSE, cna.thresh = c(0.4, 1.5, 2.5, 3.5)) {
+call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', multi.factor = 2, kd.vals = c(0.85,0.95), adjust = FALSE, cna.thresh = c(0.4, 1.5, 2.5, 3.5)) {
 
 	# Check input
 	if (! thresh.method %in% (unlist(strsplit("round KD kd none","\\s")))) {
@@ -8,7 +8,7 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 		}
 
 	if (toupper(thresh.method) == 'KD' & (2 != length(kd.vals) & 4 != length(kd.vals))) {
-		stop("Please specify two or four values for KD thresholds.  multi.factore first should be for heterozygous and the second for homozygous if length 2. If length 4, the order should be hom deletion, het deletion, het gain, hom gain.");
+		stop("Please specify two or four values for KD thresholds.  The first should be for heterozygous and the second for homozygous if length 2. If length 4, the order should be hom deletion, het deletion, het gain, hom gain.");
 		}
 
 	# make sure kd values make sense
@@ -49,7 +49,7 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 
 	# make out.cna all NAs for data storage
 	out.cna <- out.cna[, to.keep, drop = FALSE];
-	out.cna[,to.keep] <- NA;
+	out.cna[, to.keep] <- NA;
 
 	# remove to.keep
 	rm(to.keep);
@@ -64,7 +64,7 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 	out.cna <- NanoStringNormCNV::get.tumour.normal.ratio(reference, n.chip, chip.info, input, out.cna);
 	out.cna <- out.cna * multi.factor;
 
-	# if user specified to make the median CN=2, adjust the values
+	# if user specified to make the median CN = 2, adjust the values
 	if (adjust) { out.cna <- apply(out.cna, 2, function(f) f - (median(f) - multi.factor)); }
 
 	# round if specified (based on NS recommendataions)
@@ -79,7 +79,7 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 			);
 
 		return (out.cna.round);
-	} else if(thresh.method == 'KD')  {
+	} else if(thresh.method == 'KD') {
 		# segment using kernel density
 		out.cna.round <- NanoStringNormCNV::apply.kd.cna.thresh(out.cna, kd.vals);
 		

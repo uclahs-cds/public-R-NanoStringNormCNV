@@ -4,9 +4,7 @@
 \description{Subtract the reference signal from the test sample}
 \usage{
 call.copy.number.state(
-	input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', 
-	to.log = FALSE, multi.factor = 2, kd.vals = c(0.85,0.95), adjust = FALSE,
-	cna.thresh = c(0.4,1.5,2.5,3.5)
+	input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', multi.factor = 2, kd.vals = c(0.85,0.95), adjust = FALSE, cna.thresh = c(0.4,1.5,2.5,3.5)
 	)
 }
 \arguments{
@@ -15,8 +13,7 @@ call.copy.number.state(
   \item{per.chip}{Use the reference specific to each chip only. Default to false.}
   \item{chip.info}{Annotations for the chips, must include the fields Chip and SampleID}
   \item{thresh.method}{How to assign CNA states- default is the NS recommended method using their thresholds. Can also specify 'KD' for kernel density, see kd.vals for control. Otherwise specify 'none'}
-  \item{to.log}{Whether to log the normalized data prior to copy number state calculation.}
-  \item{multi.factor}{A number to multiply the test/ref ratio. NanoString recommends 2 (default), otherwise use 1 for no amplification/boosting}
+  \item{multi.factor}{A number to multiply the test/ref ratio by. NanoString recommends 2 (default), otherwise use 1 for no amplification/boosting}
   \item{kd.vals}{A two value vector which is only used when thresh.method ='KD'. The first value is used to call heterozygous CNAs and the 2nd for homozygous CNAs}
   \item{adjust}{Whether or not to center the data at 2 prior to calling CNAs, default is FALSE}
   \item{cna.thresh}{A vector containing a list of threshold values to use segment the data}
