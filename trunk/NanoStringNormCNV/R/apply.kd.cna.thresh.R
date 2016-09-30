@@ -14,7 +14,8 @@ apply.kd.cna.thresh <- function(tmr2ref, kd.thresh){
 		FUN = function(f) { all(is.na(f)) }
 		);
 
-	# need to exclude columns with all NAs (occurs when perchip=T and there are no reference samples on that chip!)
+	# need to exclude columns with all NAs:
+	# occurs when perchip = T and there are no reference samples on that chip!
 	if (any(na.counts)) {
 		all.na <- which(na.counts);
 		print(paste("dropping:", all.na));
@@ -23,7 +24,7 @@ apply.kd.cna.thresh <- function(tmr2ref, kd.thresh){
 		}
 	cna.output <- tmr2ref[, which.cna, drop = FALSE];
 		
-	# Determine the thresholds based on all patients combined
+	# determine the thresholds based on all patients combined
 	# shown to be more stable if only considering small subset of patients
 	if (2 == length(kd.thresh)) {
 		cna.thresh.single <- NanoStringNormCNV::get.sample.specific.cna.thresholds(
@@ -37,8 +38,8 @@ apply.kd.cna.thresh <- function(tmr2ref, kd.thresh){
 
 		# loop over each sample
 		for (col.ind in 1:ncol(cna.output)) {
-			cna.output[ , col.ind] <- NanoStringNormCNV::call.cna.states(
-				cna.data = data.frame(log2ratio = cna.output[ , col.ind]),
+			cna.output[ , col.ind] <- NanoStringNormCNV::tumour.normal.ratio.to.cn.state(
+				ratio.data = data.frame(ratio = cna.output[ , col.ind]),
 				thresholds = c(cna.thresh.multi[1], cna.thresh.single, cna.thresh.multi[2])
 				);
 			}
@@ -52,8 +53,8 @@ apply.kd.cna.thresh <- function(tmr2ref, kd.thresh){
 
 		# loop over each sample
 		for (col.ind in 1:ncol(cna.output)) {
-			cna.output[ , col.ind] <- NanoStringNormCNV::call.cna.states(
-				cna.data = data.frame(log2ratio = cna.output[ , col.ind]),
+			cna.output[ , col.ind] <- NanoStringNormCNV::tumour.normal.ratio.to.cn.state(
+				ratio.data = data.frame(ratio = cna.output[ , col.ind]),
 				thresholds = unlist(thresh)
 				);
 			}
