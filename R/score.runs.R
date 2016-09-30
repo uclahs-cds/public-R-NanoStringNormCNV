@@ -1,5 +1,5 @@
 
-score.runs <- function(replicates, normalized, cnas, sample.annot, genes, collapsed, normals) {
+score.runs <- function(replicates, normalized, cnas, sample.annot, genes, normals) {
 	scores <- list();
 
 	# determine if the normalized data is counts or continuous (actually can use > or < 0)
@@ -23,7 +23,7 @@ score.runs <- function(replicates, normalized, cnas, sample.annot, genes, collap
 		colnames(replicates$norm.counts) <- substr(colnames(replicates$norm.counts), 1, 8);
 		
 		scores$ari.pts.normcor <- NanoStringNormCNV::get.ari(
-			log10(replicates$norm.counts+1),
+			log10(replicates$norm.counts + 1),
 			replicates$pheno$Patient[replicates$pheno$type == 'Tumour']
 			);
 	} else {

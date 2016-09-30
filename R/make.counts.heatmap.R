@@ -1,5 +1,5 @@
 
-make.counts.heatmap <- function(nano.counts, fname.stem, covs.rows = NULL, covs.cols = NULL, covs.legend = NULL, clust.dim = 'both', clust.method = 'euclidean', print.ylab = NULL) {
+make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL, covs.cols = NULL, covs.legend = NULL, clust.dim = 'both', clust.method = 'euclidean', print.ylab = NULL) {
 	split.by  	  <- 1;
 	key.labels.at <- NULL;
 	key.labels 	  <- NULL;
@@ -13,16 +13,18 @@ make.counts.heatmap <- function(nano.counts, fname.stem, covs.rows = NULL, covs.
 		key.labels 	  <- c(0, 1);
 		}
 
+	if (!is.null(fname.stem)) { fname.stem <- paste0("_", fname.stem); }
+
 	BoutrosLab.plotting.general::create.heatmap(
 		x = nano.counts,
-		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'counts_heatmap', 'png'),
+		filename = paste0(Sys.Date(), fname.stem, '_counts_heatmap.tiff'),
 		cluster.dimensions = clust.dim,
 		rows.distance.method = clust.method,
 		cols.distance.method = clust.method,
 		xlab.label = 'Genes',
-		ylab.cex = 2,
 		ylab.label = 'Samples',
 		xlab.cex = 2,
+		ylab.cex = 2,
 		yaxis.lab = print.ylab,
 		yaxis.cex = 1,
 		covariates = covs.rows,

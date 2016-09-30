@@ -1,5 +1,5 @@
 
-make.cna.heatmap <- function(nano.cnas, fname.stem, covs.rows = NULL, covs.cols = NULL, covs.legend = NULL, rounded = FALSE, clust.dim = 'both', centering.value = 2, ...) {
+make.cna.heatmap <- function(nano.cnas, fname.stem = NULL, covs.rows = NULL, covs.cols = NULL, covs.legend = NULL, rounded = FALSE, clust.dim = 'both', centering.value = 2, ...) {
 
 	# must add in random CNAs to make plot work if all values are identical
 	if(length(unique(c(nano.cnas))) == 1){
@@ -12,9 +12,11 @@ make.cna.heatmap <- function(nano.cnas, fname.stem, covs.rows = NULL, covs.cols 
 	plot.at 	<- seq(floor(min(nano.cnas, na.rm = TRUE)), ceiling(max(nano.cnas, na.rm = TRUE)), 0.1);
 	plot.seq 	<- seq(min(plot.at), max(plot.at));
 
+	if (!is.null(fname.stem)) { fname.stem <- paste0("_", fname.stem); }
+
 	BoutrosLab.plotting.general::create.heatmap(
 		x = nano.cnas,
-		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'cna_heatmap', 'png'),
+		filename = paste0(Sys.Date(), fname.stem, '_cna-heatmap.tiff'),
 		cluster.dimensions = clust.dim,
 		clustering.method = 'diana',
 		xlab.label = 'Genes',
