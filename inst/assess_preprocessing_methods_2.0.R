@@ -1,0 +1,965 @@
+### assess_preprocessing_methods.R #################################################################
+# Emilie's analysis modified for new NanoString dataset.
+
+### NOTES ##########################################################################################
+# Remember to: module load bedtools bedops tabix
+
+### PREAMBLE #######################################################################################
+library(mclust);
+library(NanoStringNorm);
+# library(BoutrosLab.utilities.copynumber);
+# library(BoutrosLab.pipeline.limma);
+library(BoutrosLab.plotting.general);
+library(futile.logger);
+library(vsn);
+library(reshape2);
+library(devtools)
+library(getopt);
+# library(BoutrosLab.dist.overload);
+# load_all("~/svn/Resources/code/R/prostate.acgh.biomarkers");
+source("~/svn/Training/elalonde/OncoScan_reprocess/cna.plotting.functions.R");
+source("~/svn/Resources/code/R/ParameterEval/R/generate.covariates.R")
+source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
+source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/call_signature_pga.R")
+load_all("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV");
+source("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV/R/score.runs.R");
+
+# specifically samples with low restriction frag ratios
+dropoutliers <- 0;
+
+set.seed(12345);
+
+### FUNCTIONS ######################################################################################
+make_dir_name <- function(params) {
+	if (params$perchip == 1) {
+		name <- 'perchip';
+	} else {
+		name <- 'global';
+		}
+
+	if (params$ccn == 1) {
+		name <- paste(name, 'ccn-sum', sep = '_');
+	} else if (params$ccn == 2) {
+		name <- paste(name, 'ccn-gm', sep = '_');
+		}
+
+	if (params$bc == 1) {
+		name <- paste(name, 'bc-mean', sep = '_');
+	} else if (params$bc == 2) {
+		name <- paste(name, 'bc-m2sd', sep = '_');
+	} else if (params$bc == 3) {
+		name <- paste(name, 'bc-max', sep = '_');
+		}
+
+	if (params$scc == 1) {
+		name <- paste(name, 'scc-hk', sep = '_');
+	} else if (params$scc == 2) {
+		name <- paste(name, 'scc-sum', sep = '_');
+	} else if (params$scc == 3) {
+		name <- paste(name, 'scc-top-gm', sep = '_');
+	} else if (params$scc == 4) {
+		name <- paste(name, 'scc-low-gm', sep = '_');
+		}
+
+	if (params$inv == 1) {
+		name <- paste(name, 'inv', sep = '_');
+		}
+
+	if (params$oth == 1) {
+		name <- paste(name, 'vsn', sep = '_');
+	} else if (params$oth == 2) {
+		name <- paste(name, 'quant', sep = '_');
+	} else if (params$oth == 3) {
+		name <- paste(name, 'rank', sep = '_');
+		}
+
+	if (params$matched == 1) {
+		name <- paste(name, 'matchedRef', sep = '_');
+	} else if (params$matched == 0) {
+		name <- paste(name, 'pooledRef', sep = '_');
+		}
+
+	if (params$kd == 0) {
+		name <- paste(name, 'threshCNAs', sep = '_');
+	} else if (params$kd == 1) {
+		name <- paste(name, 'kdCNAsEL', sep = '_');
+	} else if (params$kd == 2) {
+		name <- paste(name, 'kdCNAsDS', sep = '_');
+		}
+
+	if (params$col == 1) {
+		name <- paste(name, 'collapsed_by_gene', sep = '_');
+		}
+
+	return(name);
+	}
+
+prep_analysis_dir <- function(dir.name, stats = TRUE, plots = TRUE, others = NULL) {
+	print(dir("."));
+	print(dir.name);
+	# make main analysis directory
+	if(! file.exists(file.path(dir.name))){
+		dir.create(file.path(dir.name), recursive = TRUE);# added recursive arg
+		}
+
+	if(stats){
+		if(! file.exists(file.path(file.path(dir.name, '/stats/')))){
+			dir.create(file.path(file.path(dir.name, '/stats/')));
+			}
+		}
+	if(plots){
+		if(! file.exists(file.path(file.path(dir.name, '/plots/')))){
+			dir.create(file.path(file.path(dir.name, '/plots/')));
+			}
+		}
+
+	# if any other directories are requested, make those
+	if(! is.null(others)){
+		for(n in 1:length(others)){
+			if(! file.exists(file.path(file.path(dir.name, '/', others[n])))){
+				dir.create(file.path(file.path(dir.name, '/', others[n])));
+				}
+			}
+		}
+	}
+
+### SET PARAMETERS #################################################################################
+if (interactive()) {
+	opts <- list();
+	opts$perchip <- 0;
+	opts$ccn  	 <- 2;
+	opts$bc 	 <- 2;
+	opts$scc 	 <- 2;
+	opts$inv 	 <- 1;
+	opts$oth 	 <- 0;
+	opts$matched <- 0;
+	opts$kd 	 <- 2;
+	opts$col 	 <- 0;
+} else {
+	params <- matrix(
+		c(
+			'perchip', 'c', 1, 'numeric',
+			'ccn', 	   'n', 1, 'numeric',
+			'bc', 	   'b', 1, 'numeric',
+			'scc', 	   's', 1, 'numeric',
+			'inv',	   'i', 1, 'numeric',
+			'oth',     'h', 1, 'numeric',
+			'matched', 'r', 1, 'numeric',
+			'kd',      'k', 1, 'numeric',
+			'col',     'o', 1, 'numeric'
+			),
+		  ncol = 4,
+		  byrow = TRUE
+  		);
+	opts <- getopt(params);
+	}
+
+# verify arguments
+if(is.null(opts$perchip)) { cat(usage()); q(status = 1) }
+if(is.null(opts$ccn)) 	  { cat(usage()); q(status = 1) }
+if(is.null(opts$bc)) 	  { cat(usage()); q(status = 1) }
+if(is.null(opts$scc)) 	  { cat(usage()); q(status = 1) }
+if(is.null(opts$inv))	  { cat(usage()); q(status = 1) }
+if(is.null(opts$oth)) 	  { cat(usage()); q(status = 1) }
+if(is.null(opts$matched)) { cat(usage()); q(status = 1) }
+
+home.dir <- make_dir_name(opts);
+
+# list directories
+raw.dir 	 <- '/.mounts/labs/cpcgene/private/NanoString/nanostring_cancer_panel/nanostring_data/raw_data';
+root.dir     <- '/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV';
+training.dir <- '~/svn/Training/Dorota\ Sendorek/NanoStringNormCNV/';
+
+setwd(root.dir);
+data.dir <- paste0(root.dir, '/test_data');
+
+if (dropoutliers == 1) {
+	prep_analysis_dir(
+		dir.name = paste0('normalization_assessment_outliers_removed/', home.dir),
+		stats = FALSE
+		);
+	out.dir <- paste0(root.dir, '/normalization_assessment_outliers_removed/', home.dir);
+} else {
+	prep_analysis_dir(
+		dir.name = paste0('normalization_assessment/', home.dir),
+		stats = FALSE
+		);
+	out.dir <- paste0(root.dir, '/normalization_assessment/', home.dir);
+	}
+
+plot.dir <- paste0(out.dir, '/plots');
+
+### READ DATA ######################################################################################
+setwd(data.dir);
+
+# read in raw data, deal with double header (sample name, fragmentation method)
+nano.raw <- read.table('NSrawdata.txt', sep = "\t", skip = 1, stringsAsFactors = FALSE);
+
+# extract fragmentation methods from raw data (may not be necessary)
+frag.method <- unlist(nano.raw[1,])[-(1:2)];
+nano.raw <- nano.raw[-1,];
+
+# match Emilie's original NS data format
+names(nano.raw)[1:2] <- c("Accession", "Name");
+
+nano.raw$CodeClass <- 'Endogenous';
+nano.raw[grep("^POS_[A-Z]", nano.raw$Name),]$CodeClass <- "Positive";
+nano.raw[grep("^NEG_[A-Z]", nano.raw$Name),]$CodeClass <- "Negative";
+nano.raw[grep("^RESTRICTIONSITE", nano.raw$Name),]$CodeClass <- "RestrictionSite";
+nano.raw[grep("_INVCONTROL", nano.raw$Accession),]$CodeClass <- "Invariant";
+
+# get columns in right order
+nano.raw <- nano.raw[,c(ncol(nano.raw), 2, 1, 3:(ncol(nano.raw) - 1))];
+
+# read in sample names separately
+sample.names <- scan('NSrawdata.txt', nlines = 1, sep = "\t", what = character());
+sample.names <- sample.names[-(1:2)];
+
+# set names for consistency
+names(nano.raw)[4:ncol(nano.raw)] <- sample.names;
+names(frag.method) <- sample.names;
+
+# removing Roche samples for now
+nano.raw <- nano.raw[,-grep("RocheRef", names(nano.raw), perl = TRUE)];
+
+# modify sample names
+names(nano.raw) <- gsub(" |-",  ".", names(nano.raw));
+names(nano.raw) <- gsub(".RCC", "",  names(nano.raw));
+
+# integerize it!
+nano.raw[,4:ncol(nano.raw)] <- apply(nano.raw[,4:ncol(nano.raw)], 2, as.integer);
+
+# fix chr X and Y 'Accession' so they are correctly identified as sex chr and don't get collapsed as single region
+chrXY <- grep("chr[XY]", nano.raw$Accession);
+nano.raw$Name[chrXY] <- paste0("chr", nano.raw$Name[chrXY]);
+nano.raw$Accession[chrXY] <- unlist(lapply(strsplit(nano.raw$Name[chrXY], split = '-'), function(x) x[1]));
+
+# get phenodata and match Emilie's formatting
+phenodata <- read.delim("NSannotation.txt", stringsAsFactors = FALSE);
+phenodata <- phenodata[,!(names(phenodata) %in% 'location')];
+
+phenodata$Name 	   <- gsub("(.*)\\.M.*", "\\1", phenodata$Name);
+phenodata$Chip 	   <- paste('Chip', phenodata$cartridge);
+phenodata$SampleID <- as.character(gsub("-", ".", phenodata$SampleID));
+phenodata$ref.name <- as.character(gsub("-", ".", phenodata$ref.name));
+phenodata$DNA.mass <- as.character(phenodata$DNA.mass);
+
+# match raw colnames to pheno Sample ID
+check.names <- gsub("_[0-9]+", "", names(nano.raw)[-(1:3)]);
+check.names <- gsub("\\.", "", check.names);
+check.names <- matrix(unlist(strsplit(check.names, "M")), ncol = 2, byrow = T);
+for (i in 1:nrow(check.names)) {
+	if (grepl("M[12]", phenodata$SampleID[i])) {
+		if (paste0(check.names[i,1], ".M", check.names[i,2]) != phenodata$SampleID[i]) stop("Sample order does not match!");
+	} else {
+		if (check.names[i,1] != phenodata$SampleID[i]) stop("Sample order does not match!");
+		}
+	}
+
+colnames(nano.raw)[-c(1:3)] <- phenodata$SampleID;
+
+if (! check.sample.order(phenodata$SampleID, colnames(nano.raw)[-c(1:3)])) {
+	stop("Sorry, sample order doesn't match after re-naming.");
+	}
+
+# Remove bad normals (low restriction frag ratios) from phenodata
+if (dropoutliers == 1) {
+	bad.samples <- read.delim(
+		"../normalization_assessment/restriction-fragmentation_low-ratio.txt",
+		stringsAsFactors = FALSE,
+		header = FALSE
+		);
+	bad.samples <- bad.samples[,1];
+
+	phenodata <- phenodata[!(phenodata$SampleID %in% bad.samples),];
+	nano.raw  <- nano.raw[,!(colnames(nano.raw) %in% bad.samples)];
+
+	# check if any replicates are left
+	repls <- phenodata[phenodata$has.repl == 1,];
+	repls <- unique(repls[duplicated(repls$Patient) | duplicated(repls$Patient, fromLast = TRUE),]$Patient);
+	unlist(lapply(repls, function(x) { any(summary(factor(phenodata[phenodata$Patient == x,]$type)) > 1) }));
+
+	# check that there are no missing references
+	if (any(grepl("CPCG", phenodata$ref.name[!(phenodata$ref.name %in% phenodata$SampleID)]))) {
+		stop("Sorry, reference samples are missing!");
+		}
+
+	# check sample order
+	if (! check.sample.order(phenodata$SampleID, colnames(nano.raw)[-c(1:3)])) {
+		stop("Sorry, sample order doesn't match after handling outliers.");
+		}
+	}
+
+# identifying housekeeping genes (all missing but one)
+nano.raw[nano.raw$Accession %in% qw("ZDHHC5 KIF27 MAGI3 PCDHA9 CPM TMX1 E2F6"), 'CodeClass'] <- 'Housekeeping';
+
+### Simulating 3 new housekeeping genes by adding noise to original
+original.hk <- nano.raw[nano.raw$CodeClass == 'Housekeeping',];
+simulate.hk <- matrix(nrow = 9, ncol = ncol(nano.raw), dimnames = list(NULL, colnames(nano.raw)));
+simulate.hk <- as.data.frame(simulate.hk);
+
+simulate.hk$CodeClass <- 'Housekeeping';
+simulate.hk$Accession <- sort(rep(paste0("SIM", 1:3), 3));
+simulate.hk$Name 	  <- as.vector(sapply(paste0("SIM", 1:3, "-"), function(x) paste0(x, 1:3)));
+
+# simulated HK genes also contain 3 probes
+for (j in 4:ncol(original.hk)) {
+	for (i in 1:nrow(original.hk)) {
+		# Step 1:
+		# adding random noise to original probe at given patient (separately for all 3 simulations)
+		noisy.probes <- original.hk[i,j] + rnorm(n = 3, mean = 0, sd = 15);
+
+		# Step 2:
+		# shifting mean of probe values per simulation by adding some randomly chosen constant
+		noisy.probes <- noisy.probes - c(10, 20, -15);
+
+		# make sure there are no negative values before adding
+		noisy.probes[noisy.probes < 1] <- 1;
+		simulate.hk[c(i, i + 3, i + 6), j] <- noisy.probes;
+		}
+	}
+
+nano.raw <- rbind(nano.raw, simulate.hk);
+
+# fix gene names to prevent NSN crashing
+nano.raw$Name <- unlist(lapply(strsplit(x = nano.raw$Name, '\\|'), function(f) f[[1]][1]));
+nano.raw$Name <- gsub(x = nano.raw$Name, pattern = '\\.', '');
+
+# prepare covariates to assess batch effects in NSN
+cartridge.n <- unique(phenodata$cartridge);
+cartridge.matrix <- matrix(nrow = nrow(phenodata), ncol = length(cartridge.n), 1);
+
+for (n in 1:nrow(phenodata)) {
+	cartridge.matrix[n, which(cartridge.n == phenodata$cartridge[n])] <- 2;
+	}
+
+pheno.df <- as.data.frame(cartridge.matrix);
+colnames(pheno.df) <- paste0("Cartridge", seq(1:ncol(cartridge.matrix)));
+pheno.df$Type <- ifelse(phenodata$type == 'Reference', 1, 2);
+rownames(pheno.df) <- phenodata$SampleID;
+
+# set up params for NSN
+if (opts$ccn == 0) cc.val <- 'none';
+if (opts$ccn == 1) cc.val <- 'sum';
+if (opts$ccn == 2) cc.val <- 'geo.mean';
+# cc.val <- ifelse(opts$ccn == 1, 'geo.mean', 'none');
+
+if (opts$bc == 0) bc.val <- 'none';
+if (opts$bc == 1) bc.val <- 'mean';
+if (opts$bc == 2) bc.val <- 'mean.2sd';
+if (opts$bc == 3) bc.val <- 'max';
+# bc.val <- ifelse(opts$bc == 1, 'mean.2sd', 'none');
+
+if (opts$inv == 0) do.rcc.inv.norm <- FALSE;
+if (opts$inv == 1) do.rcc.inv.norm <- TRUE;
+
+if (opts$scc == 0) sc.val <- 'none';
+if (opts$scc == 1) sc.val <- 'housekeeping.geo.mean';
+if (opts$scc == 2) sc.val <- 'total.sum';
+if (opts$scc == 3) sc.val <- 'top.geo.mean';
+if (opts$scc == 4) sc.val <- 'low.cv.geo.mean';
+
+if (opts$oth == 0) oth.val <- 'none';
+if (opts$oth == 1) oth.val <- 'vsn';
+if (opts$oth == 2) oth.val <- 'rank.normal';
+if (opts$oth == 3) oth.val <- 'quantile';
+
+do.nsn.norm <- TRUE;
+
+# ToDo: re-set
+# set up kd values if required
+if (opts$kd > 0) { thresh.method <- 'KD'; }
+# try min/max seen in normals
+if (opts$kd == 1) kd.vals <- c(0.85,0.95); # this doesn't see, to be getting used anywhere..
+if (opts$kd == 2) {
+	#kd.vals <- c(0.95, 0.92,0.92, 0.95);
+	kd.vals <- c(0.9, 0.87,0.93, 0.96);
+	#kd.vals <- c(0.82, 0.75,0.86, 0.9);
+}# else if (opts$kd == 3) {
+# 	kd.vals <- c(0.9, 0.8, 0.87, 0.9);
+# 	#kd.vals <- c(0.71, 0.65, 0.94, 0.98);
+# } else if(opts$kd == 4) {
+# 	kd.vals <- c(0.9, 0.885, 0.92, 0.97);
+# 	}
+
+### RUN NORMALIZATION ##############################################################################
+setwd(plot.dir);
+
+# Positive control normalization + plots
+corrs <- positive.control.norm(nano.raw);
+make.positive.control.plot(corrs[,c('R2')]);
+
+# Restriction digestion normalization + plots
+restr.frag.norm.output <- restriction.fragmentation.norm(nano.raw);
+
+# Invariant probe normalization
+inv.probe.norm.output <- invariant.probe.norm(nano.raw, phenodata);
+inv.probe.norm.output <- inv.probe.norm.output[inv.probe.norm.output$CodeClass == 'Invariant',];
+
+# check that there are no samples with INV-normalized invariant probes < 100
+if (any(apply(inv.probe.norm.output[,-(1:3)], 2, mean) < 100)) { 
+	stop("Low quality samples after invariant probe normalization!");
+	}
+
+# write bad samples to file
+setwd(paste0(root.dir, "/normalization_assessment/"));
+
+write.table(
+	restr.frag.norm.output,
+	file = "restr-frag-norm_output.txt",
+	quote = FALSE,
+	sep = "\t"
+	);
+
+if (dropoutliers == 0) {
+	write.table(
+		rownames(restr.frag.norm.output[restr.frag.norm.output$ratio < 10,]),
+		file = "restriction-fragmentation_low-ratio.txt",
+		quote = FALSE,
+		sep = "\t",
+		row.names = FALSE,
+		col.names = FALSE
+		);
+	}
+
+# NanoStringNorm
+setwd(out.dir);
+
+phenodata$outlier <- 0;
+if (opts$perchip == 1) {
+	norm.data <- normalize.per.chip(
+		phenodata,
+		nano.raw,
+		cc.val,
+		bc.val,
+		sc.val,
+		oth.val,
+		do.nsn.norm,
+		do.rcc.inv.norm,
+		pheno.df,
+		plot.types = qw('cv mean.sd norm.factors missing RNA.estimates positive.controls')
+		);
+} else {
+	norm.data <- normalize.global(
+		nano.raw,
+		cc.val,
+		bc.val,
+		sc.val,
+		oth.val,
+		do.nsn.norm,
+		do.rcc.inv.norm,
+		pheno.df,
+		plot.types = qw('cv mean.sd norm.factors missing RNA.estimates positive.controls'),
+		pheno = phenodata[,c('SampleID', 'type')]
+		);
+
+	# when other normalization is normal.rank we get negative values and need to transform
+	if(oth.val == 'rank.normal'){
+		norm.data[, -c(1:3)] <- (norm.data[, -c(1:3)] - min(norm.data[, -c(1:3)])) + 0.1;
+		}
+	}
+
+if (! check.sample.order(phenodata$SampleID, colnames(norm.data)[-c(1:3)])) {
+	stop("Sorry, sample order doesn't match after normalization, see above.");
+	}
+
+### Collapse genes per region if requested #########################################################
+if (opts$col == 1) {
+
+	# save annotations as they will disappear after merge
+	norm.annot 	  <- norm.data[, colnames(norm.data) %in% c('Accession', 'CodeClass', 'Name')];
+	norm.data 	  <- collapse.genes(norm.data[ , !colnames(norm.data) %in% c('CodeClass', 'Name')]);
+	matching.inds <- unlist(lapply(norm.data$Name, function(f) which(norm.annot$Accession == f)[1]));
+	norm.data 	  <- cbind(
+		Name = norm.data$Name,
+		norm.annot[matching.inds,
+		qw("Accession CodeClass")],
+		norm.data[, !colnames(norm.data) == 'Name']
+		);
+	
+	# save gene info
+	gene.info <- norm.data[,1:3];
+	colnames(gene.info)[2] <- 'Symbol';
+
+} else {
+
+	# save gene info
+	gene.info <- norm.data[,1:3];
+	colnames(gene.info)[3] <- 'Symbol';
+
+	}
+
+### Call CNAs ######################################################################################
+# use non-control probes (from autosomes only)
+use.genes <- which(norm.data$CodeClass %in% qw("Endogenous Housekeeping Invariant"));
+use.genes <- use.genes[!(use.genes %in% grep("chr[XY]", norm.data$Name))];
+
+cna.normals 	  <- matrix(nrow = length(use.genes), ncol = length(which(phenodata$type == 'Reference')));
+cna.normals.unadj <- matrix(nrow = length(use.genes), ncol = length(which(phenodata$type == 'Reference')));
+
+if (opts$matched == 1) {
+	flog.info('Going to call CNAs with matched normals');
+	
+	has.ref 	<- which(phenodata$ref.name != 'missing' & phenodata$type == 'Tumour');
+	cna.raw 	<- matrix(nrow = length(use.genes), ncol = length(has.ref));
+	cna.rounded <- matrix(nrow = length(use.genes), ncol = length(has.ref));
+
+	# iterate through each sample here
+	for(tmr in 1:length(has.ref)){
+		# find indices for tmr and ref
+		tmr.ind <- which(colnames(norm.data) == phenodata$SampleID[has.ref[tmr]]);
+		ref.ind <- which(colnames(norm.data) == phenodata$ref.name[has.ref[tmr]]);
+
+		flog.info(
+			"The indices for tmr and ref for sample %s: %s and %s",
+			phenodata$SampleID[has.ref[tmr]], tmr.ind, ref.ind
+			);
+
+		cna.raw[, tmr] <- call.copy.number.state(
+			norm.data[use.genes, c(1:3, tmr.ind, ref.ind), drop = FALSE],
+			phenodata$ref.name[has.ref[tmr]],
+			thresh.method = 'none',
+			multi.factor = 2
+			)[,4];
+
+		if (opts$kd <= 1) {
+			cna.rounded[,tmr] <- call.copy.number.state(
+				norm.data[use.genes, c(1:3, tmr.ind, ref.ind), drop = FALSE],
+				phenodata$ref.name[has.ref[tmr]],
+				per.chip = opts$perchip,
+				chip.info = phenodata
+				)[,4];
+		} else {
+			cna.rounded[,tmr] <- call.copy.number.state(
+				norm.data[use.genes, c(1:3, tmr.ind, ref.ind), drop = FALSE],
+				phenodata$ref.name[has.ref[tmr]],
+				per.chip = opts$perchip,
+				chip.info = phenodata,
+				thresh.method = 'KD'
+				)[,4];
+			cna.normals <- cna.rounded[, phenodata$SampleID[is.ref], drop = FALSE];
+			}
+		}
+} else {
+	flog.info('Going to call CNAs with pooled normals');
+
+	is.tmr  <- which(phenodata$type == 'Tumour');
+	is.ref  <- which(phenodata$type == 'Reference');
+	cna.raw <- call.copy.number.state(
+		input = norm.data[use.genes,],
+		reference = phenodata$SampleID[is.ref],
+		per.chip = opts$perchip,
+		chip.info = phenodata,
+		thresh.method = 'none',
+		adjust = TRUE
+		);
+	
+	# make an average ref sample to use to call cnas in normals
+	norm.data.tmp <- cbind(
+		norm.data[, c(1:3, (is.ref + 3))],
+		avg.ref = apply(X = norm.data[, (is.ref + 3)], MARGIN = 1, FUN = mean)
+		);
+
+	cna.normals.unadj <- call.copy.number.state(
+		input = norm.data.tmp[use.genes,],
+		reference = 'avg.ref',
+		per.chip = opts$perchip,
+		chip.info = phenodata[is.ref,],
+		thresh.method = 'none',
+		adjust = TRUE
+		);
+	cna.normals.unadj <- cna.normals.unadj[, -c(1:3)];
+	
+	if (opts$kd <= 1) {
+		if (opts$kd == 0) {	# predefined
+			thresh <- c(0.4, 1.5, 2.5, 3.5);	# DEFAULT?
+		} else {	# based on normal data
+			thresh.offset <- diff(range(cna.normals.unadj) * 0.15);# where's this number come from?
+
+			thresh <- c(
+				min(cna.normals.unadj),
+				min(cna.normals.unadj) + thresh.offset,
+				max(cna.normals.unadj) - thresh.offset,
+				max(cna.normals.unadj)
+				);	# try based on % range
+
+			# thresh <- c(
+			# 	min(cna.normals.unadj),
+			# 	min(cna.normals.unadj) + 0.65,
+			# 	max(cna.normals.unadj) - 0.7,
+			# 	max(cna.normals.unadj)
+			# 	);
+			}
+
+		# call CNAs for tumours based on derived thresh (above)
+		cna.rounded <- call.copy.number.state(
+			norm.data[use.genes,],
+			phenodata$SampleID[is.ref],
+			per.chip = opts$perchip,
+			chip.info = phenodata,
+			adjust = TRUE,
+			cna.thresh = thresh
+			);
+	} else {
+		# Call CNAs with KD
+		cna.rounded <- call.copy.number.state(
+			norm.data[use.genes,],
+			phenodata$SampleID[is.ref],
+			per.chip = opts$perchip,
+			chip.info = phenodata,
+			thresh.method = 'KD',
+			kd.vals = kd.vals,
+			adjust = TRUE
+			);
+		}
+
+	cna.normals <- cna.rounded[ , phenodata$SampleID[is.ref]];
+
+	# check for columns with all NA and drop those
+	# happens when perchip is true and matched is false, and there are no reference samples on that chip
+	if (any(apply(cna.raw, 2, function(f) all(is.na(f))))) {
+		all.na  <- which(as.vector(apply(cna.raw[, -c(1:3)], 2, function(f) all(is.na(f)))));
+		cna.raw <- cna.raw[, -(all.na + 3)];
+		}
+
+	cna.raw 	<- as.matrix(cna.raw[, grep(x = colnames(cna.raw), 'F|P[0-9]')]);
+	cna.rounded <- as.matrix(cna.rounded[, grep(x = colnames(cna.rounded), 'F|P[0-9]')]);
+	has.ref 	<- is.tmr[colnames(norm.data)[is.tmr + 3] %in% colnames(cna.rounded)];
+	}
+
+# sanity check
+if (! check.sample.order(sub(x = phenodata$SampleID[has.ref], pattern = 'outlier', ''), colnames(cna.rounded))) {
+	stop("Sorry, sample order doesn't match after normalization, see above.");
+	}
+
+pheno.cna <- phenodata[has.ref , ];
+colnames(cna.rounded) <- phenodata$SampleID[has.ref];
+
+# ### Evaluate replicates ############################################################################
+reps <- evaluation.replicates(norm.data[use.genes,], pheno.cna, cna.rounded);
+
+### OUTPUT #########################################################################################
+write.table(
+	cbind(norm.data[use.genes, 1:3], cna.raw),
+	generate.filename('tmr2ref', 'counts', 'txt'),
+	sep = "\t",
+	quote = FALSE
+	);
+
+write.table(
+	cbind(norm.data[use.genes, 1:3], cna.rounded),
+	generate.filename('tmr2ref', 'rounded_counts', 'txt'),
+	sep = "\t",
+	quote = FALSE
+	);
+
+write.table(
+	norm.data,
+	generate.filename('normalized', 'counts', 'txt'),
+	sep = "\t",
+	quote = FALSE
+	);
+
+write.table(
+	reps$concordance,
+	generate.filename('replicate_CNAs', 'concordance_matrix', 'txt'),
+	sep = "\t",
+	quote = FALSE
+	);
+
+write.table(
+	reps$conc.summary,
+	generate.filename('replicate_CNAs', 'concordance_summary', 'txt'),
+	sep = "\t",
+	quote = FALSE
+	);
+
+## PLOTS ##################################################################
+setwd(plot.dir);
+
+make.covariates <- function(info, use.type){
+	flog.info('making covs');
+	
+	if (use.type) {
+		covs <- generate.covariates(
+			x = data.frame(
+				cartridge = info[, "cartridge"],
+				type = info[,'type']
+				),
+			colour.list = list(cartridge = colour.gradient('purple', nlevels(info$cartridge)), type = colours()[c(507,532)])
+			);
+	} else {
+		covs <- generate.covariates(
+			x = data.frame(
+				cartridge = info[, "cartridge"]
+				),
+			colour.list = list(cartridge = colour.gradient('purple', nlevels(info$cartridge)))
+			);
+		}
+	return(covs);
+	}
+
+### Set up covariates and legend for custom plots
+nano.raw$CodeClass 	<- as.factor(nano.raw$CodeClass);
+phenodata$type 		<- as.factor(phenodata$type);
+phenodata$Patient 	<- as.factor(phenodata$Patient);
+phenodata$outlier 	<- as.factor(phenodata$outlier);
+pheno.cna$cartridge <- as.factor(pheno.cna$cartridge);
+phenodata$cartridge <- as.factor(phenodata$cartridge);
+pheno.cna$outlier 	<- as.factor(pheno.cna$outlier);
+
+samples.cna.covs   <- make.covariates(pheno.cna, use.type = FALSE);
+sample.counts.covs <- make.covariates(phenodata, use.type = TRUE);
+gene.covs 		   <- make.gene.covariates(nano.raw$CodeClass);
+
+sample.legend <- list(
+	legend = list(
+		colours = colours()[c(507,532)],
+		labels = c("Blood", "Tumour")
+		),
+	legend = list(
+		colours = colour.gradient('purple', nlevels(phenodata$cartridge)),
+		labels = paste0("Chip", levels(phenodata$cartridge))
+		),
+	legend = list(
+		colours = default.colours(nlevels(nano.raw$CodeClass)),
+		labels = levels(nano.raw$CodeClass)
+		)
+	);
+
+sample.legend2 <- list(
+	legend = list(
+		colours = colours()[c(507,532)],
+		labels = c("Blood", "Tumour"),
+		borders = 'black',
+		fontfamily = 'Arial'
+		),
+	legend = list(
+		colours = colour.gradient('purple', nlevels(phenodata$cartridge)),
+		labels = paste0("Chip", levels(phenodata$cartridge)),
+		borders = 'black',
+		fontfamily = 'Arial'
+		)
+	);
+
+sample.legend3 <- list(
+	legend = list(
+		colours = colour.gradient('purple', nlevels(phenodata$cartridge)),
+		labels = paste0("Chip", levels(phenodata$cartridge))
+		),
+	legend = list(
+		colours = default.colours(nlevels(nano.raw$CodeClass)),
+		labels = levels(nano.raw$CodeClass)
+		)
+	);
+
+### Custom plots
+# make heatmaps of raw vs normalized data
+counts.only <- norm.data[,-c(1:3)];
+make.counts.heatmap(
+	nano.raw[, -c(1:3)],
+	fname.stem = 'raw',
+	covs.cols = gene.covs,
+	covs.rows = sample.counts.covs,
+	covs.legend = sample.legend
+	);
+
+make.counts.heatmap(
+	counts.only,
+	fname.stem = 'counts',
+	covs.cols = gene.covs,
+	covs.rows = sample.counts.covs,
+	covs.legend = sample.legend,
+	clust.method = 'euclidean'
+	);
+
+make.sample.correlations.heatmap(
+	log10(nano.raw[, -c(1:3)] + 1),
+	fname.stem = 'unnormalized',
+	covs = sample.counts.covs,
+	covs.legend = sample.legend2
+	);
+
+make.sample.correlations.heatmap(
+	log10(counts.only + 1),
+	fname.stem = 'normalized',
+	covs = sample.counts.covs,
+	covs.legend = sample.legend2
+	);
+
+# and for CNAs
+# cna.rounded2 <- cna.rounded + 1;
+make.cna.heatmap(
+	# cna.rounded2,
+	cna.rounded,
+	fname.stem = 'tmr2ref_rounded',
+	rounded = TRUE,
+	covs.cols = gene.covs,
+	covs.rows = samples.cna.covs,
+	covs.legend = sample.legend3,
+	width = 7
+	);
+
+cna.raw[cna.raw > 10] <- 10;
+# cna.raw2 <- cna.raw + 1;
+make.cna.heatmap(
+	# cna.raw2,
+	cna.raw,
+	fname.stem = 'tmr2ref_raw',
+	rounded = TRUE,
+	covs.cols = gene.covs,
+	covs.rows = samples.cna.covs,
+	covs.legend = sample.legend3,
+	width = 7
+	);
+
+# make the densities of the CNAs for each call type
+make.cna.densities.plots(cna.rounded, fname.stem = 'tmr2ref_rounded', xlab = expression('CNA'));
+make.cna.densities.plots(cna.raw, 	  fname.stem = 'tmr2ref_raw',     xlab = expression('CNA'));
+
+## make heatmaps for reps ################################################
+phenodata$replID   <- phenodata$SampleID;
+ref.inds 		   <- which(phenodata$SampleID %in% reps$pheno$ref.name);
+reps$pheno 		   <- rbind(reps$pheno, phenodata[ref.inds,]);
+reps$pheno$Patient <- factor(reps$pheno$Patient);
+reps$pheno$type    <- factor(reps$pheno$type);
+reps$pheno$outlier <- factor(reps$pheno$outlier, levels = c(0,1));
+reps$norm.counts   <- norm.data[ , reps$pheno$SampleID];
+reps$raw.counts    <- nano.raw[ , reps$pheno$SampleID];
+#reps$raw.counts   <- nano.raw[ , unlist(lapply(reps$pheno$replID, function(f) which(colnames(nano.raw) == f))) ];
+
+# make new covariates
+sample.covs <- generate.covariates(
+	x = data.frame(
+		Patient = reps$pheno[, "Patient"],
+		Type = factor(reps$pheno[, 'type'], levels = c('Blood', 'Tumour')),
+		Outlier = reps$pheno$outlier
+		),
+	colour.list = list(
+		Patient = default.colours(nlevels(reps$pheno$Patient)),
+		Type = colours()[c(507,532)],
+		Outlier = c('white', 'black')
+		)
+	);
+
+sample.covs2 <- generate.covariates(
+	x = data.frame(
+		Patient = reps$pheno[, "Patient"],
+		Outlier = reps$pheno$outlier
+		),
+	colour.list = list(Patient = default.colours(nlevels(reps$pheno$Patient)), Outlier = c('white', 'black'))
+	);
+
+sample.legend <- list(
+	legend = list(
+		colours = colours()[c(507,532)],
+		labels = c("Blood", "Tumour")
+		),
+    legend = list(
+		colours = default.colours(nlevels(reps$pheno$Patient)),
+		labels = levels(reps$pheno$Patient)
+		),
+	legend = list(
+		colours = default.colours(nlevels(nano.raw$CodeClass)),
+		labels = levels(nano.raw$CodeClass)
+		),
+	legend = list(
+		colours = c('white', 'black'),
+		labels = c('Yes', 'No')
+		)
+	);
+
+make.counts.heatmap(
+	reps$norm.counts,
+	# reps$norm.counts + 1,
+	fname.stem = 'replicate_norm_counts',
+	covs.cols = gene.covs,
+	covs.rows = sample.covs,
+	covs.legend = sample.legend
+	);
+make.counts.heatmap(
+	reps$raw.counts,
+	fname.stem = 'replicate_raw_counts',
+	covs.rows = sample.covs,
+	covs.cols = gene.covs,
+	covs.legend = sample.legend
+	);
+
+make.cna.heatmap(
+	reps$cnas,
+	# reps$cnas + 1,
+	fname.stem = 'replicate_cnas',
+	rounded = TRUE,
+	covs.cols = gene.covs,
+	covs.rows = sample.covs2,
+	covs.legend = sample.legend
+	);
+
+make.counts.heatmap(
+	reps$concordance,
+	fname.stem = 'replicate_cna_concordance',
+	covs.cols = gene.covs,
+	print.ylab = TRUE,
+	covs.legend = sample.legend
+	);
+
+make.sample.correlations.heatmap(
+	log10(reps$norm.counts+1),
+	fname.stem = 'replicate-normalized',
+	covs = sample.covs,
+	covs.legend = sample.legend
+	);
+make.sample.correlations.heatmap(
+	log10(reps$norm.counts[, which(reps$pheno$type == 'Tumour')] + 1),
+	fname.stem = 'replicate-tumours-normalized',
+	covs = sample.covs,
+	covs.legend = sample.legend
+	);
+
+### Save items to compare runs ####################################################################
+summary.data <- list();
+
+### save options
+summary.data$bc 	 <- opts$bc;
+summary.data$cc  	 <- opts$ccn;
+summary.data$scc 	 <- opts$scc;
+summary.data$other 	 <- opts$oth;
+summary.data$matched <- opts$matched;
+summary.data$perchip <- opts$perchip;
+summary.data$cnas 	 <- opts$kd
+summary.data$col 	 <- opts$col;
+
+# sanity check
+if(! check.sample.order(reps$pheno$SampleID, colnames(reps$norm.counts))){
+	stop("Sorry, sample order doesn't match prior to ARI analysis, see above.");
+	}
+
+summary.scores <- score.runs(
+	replicates = reps,
+	normalized = norm.data,
+	cnas = cna.rounded,
+	sample.annot = phenodata,
+	genes = gene.info,
+	normals = cna.normals
+	);
+
+### ??
+plot.val.rates(summary.scores, fname.stem = 'PCR');
+
+summary.data <- c(summary.data, summary.scores);	# verify this
+print(melt(summary.data));
+
+### print to file
+setwd(out.dir);
+write.table(
+	melt(summary.data),
+	generate.filename('summary', 'statistics', 'txt'),
+	sep = "\t",
+	quote = FALSE,
+	col.names = FALSE,
+	row.names = FALSE
+	);
+
+### SESSION_INFO ##################################################################################
+save.session.profile(generate.filename('NS_norm_eval', 'Session_Info','txt'), FALSE);
+
