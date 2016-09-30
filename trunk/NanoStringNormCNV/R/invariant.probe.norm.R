@@ -31,8 +31,7 @@ invariant.probe.norm <- function(nano.df, pheno = NULL){
 	# plot the counts for the invariant probes. It is BAD to have counts < 100 for these probes as it signifies
 	# low DNA input, leading to unreliable CNA calls. Especially if the low counts are in the reference samples!!
 	NanoStringNormCNV::make.invariant.probe.plot(
-		nano.df['Invariant' == nano.df$CodeClass, grep.cols, drop = FALSE],
-		fname.stem = 'invariant_probe',
+		inv.probe.counts = nano.df['Invariant' == nano.df$CodeClass, grep.cols, drop = FALSE],
 		sample.type = pheno
 		);
 

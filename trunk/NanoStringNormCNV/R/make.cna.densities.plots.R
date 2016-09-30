@@ -1,8 +1,10 @@
 
-make.cna.densities.plots <- function(cnas, fname.stem, xlab) {
+make.cna.densities.plots <- function(cnas, xlab, fname.stem = NULL) {
 
 	# round values to 5 decimal places
 	cnas <- round(cnas, digits = 5);
+
+	if (!is.null(fname.stem)) { fname.stem <- paste0("_", fname.stem); }
 
 	# per gene plots
 	gene.list 		 <- lapply(seq(1:nrow(cnas)), function(f) cnas[f,]);
@@ -10,7 +12,7 @@ make.cna.densities.plots <- function(cnas, fname.stem, xlab) {
 
 	BoutrosLab.plotting.general::create.densityplot(
 		x = gene.list,
-		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'gene_density', 'png'),
+		filename = paste0(Sys.Date(), fname.stem, '_gene-densityplot.tiff'),
 		xlab.label = xlab,
 		xlab.cex = 2,
 		main = 'Density per gene',
@@ -33,7 +35,7 @@ make.cna.densities.plots <- function(cnas, fname.stem, xlab) {
 
 	BoutrosLab.plotting.general::create.densityplot(
 		x = sample.list,
-		filename = BoutrosLab.utilities::generate.filename(fname.stem, 'sample_density', 'png'),
+		filename = paste0(Sys.Date(), fname.stem, '_sample-densityplot.tiff'),
 		xlab.label = xlab,
 		xlab.cex = 2,
 		main = 'Density per sample',
@@ -57,7 +59,7 @@ make.cna.densities.plots <- function(cnas, fname.stem, xlab) {
 
 		BoutrosLab.plotting.general::create.densityplot(
 			x = sample.list,
-			filename = BoutrosLab.utilities::generate.filename(fname.stem, 'sample_density-logged', 'png'),
+			filename = paste0(Sys.Date(), fname.stem, '_sample-logged-densityplot.tiff'),
 			xlab.label = xlab,
 			xlab.cex = 2,
 			main = 'Density per sample (logged)',
