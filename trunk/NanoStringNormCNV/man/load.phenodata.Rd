@@ -1,8 +1,8 @@
 \name{load.phenodata}
 \alias{load.phenodata}
-\title{Loads phenotype information}
-\description{Loads and checks the phenotype information for NanoString samples}
-\usage{loads.phenodata(fname)}
+\title{Load phenotype information}
+\description{Load and check the phenotype information for NanoString samples}
+\usage{load.phenodata(fname)}
 \arguments{
   \item{fname}{The filename for phenotype information file. Expects a CSV file with the following column headers: SampleID, Name, Patient, type ('tumour' or 'reference'), cartridge (number), has.repl (whether sample has replicate (1) or not (0)), ref.name (name of matched normal, 'missing' if matched normal does not exist, NA for normal samples).}
 }
