@@ -25,8 +25,8 @@ load.phenodata <- function(fname){
 		}
 
 	# check Sample IDs are unique
-	if (any(duplicated(phenodata$SampleID)) | any(duplicated(phenodata$Name))) {
-		stop("Sample IDs and names must be unique!");
+	if (any(duplicated(phenodata$SampleID))) {
+		stop("Sample IDs must be unique!");
 		}
 
 	# check cartridge values are numeric
@@ -37,15 +37,15 @@ load.phenodata <- function(fname){
 		}
 
 	# check type values
-	phenodata$type[tolower(phenodata$type) == 'tumour']    <- 'tumour';
-	phenodata$type[tolower(phenodata$type) == 'reference'] <- 'reference';
-	if (!all(phenodata$type == 'tumour' | phenodata$type == 'reference')) {
-		stop("Column 'type' must contain only 'tumour' or 'reference'!");
+	phenodata$type[tolower(phenodata$type) == 'tumour']    <- 'Tumour';
+	phenodata$type[tolower(phenodata$type) == 'reference'] <- 'Reference';
+	if (!all(phenodata$type == 'Tumour' | phenodata$type == 'Reference')) {
+		stop("Column 'type' must contain only 'Tumour' or 'Reference'!");
 		}	
 
 	# check reference sample information
-	ref.tumour <- phenodata[phenodata$type == 'tumour',]$ref.name;
-	ref.normal <- phenodata[phenodata$type == 'reference',]$ref.name;
+	ref.tumour <- phenodata[phenodata$type == 'Tumour',]$ref.name;
+	ref.normal <- phenodata[phenodata$type == 'Teference',]$ref.name;
 
 	if (any(!(ref.tumour[ref.tumour != 'missing'] %in% phenodata$SampleID))) {
 		stop(paste0(
