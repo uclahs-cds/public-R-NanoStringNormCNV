@@ -32,8 +32,8 @@ load.phenodata <- function(fname){
 	# check cartridge values are numeric
 	if (!is.numeric(phenodata$cartridge)) {
 		flog.warn("Cartridge values must be numeric");
-		phenodata$cartridge <- as.numeric(phenodata.cartridge);
-		if (any(is.na(phenodata.cartridge))) { stop("Unable to convert cartridge values to numeric!") }
+		phenodata$cartridge <- as.numeric(phenodata$cartridge);
+		if (any(is.na(phenodata$cartridge))) { stop("Unable to convert cartridge values to numeric!") }
 		}
 
 	# check type values
