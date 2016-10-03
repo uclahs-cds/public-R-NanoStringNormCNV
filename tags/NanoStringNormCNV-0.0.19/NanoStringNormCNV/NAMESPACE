@@ -1,0 +1,2 @@
+exportPattern("^[[:alpha:]]+")
+import("testthat","lattice","BoutrosLab.plotting.general", "NanoStringNorm", "futile.logger", "mclust", "reshape2");
