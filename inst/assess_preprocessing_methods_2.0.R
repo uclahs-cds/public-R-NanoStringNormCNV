@@ -19,10 +19,10 @@ library(getopt);
 # load_all("~/svn/Resources/code/R/prostate.acgh.biomarkers");
 source("~/svn/Training/elalonde/OncoScan_reprocess/cna.plotting.functions.R");
 source("~/svn/Resources/code/R/ParameterEval/R/generate.covariates.R")
-source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
+# source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
 source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/call_signature_pga.R")
 load_all("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV");
-source("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV/R/score.runs.R");
+# source("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV/R/score.runs.R");
 
 # specifically samples with low restriction frag ratios
 dropoutliers <- 0;
@@ -121,6 +121,59 @@ prep_analysis_dir <- function(dir.name, stats = TRUE, plots = TRUE, others = NUL
 				}
 			}
 		}
+	}
+
+
+check.sample.order <- function(names1, names2){
+	if(all(names1 == names2)){
+		return(TRUE);
+	}else{
+		print(cbind(names1,names2));
+		return(FALSE);
+		}
+	}
+
+evaluation.replicates <- function(norm.data, full.phenodata, full.cnas){
+	# prepare data
+	nano.reps <- norm.data[, full.phenodata$SampleID[which(full.phenodata$has.repl==1)]];
+	pheno.reps <- full.phenodata[which(full.phenodata$has.repl==1), ];
+	if(! check.sample.order(colnames(nano.reps), pheno.reps$SampleID)){
+		stop("Sorry, samples don't match as expected. See above");
+		}
+
+	# order according to samples
+	reps.order <- order(pheno.reps$SampleID);
+	nano.reps <- nano.reps[, reps.order];
+	pheno.reps <- pheno.reps[reps.order , ];
+	if(! check.sample.order(colnames(nano.reps), pheno.reps$SampleID)){
+		stop("Sorry, samples don't match as expected. See above");
+		}
+	cna.reps <- full.cnas[ , pheno.reps$SampleID];
+
+	# deal with patient/sample/repl IDs
+	samples.backup 		<- pheno.reps$SampleID;
+	pheno.reps$replID 	<- pheno.reps$SampleID;
+	# pheno.reps$SampleID <- pheno.reps$Patient;
+	colnames(cna.reps) 	<- pheno.reps$SampleID;
+	pheno.reps$Name 	<- substr(pheno.reps$replID,1,10);
+	# names(nano.reps)	<- substr(names(nano.reps),1,10);
+
+	# check variance
+	var.matrix <- calculate.replicate.variance(nano.reps, pheno.reps, norm.data$Name);
+
+	### check CNA concordance
+	pheno.reps$Name <- substr(pheno.reps$replID,1,10);
+	pheno.reps$SampleID <- pheno.reps$Name;
+	colnames(cna.reps) <- pheno.reps$Name;
+	print(dim(cna.reps));
+	print(dim(pheno.reps));
+	print(dim(norm.data));
+	print(pheno.reps$Name);
+	conc.matrix <- calculate.replicate.concordance(cna.reps, pheno.reps, norm.data$Name);
+	conc.summary <- apply(conc.matrix, 2, sum)/nrow(conc.matrix);
+
+	pheno.reps$SampleID <- samples.backup;
+	return(list(variance = var.matrix, concordance = conc.matrix, conc.summary = conc.summary, pheno = pheno.reps, cnas = cna.reps));
 	}
 
 ### SET PARAMETERS #################################################################################
@@ -235,14 +288,16 @@ nano.raw$Name[chrXY] <- paste0("chr", nano.raw$Name[chrXY]);
 nano.raw$Accession[chrXY] <- unlist(lapply(strsplit(nano.raw$Name[chrXY], split = '-'), function(x) x[1]));
 
 # get phenodata and match Emilie's formatting
-phenodata <- read.delim("NSannotation.txt", stringsAsFactors = FALSE);
-phenodata <- phenodata[,!(names(phenodata) %in% 'location')];
+phenodata <- load.phenodata(fname = paste0(data.dir, "/NSannotation.csv"));
 
-phenodata$Name 	   <- gsub("(.*)\\.M.*", "\\1", phenodata$Name);
-phenodata$Chip 	   <- paste('Chip', phenodata$cartridge);
-phenodata$SampleID <- as.character(gsub("-", ".", phenodata$SampleID));
-phenodata$ref.name <- as.character(gsub("-", ".", phenodata$ref.name));
-phenodata$DNA.mass <- as.character(phenodata$DNA.mass);
+# phenodata <- read.delim("NSannotation.txt", stringsAsFactors = FALSE);
+# phenodata <- phenodata[,!(names(phenodata) %in% 'location')];
+
+phenodata$Name <- gsub("(.*)\\.M.*", "\\1", phenodata$Name);
+phenodata$Chip <- paste('Chip', phenodata$cartridge);
+# phenodata$SampleID <- as.character(gsub("-", ".", phenodata$SampleID));
+# phenodata$ref.name <- as.character(gsub("-", ".", phenodata$ref.name));
+# phenodata$DNA.mass <- as.character(phenodata$DNA.mass);
 
 # match raw colnames to pheno Sample ID
 check.names <- gsub("_[0-9]+", "", names(nano.raw)[-(1:3)]);
@@ -366,19 +421,19 @@ if (opts$oth == 3) oth.val <- 'quantile';
 
 do.nsn.norm <- TRUE;
 
-# ToDo: re-set
 # set up kd values if required
 if (opts$kd > 0) { thresh.method <- 'KD'; }
-# try min/max seen in normals
-if (opts$kd == 1) kd.vals <- c(0.85,0.95); # this doesn't see, to be getting used anywhere..
-if (opts$kd == 2) {
-	#kd.vals <- c(0.95, 0.92,0.92, 0.95);
-	kd.vals <- c(0.9, 0.87,0.93, 0.96);
-	#kd.vals <- c(0.82, 0.75,0.86, 0.9);
-}# else if (opts$kd == 3) {
+if (opts$kd == 0) kd.vals <- NULL; # using NS-provided thresholds
+if (opts$kd == 1) kd.vals <- NULL; # using min/max seen in normals
+if (opts$kd == 2) kd.vals <- NULL;						# "pkg defaults"   --ToDo
+if (opts$kd == 3) kd.vals <- c(0.9, 0.8, 0.87, 0.9); 	# "user-provided"  --ToDo
+
+# if (opts$kd == 1) kd.vals <- c(0.85,0.95); # this doesn't seem to be getting used anywhere..
+# } else if (opts$kd == 2) {
+# 	kd.vals <- c(0.9, 0.87,0.93, 0.96);
+# } else if (opts$kd == 3) {
 # 	kd.vals <- c(0.9, 0.8, 0.87, 0.9);
-# 	#kd.vals <- c(0.71, 0.65, 0.94, 0.98);
-# } else if(opts$kd == 4) {
+# } else if (opts$kd == 4) {
 # 	kd.vals <- c(0.9, 0.885, 0.92, 0.97);
 # 	}
 
@@ -472,8 +527,7 @@ if (opts$col == 1) {
 	matching.inds <- unlist(lapply(norm.data$Name, function(f) which(norm.annot$Accession == f)[1]));
 	norm.data 	  <- cbind(
 		Name = norm.data$Name,
-		norm.annot[matching.inds,
-		qw("Accession CodeClass")],
+		norm.annot[matching.inds, qw("Accession CodeClass")],
 		norm.data[, !colnames(norm.data) == 'Name']
 		);
 	
@@ -490,141 +544,169 @@ if (opts$col == 1) {
 	}
 
 ### Call CNAs ######################################################################################
-# use non-control probes (from autosomes only)
-use.genes <- which(norm.data$CodeClass %in% qw("Endogenous Housekeeping Invariant"));
-use.genes <- use.genes[!(use.genes %in% grep("chr[XY]", norm.data$Name))];
+# # use non-control probes (from autosomes only)
+# use.genes <- which(norm.data$CodeClass %in% qw("Endogenous Housekeeping Invariant"));
+# use.genes <- use.genes[!(use.genes %in% grep("chr[XY]", norm.data$Name))];
 
-cna.normals 	  <- matrix(nrow = length(use.genes), ncol = length(which(phenodata$type == 'Reference')));
-cna.normals.unadj <- matrix(nrow = length(use.genes), ncol = length(which(phenodata$type == 'Reference')));
+# cna.normals 	  <- matrix(nrow = length(use.genes), ncol = length(which(phenodata$type == 'Reference')));
+# cna.normals.unadj <- matrix(nrow = length(use.genes), ncol = length(which(phenodata$type == 'Reference')));
 
 if (opts$matched == 1) {
 	flog.info('Going to call CNAs with matched normals');
-	
-	has.ref 	<- which(phenodata$ref.name != 'missing' & phenodata$type == 'Tumour');
-	cna.raw 	<- matrix(nrow = length(use.genes), ncol = length(has.ref));
-	cna.rounded <- matrix(nrow = length(use.genes), ncol = length(has.ref));
 
-	# iterate through each sample here
-	for(tmr in 1:length(has.ref)){
-		# find indices for tmr and ref
-		tmr.ind <- which(colnames(norm.data) == phenodata$SampleID[has.ref[tmr]]);
-		ref.ind <- which(colnames(norm.data) == phenodata$ref.name[has.ref[tmr]]);
+	cna.all <- call.cnas.with.matched.normals(
+		normalized.data = norm.data, 
+		phenodata = phenodata,
+		per.chip = opts$perchip,
+		kd.option = opts$kd
+		);
 
-		flog.info(
-			"The indices for tmr and ref for sample %s: %s and %s",
-			phenodata$SampleID[has.ref[tmr]], tmr.ind, ref.ind
-			);
+	cna.raw <- cna.all$raw;
+	cna.rounded <- cna.all$rounded;
 
-		cna.raw[, tmr] <- call.copy.number.state(
-			norm.data[use.genes, c(1:3, tmr.ind, ref.ind), drop = FALSE],
-			phenodata$ref.name[has.ref[tmr]],
-			thresh.method = 'none',
-			multi.factor = 2
-			)[,4];
+	{
+		# has.ref 	<- which(phenodata$ref.name != 'missing' & phenodata$type == 'Tumour');
+		# cna.raw 	<- matrix(nrow = length(use.genes), ncol = length(has.ref));
+		# cna.rounded <- matrix(nrow = length(use.genes), ncol = length(has.ref));
 
-		if (opts$kd <= 1) {
-			cna.rounded[,tmr] <- call.copy.number.state(
-				norm.data[use.genes, c(1:3, tmr.ind, ref.ind), drop = FALSE],
-				phenodata$ref.name[has.ref[tmr]],
-				per.chip = opts$perchip,
-				chip.info = phenodata
-				)[,4];
-		} else {
-			cna.rounded[,tmr] <- call.copy.number.state(
-				norm.data[use.genes, c(1:3, tmr.ind, ref.ind), drop = FALSE],
-				phenodata$ref.name[has.ref[tmr]],
-				per.chip = opts$perchip,
-				chip.info = phenodata,
-				thresh.method = 'KD'
-				)[,4];
-			cna.normals <- cna.rounded[, phenodata$SampleID[is.ref], drop = FALSE];
-			}
+		# # iterate through each sample here
+		# for (tmr in 1:length(has.ref)) {
+		# 	# find indices for tmr and ref
+		# 	tmr.ind <- which(colnames(norm.data) == phenodata$SampleID[has.ref[tmr]]);
+		# 	ref.ind <- which(colnames(norm.data) == phenodata$ref.name[has.ref[tmr]]);
+
+		# 	flog.info(
+		# 		"The indices for tmr and ref for sample %s: %s and %s",
+		# 		phenodata$SampleID[has.ref[tmr]], tmr.ind, ref.ind
+		# 		);
+
+		# 	cna.raw[, tmr] <- call.copy.number.state(
+		# 		norm.data[use.genes, c(1:3, tmr.ind, ref.ind), drop = FALSE],
+		# 		phenodata$ref.name[has.ref[tmr]],
+		# 		thresh.method = 'none',
+		# 		multi.factor = 2
+		# 		)[,4];
+
+		# 	if (opts$kd <= 1) {
+		# 		cna.rounded[,tmr] <- call.copy.number.state(
+		# 			norm.data[use.genes, c(1:3, tmr.ind, ref.ind), drop = FALSE],
+		# 			phenodata$ref.name[has.ref[tmr]],
+		# 			per.chip = opts$perchip,
+		# 			chip.info = phenodata
+		# 			)[,4];
+		# 	} else {
+		# 		cna.rounded[,tmr] <- call.copy.number.state(
+		# 			norm.data[use.genes, c(1:3, tmr.ind, ref.ind), drop = FALSE],
+		# 			phenodata$ref.name[has.ref[tmr]],
+		# 			per.chip = opts$perchip,
+		# 			chip.info = phenodata,
+		# 			thresh.method = 'KD'
+		# 			)[,4];
+		# 		cna.normals <- cna.rounded[, phenodata$SampleID[is.ref], drop = FALSE];# THIS MAKES NO SENSE!
+		# 		}
+		# 	}
+
 		}
 } else {
 	flog.info('Going to call CNAs with pooled normals');
 
-	is.tmr  <- which(phenodata$type == 'Tumour');
-	is.ref  <- which(phenodata$type == 'Reference');
-	cna.raw <- call.copy.number.state(
-		input = norm.data[use.genes,],
-		reference = phenodata$SampleID[is.ref],
+	cna.all <- call.cnas.with.pooled.normals(
+		normalized.data = norm.data,
+		phenodata = phenodata,
 		per.chip = opts$perchip,
-		chip.info = phenodata,
-		thresh.method = 'none',
-		adjust = TRUE
-		);
-	
-	# make an average ref sample to use to call cnas in normals
-	norm.data.tmp <- cbind(
-		norm.data[, c(1:3, (is.ref + 3))],
-		avg.ref = apply(X = norm.data[, (is.ref + 3)], MARGIN = 1, FUN = mean)
+		kd.option = opts$kd,
+		kd.values = kd.vals
 		);
 
-	cna.normals.unadj <- call.copy.number.state(
-		input = norm.data.tmp[use.genes,],
-		reference = 'avg.ref',
-		per.chip = opts$perchip,
-		chip.info = phenodata[is.ref,],
-		thresh.method = 'none',
-		adjust = TRUE
-		);
-	cna.normals.unadj <- cna.normals.unadj[, -c(1:3)];
-	
-	if (opts$kd <= 1) {
-		if (opts$kd == 0) {	# predefined
-			thresh <- c(0.4, 1.5, 2.5, 3.5);	# DEFAULT?
-		} else {	# based on normal data
-			thresh.offset <- diff(range(cna.normals.unadj) * 0.15);# where's this number come from?
+	cna.rounded <- cna.all$rounded;
+	cna.raw <- cna.all$raw;
+	cna.normals <- cna.all$normals;
+	cna.normals.unadj <- cna.all$normals.unadj;
 
-			thresh <- c(
-				min(cna.normals.unadj),
-				min(cna.normals.unadj) + thresh.offset,
-				max(cna.normals.unadj) - thresh.offset,
-				max(cna.normals.unadj)
-				);	# try based on % range
+	{
+		# is.tmr  <- which(phenodata$type == 'Tumour');
+		# is.ref  <- which(phenodata$type == 'Reference');
+		# cna.raw <- call.copy.number.state(
+		# 	input = norm.data[use.genes,],
+		# 	reference = phenodata$SampleID[is.ref],
+		# 	per.chip = opts$perchip,
+		# 	chip.info = phenodata,
+		# 	thresh.method = 'none',
+		# 	adjust = TRUE
+		# 	);
+		
+		# # make an average ref sample to use to call cnas in normals
+		# norm.data.tmp <- cbind(
+		# 	norm.data[, c(1:3, (is.ref + 3))],
+		# 	avg.ref = apply(X = norm.data[, (is.ref + 3)], MARGIN = 1, FUN = mean)
+		# 	);
 
-			# thresh <- c(
-			# 	min(cna.normals.unadj),
-			# 	min(cna.normals.unadj) + 0.65,
-			# 	max(cna.normals.unadj) - 0.7,
-			# 	max(cna.normals.unadj)
-			# 	);
-			}
+		# cna.normals.unadj <- call.copy.number.state(
+		# 	input = norm.data.tmp[use.genes,],
+		# 	reference = 'avg.ref',
+		# 	per.chip = opts$perchip,
+		# 	chip.info = phenodata[is.ref,],
+		# 	thresh.method = 'none',
+		# 	adjust = TRUE
+		# 	);
+		# cna.normals.unadj <- cna.normals.unadj[, -c(1:3)];
+		
+		# if (opts$kd <= 1) {
+		# 	if (opts$kd == 0) {	# predefined
+		# 		thresh <- c(0.4, 1.5, 2.5, 3.5);	# DEFAULT?
+		# 	} else {	# based on normal data
+		# 		thresh.offset <- diff(range(cna.normals.unadj) * 0.15);# where's this number come from?
 
-		# call CNAs for tumours based on derived thresh (above)
-		cna.rounded <- call.copy.number.state(
-			norm.data[use.genes,],
-			phenodata$SampleID[is.ref],
-			per.chip = opts$perchip,
-			chip.info = phenodata,
-			adjust = TRUE,
-			cna.thresh = thresh
-			);
-	} else {
-		# Call CNAs with KD
-		cna.rounded <- call.copy.number.state(
-			norm.data[use.genes,],
-			phenodata$SampleID[is.ref],
-			per.chip = opts$perchip,
-			chip.info = phenodata,
-			thresh.method = 'KD',
-			kd.vals = kd.vals,
-			adjust = TRUE
-			);
+		# 		thresh <- c(
+		# 			min(cna.normals.unadj),
+		# 			min(cna.normals.unadj) + thresh.offset,
+		# 			max(cna.normals.unadj) - thresh.offset,
+		# 			max(cna.normals.unadj)
+		# 			);	# try based on % range
+
+		# 		# thresh <- c(
+		# 		# 	min(cna.normals.unadj),
+		# 		# 	min(cna.normals.unadj) + 0.65,
+		# 		# 	max(cna.normals.unadj) - 0.7,
+		# 		# 	max(cna.normals.unadj)
+		# 		# 	);
+		# 		}
+
+		# 	# call CNAs for tumours based on derived thresh (above)
+		# 	cna.rounded <- call.copy.number.state(
+		# 		norm.data[use.genes,],
+		# 		phenodata$SampleID[is.ref],
+		# 		per.chip = opts$perchip,
+		# 		chip.info = phenodata,
+		# 		adjust = TRUE,
+		# 		cna.thresh = thresh
+		# 		);
+		# } else {
+		# 	# Call CNAs with KD
+		# 	cna.rounded <- call.copy.number.state(
+		# 		norm.data[use.genes,],
+		# 		phenodata$SampleID[is.ref],
+		# 		per.chip = opts$perchip,
+		# 		chip.info = phenodata,
+		# 		thresh.method = 'KD',
+		# 		kd.vals = kd.vals,
+		# 		adjust = TRUE
+		# 		);
+		# 	}
+
+		# cna.normals <- cna.rounded[ , phenodata$SampleID[is.ref]];
+
+		# # check for columns with all NA and drop those
+		# # happens when perchip is true and matched is false, and there are no reference samples on that chip
+		# if (any(apply(cna.raw, 2, function(f) all(is.na(f))))) {
+		# 	all.na  <- which(as.vector(apply(cna.raw[, -c(1:3)], 2, function(f) all(is.na(f)))));
+		# 	cna.raw <- cna.raw[, -(all.na + 3)];
+		# 	}
+
+		# cna.raw 	<- as.matrix(cna.raw[, grep(x = colnames(cna.raw), 'F|P[0-9]')]);
+		# cna.rounded <- as.matrix(cna.rounded[, grep(x = colnames(cna.rounded), 'F|P[0-9]')]);
+		# has.ref 	<- is.tmr[colnames(norm.data)[is.tmr + 3] %in% colnames(cna.rounded)];
 		}
-
-	cna.normals <- cna.rounded[ , phenodata$SampleID[is.ref]];
-
-	# check for columns with all NA and drop those
-	# happens when perchip is true and matched is false, and there are no reference samples on that chip
-	if (any(apply(cna.raw, 2, function(f) all(is.na(f))))) {
-		all.na  <- which(as.vector(apply(cna.raw[, -c(1:3)], 2, function(f) all(is.na(f)))));
-		cna.raw <- cna.raw[, -(all.na + 3)];
-		}
-
-	cna.raw 	<- as.matrix(cna.raw[, grep(x = colnames(cna.raw), 'F|P[0-9]')]);
-	cna.rounded <- as.matrix(cna.rounded[, grep(x = colnames(cna.rounded), 'F|P[0-9]')]);
-	has.ref 	<- is.tmr[colnames(norm.data)[is.tmr + 3] %in% colnames(cna.rounded)];
 	}
 
 # sanity check
@@ -633,7 +715,6 @@ if (! check.sample.order(sub(x = phenodata$SampleID[has.ref], pattern = 'outlier
 	}
 
 pheno.cna <- phenodata[has.ref , ];
-colnames(cna.rounded) <- phenodata$SampleID[has.ref];
 
 # ### Evaluate replicates ############################################################################
 reps <- evaluation.replicates(norm.data[use.genes,], pheno.cna, cna.rounded);

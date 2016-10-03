@@ -11,12 +11,12 @@ library(reshape2);
 library(devtools)
 library(getopt);
 library(BoutrosLab.dist.overload);
-load_all("~/svn/BoutrosLab/Resources/code/R/prostate.acgh.biomarkers");
-load_all("~/svn/BoutrosLab/Resources/code/R/NanoStringNormCNV/");
-source("~/svn/BoutrosLab/Training/elalonde/OncoScan_reprocess/cna.plotting.functions.R");
-source("~/svn/BoutrosLab/Resources/code/R/ParameterEval/R/generate.covariates.R")
-source("~/svn/BoutrosLab/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R");	# *** many functions in here may need to be copied to package ***
-source("~/svn/BoutrosLab/Collaborators/RobBristow/nanostring_validation/normalization/call_signature_pga.R")
+load_all("~/svn/Resources/code/R/prostate.acgh.biomarkers");
+load_all("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV/");
+source("~/svn/Training/elalonde/OncoScan_reprocess/cna.plotting.functions.R");
+source("~/svn/Resources/code/R/ParameterEval/R/generate.covariates.R")
+source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R");	# *** many functions in here may need to be copied to package ***
+source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/call_signature_pga.R")
 
 
 ### FUNCTIONS #################################################################################
@@ -28,8 +28,8 @@ if(interactive()){	# *** this is useful for development / troubleshooting- let's
 	opts$bc <- 0;	# background correction option: 0 = none, 1 = mean.2sd *** implement other options! ***
 	opts$scc <- 3; # sample content correction: 1 = housekeeping.geo.mean, 2 = top.geo.mean, 3 = invariant probe normalization (via NSNCNV) *** add an option for none?
 	opts$oth <- 0;	# other normalization (not sure this works... to be double checked!)
-	opts$matched <- 0; # whether (1) or not (0) to use matched normals for reference. If not, a pooled normal reference is used from all available reference samples.
-	opts$kd <- 1;	# how to call CNAs from log2ratio values. 0 = NanoString-defined thresholds from documentation, 1-4 = different kernal density (KD) values. 1 = define thresholds based on log2ratio values observed in reference samples (see lines 244-247) and 2-4 are values I defined based on my dataset, and probably not at all generic. *** In reality we should provide 1 set of default KD values, and have another option where users can define them (instead of 3 predefined value sets (kd = 2-4) like we have now). See lines 156-166 for the values currently being used.
+	opts$matched <- 1; # whether (1) or not (0) to use matched normals for reference. If not, a pooled normal reference is used from all available reference samples.
+	opts$kd <- 2;	# how to call CNAs from log2ratio values. 0 = NanoString-defined thresholds from documentation, 1-4 = different kernal density (KD) values. 1 = define thresholds based on log2ratio values observed in reference samples (see lines 244-247) and 2-4 are values I defined based on my dataset, and probably not at all generic. *** In reality we should provide 1 set of default KD values, and have another option where users can define them (instead of 3 predefined value sets (kd = 2-4) like we have now). See lines 156-166 for the values currently being used.
 	opts$col <- 0;	# whether (1) or not(0) to collapse probes to larger unit (e.g. usually 3 probes per gene)
 }else{
 	params <- matrix(
@@ -57,12 +57,14 @@ if(is.null(opts$oth)) { cat(usage()); q(status = 1) }
 if(is.null(opts$matched)) { cat(usage()); q(status = 1) }
 
 
-home.dir <- make_dir_name(opts);
+home.dir <- "test_dir";
 # list directories
-root.dir <- '/isilon/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV/';
+root.dir <- '/.mounts/labs/boutroslab/private/Collaborators/RobBristow/cna_biomarkers/validation/4_Nanostring/data/';
+# root.dir <- '/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV/';
 setwd(root.dir);
 prep_analysis_dir(dir.name = paste0('normalization_assessment/', home.dir), stats = F);
-data.dir <- paste0(root.dir, '/test_data');
+data.dir <- paste0(root.dir, '/raw');
+# data.dir <- paste0(root.dir, '/test_data');
 out.dir  <- paste0(root.dir, '/normalization_assessment/', home.dir);
 plot.dir <- paste0(out.dir, '/plots');
 
@@ -87,7 +89,7 @@ nano.raw <- nano.raw[ , which(colnames(nano.raw) != 'X20140917_Boutros28_326_02'
 
 ### get phenodata (*** sample annotations-- will need to specify format of this data in docs so that this function can be published ***)
 setwd(out.dir);
-phenodata <- load.phenodata(rm.outliers = ifelse(dropoutliers == 1, T, F));
+phenodata <- load.phenodata(rm.outliers = FALSE);
 
 
 nano.raw <- nano.raw[, c(1:3, unlist(lapply(phenodata$Name, function(f) which(colnames(nano.raw) == f))))];
@@ -96,6 +98,7 @@ if(! check.sample.order(phenodata$Name, colnames(nano.raw)[-c(1:3)])){
 	stop("Sorry, sample order doesn't match after reading and parsing data, see above.");
 	}
 
+names(nano.raw)[-(1:3)] <- phenodata$SampleID;
 
 # get signature info-- only used if collapsed = TRUE
 if(opts$col == 1){

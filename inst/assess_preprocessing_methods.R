@@ -291,7 +291,6 @@ if(opts$col == 1){
 	colnames(gene.info)[3] <- 'Symbol';
 	}
 
-
 ### Call CNAs #########################################################################################
 use.genes <- which(norm.data$CodeClass %in% qw("Endogenous Housekeeping Invariant"));
 cna.normals <- matrix(nrow = length(use.genes), ncol = length(which(phenodata$type == 'Reference')));
@@ -370,7 +369,14 @@ if(opts$matched == 1){
 		cna.raw <- call.copy.number.state(norm.data[use.genes,], phenodata$SampleID[is.ref], per.chip = opts$perchip, chip.info=phenodata, thresh.method = 'none', adjust = T);
 		### make an average ref sample to use to call cnas in normals
 		norm.data.tmp <- cbind(norm.data[, c(1:3, (is.ref+3))], avg.ref = apply(X = norm.data[, (is.ref+3)], MARGIN = 1, FUN = mean));
-		cna.normals.unadj <- call.copy.number.state(norm.data.tmp[use.genes, ], 'avg.ref', per.chip = opts$perchip, chip.info=phenodata[is.ref,], thresh.method = 'none', adjust = T);
+		cna.normals.unadj <- call.copy.number.state(
+			norm.data.tmp[use.genes, ], 
+			'avg.ref', 
+			per.chip = opts$perchip, 
+			chip.info=phenodata[is.ref,], 
+			thresh.method = 'none', 
+			adjust = TRUE
+			);
 		cna.normals.unadj <- cna.normals.unadj[, -c(1:3)];
 		
 		if(opts$kd <= 1){
