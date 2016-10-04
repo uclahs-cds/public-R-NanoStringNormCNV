@@ -1,26 +1,44 @@
 
-get.tumour.normal.ratio <- function(ref, nchips, chips.annot, ns.counts, output){
+get.tumour.normal.ratio <- function(ns.counts, ref, chips.info, per.chip = FALSE){
+	# create empty data-frame to store data
+	output <- ns.counts;
+
+	cols.to.keep   <- colnames(ns.counts);
+	cols.to.remove <- c('Code.Class', 'CodeClass', 'Name', 'Accession');
+
+	if (any(cols.to.remove %in% cols.to.keep)) { cols.to.keep <- cols.to.keep[!cols.to.keep %in% cols.to.remove]; }
+
+	output <- output[, cols.to.keep, drop = FALSE];
+	output[, cols.to.keep] <- NA;
+
+	# see if user asks for per.chip
+	if (per.chip) {
+		chip.names <- unique(chip.info$Chip);
+	} else if (!per.chip) {
+		chip.names <- 'combined';
+		}
+
 	# define sample order here so the reference sample is placed at the end
 	samples.to.loop <- c(colnames(output)[!colnames(output) %in% ref], ref);
 
-	# loop over nchips
-	for (perm.i in 1:nchips) {
+	# loop over chip names
+	for (this.chip in chip.names) {
 
 		# define a tmp.ref every time before the start of a new iteration
 		tmp.ref <- ref;
 
-		flog.info('nchips %s', perm.i);
-		
-		if (length(nchips) > 1) {
+		if (this.chip != 'combined') {
 
 			# get the tmp.ref for given chip
-			this.chip <- paste0('Chip ', perm.i);
-			tmp.ref <- chips.annot$SampleID[chips.annot$Chip %in% this.chip & chips.annot$SampleID %in% ref];
+			tmp.ref <- chips.info$SampleID[chips.info$Chip %in% this.chip & chips.info$SampleID %in% ref];
 
-			# when per chip is requested but there are no ref samples on the chip, use pooled refs
-			if (length(tmp.ref) < 1) { next; }
+			# skip when per chip is requested but there are no ref samples on the chip
+			if (length(tmp.ref) < 1) { 
+				flog.warn(paste0("No reference samples on ", this.chip, ". Try calling CNAs with per.chip = FALSE"));
+				next;
+				}
 
-			samples.to.loop <- chips.annot$SampleID[this.chip == chips.annot$Chip];
+			samples.to.loop <- chips.info$SampleID[this.chip == chips.info$Chip];
 			samples.to.loop <- c(samples.to.loop[!samples.to.loop %in% tmp.ref], tmp.ref);
 			}
 
@@ -38,7 +56,7 @@ get.tumour.normal.ratio <- function(ref, nchips, chips.annot, ns.counts, output)
 		if (any(0 == ns.counts[,tmp.ref])) { ns.counts[,tmp.ref][0 == ns.counts[,tmp.ref]] <- 1; }
 
 		# divide each test sample probe value by corresponding probes in the ref samples
-		output[ , samples.to.loop] <- ns.counts[ , samples.to.loop] / ns.counts[ , tmp.ref];
+		output[,samples.to.loop] <- ns.counts[,samples.to.loop] / ns.counts[,tmp.ref];
 		}
 
 	return(output);

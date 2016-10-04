@@ -4,7 +4,7 @@
 \description{Subtract the reference signal from the test sample}
 \usage{
 call.copy.number.state(
-	input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', multi.factor = 2, kd.vals = c(0.85, 0.95), adjust = FALSE, cna.thresh = c(0.4, 1.4, 2.4, 3.4)
+	input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', multi.factor = 2, kd.vals = c(0.85, 0.95), adjust = FALSE, cna.thresh = c(0.4, 1.5, 2.5, 3.5)
 	)
 }
 \arguments{
@@ -16,7 +16,7 @@ call.copy.number.state(
   \item{multi.factor}{A number to multiply the test/ref ratio by. NanoString recommends 2 (default), otherwise use 1 for no amplification/boosting}
   \item{kd.vals}{A 2- or 4-element vector containing the KD thresholds to be used for (hom, het) deletions and (het, hom) amplifications}
   \item{adjust}{Whether or not to center the data at 2 prior to calling CNAs, default is FALSE}
-  \item{cna.thresh}{A vector containing a list of threshold values to use segment the data}
+  \item{cna.thresh}{A vector containing a list of threshold values to use segment the data. Defaults to 0.4, 1.5, 2.5, 3.5}
 }
 \details{Determine the copy number state for each gene in each sample based on counts in the test and reference set.}
 \value{A data-frame with copy number states}
