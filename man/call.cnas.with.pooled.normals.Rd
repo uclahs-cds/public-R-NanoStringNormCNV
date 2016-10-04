@@ -15,7 +15,7 @@ call.cnas.with.pooled.normals(normalized.data, phenodata, per.chip = FALSE, kd.o
   3) create thresholds with kernel density approach using user-provided KD values }
   \item{kd.values}{KD values to use in defining thresholds. Required when kd.option = 3. Defaults to NULL}
 }
-\details{Get copy number states for each gene in each using corresponding matched normal samples. Preferable when most tumour samples do not have a matched normal. Pooled reference is created by taking the mean count.}
+\details{Get copy number states for each gene in each using corresponding matched normal samples. Preferable when most tumour samples do not have a matched normal. Pooled reference is created by taking the mean count of all normal samples.}
 \value{A list containing 4 items (each being a gene X sample matrix):
 1) copy number states rounded according to the method specified
 2) raw (not rounded) copy number states

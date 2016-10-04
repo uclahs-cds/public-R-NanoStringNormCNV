@@ -422,11 +422,11 @@ if (opts$oth == 3) oth.val <- 'quantile';
 do.nsn.norm <- TRUE;
 
 # set up kd values if required
-if (opts$kd > 0) { thresh.method <- 'KD'; }
-if (opts$kd == 0) kd.vals <- NULL; # using NS-provided thresholds
-if (opts$kd == 1) kd.vals <- NULL; # using min/max seen in normals
-if (opts$kd == 2) kd.vals <- NULL;						# "pkg defaults"   --ToDo
-if (opts$kd == 3) kd.vals <- c(0.9, 0.8, 0.87, 0.9); 	# "user-provided"  --ToDo
+# if (opts$kd > 0) { thresh.method <- 'KD'; }# this variable doesn't actually exist anywhere
+if (opts$kd == 0) kd.vals <- NULL; # 'round'; using NS-provided thresholds
+if (opts$kd == 1) kd.vals <- NULL; # 'round'; using min/max seen in normals
+if (opts$kd == 2) kd.vals <- NULL;						# 'KD'; "pkg defaults"   --ToDo
+if (opts$kd == 3) kd.vals <- c(0.9, 0.8, 0.87, 0.9); 	# 'KD'; "user-provided"  --ToDo
 
 # if (opts$kd == 1) kd.vals <- c(0.85,0.95); # this doesn't seem to be getting used anywhere..
 # } else if (opts$kd == 2) {

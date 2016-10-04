@@ -14,7 +14,7 @@ call.cnas.with.matched.normals <- function(normalized.data, phenodata, per.chip 
 		tmr.ind <- which(colnames(normalized.data) == phenodata$SampleID[has.ref[tmr]]);
 		ref.ind <- which(colnames(normalized.data) == phenodata$ref.name[has.ref[tmr]]);
 
-		cna.raw[,tmr] <- call.copy.number.state(
+		cna.raw[,tmr] <- NanoStringNormCNV::call.copy.number.state(
 			input = normalized.data[use.genes, c(1:3, tmr.ind, ref.ind), drop = FALSE],
 			reference = phenodata$ref.name[has.ref[tmr]],
 			thresh.method = 'none',
@@ -42,6 +42,7 @@ call.cnas.with.matched.normals <- function(normalized.data, phenodata, per.chip 
 	colnames(cna.rounded) <- phenodata$SampleID[has.ref];
 	colnames(cna.raw)     <- phenodata$SampleID[has.ref];
 
+	# combine output
 	cna.all <- list(rounded = cna.rounded, raw = cna.raw);
 
 	return(cna.all);

@@ -1,5 +1,5 @@
 
-apply.kd.cna.thresh <- function(tmr2ref, kd.thresh){
+apply.kd.cna.thresh <- function(tmr2ref, kd.thresh) {
 	# assign header names
 	headers <- c('Code.Class', 'CodeClass', 'Name', 'Accession');
 
@@ -27,18 +27,12 @@ apply.kd.cna.thresh <- function(tmr2ref, kd.thresh){
 	# determine the thresholds based on all patients combined
 	# shown to be more stable if only considering small subset of patients
 	if (2 == length(kd.thresh)) {
-		cna.thresh.single <- NanoStringNormCNV::get.sample.specific.cna.thresholds(
-			cna.data = unlist(cna.output),
-			percent = kd.thresh[1]
-			);
-		cna.thresh.multi <- NanoStringNormCNV::get.sample.specific.cna.thresholds(
-			cna.data = unlist(cna.output),
-			percent = kd.thresh[2]
-			);
+		cna.thresh.single <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output), percent = kd.thresh[1]);
+		cna.thresh.multi  <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output), percent = kd.thresh[2]);
 
 		# loop over each sample
 		for (col.ind in 1:ncol(cna.output)) {
-			cna.output[ , col.ind] <- NanoStringNormCNV::tumour.normal.ratio.to.cn.state(
+			cna.output[, col.ind] <- NanoStringNormCNV::tumour.normal.ratio.to.cn.state(
 				ratio.data = data.frame(ratio = cna.output[ , col.ind]),
 				thresholds = c(cna.thresh.multi[1], cna.thresh.single, cna.thresh.multi[2])
 				);
@@ -53,7 +47,7 @@ apply.kd.cna.thresh <- function(tmr2ref, kd.thresh){
 
 		# loop over each sample
 		for (col.ind in 1:ncol(cna.output)) {
-			cna.output[ , col.ind] <- NanoStringNormCNV::tumour.normal.ratio.to.cn.state(
+			cna.output[, col.ind] <- NanoStringNormCNV::tumour.normal.ratio.to.cn.state(
 				ratio.data = data.frame(ratio = cna.output[ , col.ind]),
 				thresholds = unlist(thresh)
 				);
