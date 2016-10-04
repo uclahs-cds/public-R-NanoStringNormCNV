@@ -16,6 +16,7 @@ call.cnas.with.pooled.normals <- function(normalized.data, phenodata, per.chip =
 
 	is.tmr  <- which(phenodata$type == 'Tumour');
 	is.ref  <- which(phenodata$type == 'Reference');
+
 	cna.raw <- NanoStringNormCNV::call.copy.number.state(
 		input = normalized.data[use.genes,],
 		reference = phenodata$SampleID[is.ref],
@@ -26,13 +27,13 @@ call.cnas.with.pooled.normals <- function(normalized.data, phenodata, per.chip =
 		);
 	
 	# make an average ref sample to use to call CNAs in normals
-	norm.data.tmp <- cbind(
+	norm.data.normals.only <- cbind(
 		normalized.data[, c(1:3, (is.ref + 3))],
 		avg.ref = apply(X = normalized.data[, (is.ref + 3)], MARGIN = 1, FUN = mean)
 		);
 
 	cna.normals.unadj <- NanoStringNormCNV::call.copy.number.state(
-		input = norm.data.tmp[use.genes,],
+		input = norm.data.normals.only[use.genes,],
 		reference = 'avg.ref',
 		per.chip = per.chip,
 		chip.info = phenodata[is.ref,],
@@ -44,9 +45,9 @@ call.cnas.with.pooled.normals <- function(normalized.data, phenodata, per.chip =
 	if (kd.option <= 1) {
 		if (kd.option == 0) {
 			# NanoString recommended thresholds
-			thresh <- c(0.4, 1.4, 2.4, 3.4);
+			thresh <- c(0.4, 1.5, 2.5, 3.5);
 		} else {
-			thresh.offset <- diff(range(cna.normals.unadj) * 0.15);
+			# thresh.offset <- diff(range(cna.normals.unadj) * 0.15);
 
 			thresh <- c(
 				min(cna.normals.unadj),
@@ -74,13 +75,13 @@ call.cnas.with.pooled.normals <- function(normalized.data, phenodata, per.chip =
 		if (kd.option == 3) { 
 			if (length(kd.values) != 4 & !is.numeric(kd.values)) {
 				flog.warn(paste0(
-					"For 'kd.option' 2, user must provide 4 kernel density values!\n",
-					"Switching to default values ('kd.option' 1)."
+					"For 'kd.option' 3, user must provide 4 kernel density values!\n",
+					"Switching to default values ('kd.option' 2)."
 					));
 				kd.option <- 1;
 				}
 			}
-		if (kd.option == 2) { kd.values <- c(0.9, 0.87,0.93, 0.96); }# NEEDS WORK
+		if (kd.option == 2) { kd.values <- c(0.9, 0.87, 0.93, 0.96); }# put whatever ends up being the default in apply.kd.cna.thresh here!!
 
 		cna.rounded <- NanoStringNormCNV::call.copy.number.state(
 			input = normalized.data[use.genes,],
@@ -95,13 +96,6 @@ call.cnas.with.pooled.normals <- function(normalized.data, phenodata, per.chip =
 
 	# collect normal sample CNAs
 	cna.normals <- cna.rounded[, phenodata$SampleID[is.ref]];
-
-	# check for columns with all NA and drop those
-	# NOTE: happens when perchip = TRUE and there are no reference samples on that chip
-	if (any(apply(cna.raw, 2, function(f) all(is.na(f))))) {
-		all.na  <- which(as.vector(apply(cna.raw[, -c(1:3)], 2, function(f) all(is.na(f)))));
-		cna.raw <- cna.raw[, -(all.na + 3)];
-		}
 
 	cna.raw 	<- as.matrix(cna.raw[, colnames(cna.raw) %in% phenodata$SampleID[is.tmr]]);
 	cna.rounded <- as.matrix(cna.rounded[, colnames(cna.rounded) %in% phenodata$SampleID[is.tmr]]);

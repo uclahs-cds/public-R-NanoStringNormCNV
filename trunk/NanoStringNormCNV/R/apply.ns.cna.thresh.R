@@ -1,5 +1,5 @@
 
-apply.ns.cna.thresh <- function(tmr2ref, thresh = c(0.4, 1.5, 2.5, 3.5)){
+apply.ns.cna.thresh <- function(tmr2ref, thresh = c(0.4, 1.5, 2.5, 3.5)) {
 	# assign header names
 	headers <- c('Code.Class', 'CodeClass', 'Name', 'Accession');
 
@@ -9,12 +9,13 @@ apply.ns.cna.thresh <- function(tmr2ref, thresh = c(0.4, 1.5, 2.5, 3.5)){
 
 	# pull below into a separate object
 	na.counts <- apply(
-		X = tmr2ref[,which.n, drop = FALSE],
+		X = tmr2ref[, which.n, drop = FALSE],
 		MARGIN = 2,
 		FUN = function(f) { all(is.na(f)) }
 		);
 
-	# need to exclude columns with all NAs (occurs when perchip=T and there are no reference samples on that chip!)
+	# need to exclude columns with all NAs:
+	# occurs when perchip = T and there are no reference samples on that chip!
 	if (any(na.counts)) {
 		all.na <- which(na.counts);
 		print(paste("dropping:", all.na));
