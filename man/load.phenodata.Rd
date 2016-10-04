@@ -8,5 +8,5 @@
 }
 \details{Reads in phenotype information and performs a thorough check of information provided to ensure it fits requirements of downstream analysis functions.
 Be aware that sample IDs and names that do not follow the expected naming convention (only alphanumeric characters or '.') will be modified. Please ensure IDs and names match NanoString samples.}
-\value{A sample by annotation data-frame, containing the following column headers: SampleID, Name, Patient, cartridge, type, ref.name, has.repl}
+\value{A sample by annotation data-frame, containing the following column headers: SampleID, Name, Patient, cartridge, type, ref.name, has.repl, Chip}
 \author{Dorota Sendorek and Emilie Lalonde}

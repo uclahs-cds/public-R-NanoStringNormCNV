@@ -36,6 +36,9 @@ load.phenodata <- function(fname){
 		if (any(is.na(phenodata$cartridge))) { stop("Unable to convert cartridge values to numeric!") }
 		}
 
+	# add 'Chip' column
+	phenodata$Chip <- paste('Chip', phenodata$cartridge);
+
 	# check type values
 	phenodata$type[tolower(phenodata$type) == 'tumour']    <- 'Tumour';
 	phenodata$type[tolower(phenodata$type) == 'reference'] <- 'Reference';
