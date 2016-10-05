@@ -11,7 +11,7 @@ import(
 importFrom(
 	"grDevices",
 	"dev.off",
-	"pdf
+	"pdf"
 	);
 importFrom(
 	"stats",
