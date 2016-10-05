@@ -3,7 +3,10 @@
 \title{Wrapper function to call all normalization function requested}
 \description{Wrapper function to call all normalization function requested using all data at once}
 \usage{
-normalize.global(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, plot.types = 'all', pheno = NULL)
+normalize.global(
+  raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs,
+  plot.types = 'all', pheno = NULL
+  )
 }
 \arguments{
   \item{raw.data}{The NanoString data-frame with raw counts for all samples in experiment}

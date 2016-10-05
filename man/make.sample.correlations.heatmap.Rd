@@ -3,7 +3,10 @@
 \title{Make a heatmap of the inter-sample correlations}
 \description{Make a heatmap for inter sample correlations based on code counts}
 \usage{
-make.sample.correlations.heatmap(data, cor.method = 'pearson', fname.stem = NULL, covs = NULL, covs.legend = NULL)
+make.sample.correlations.heatmap(
+	data, cor.method = 'pearson', fname.stem = NULL,
+	covs = NULL, covs.legend = NULL
+	)
 }
 \arguments{
   \item{data}{A matrix with code count info, genes X samples. Can be normalized or raw.}

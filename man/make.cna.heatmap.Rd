@@ -4,8 +4,9 @@
 \description{Make a heatmap for CNAs}
 \usage{
 make.cna.heatmap(
-	nano.cnas, fname.stem = NULL, covs.rows = NULL, covs.cols = NULL, covs.legend = NULL,
-	rounded = FALSE, clust.dim = 'both', centering.value = 2, ...
+	nano.cnas, fname.stem = NULL, covs.rows = NULL, covs.cols = NULL,
+  covs.legend = NULL,	rounded = FALSE, clust.dim = 'both', 
+  centering.value = 2, ...
 	)
 }
 \arguments{
