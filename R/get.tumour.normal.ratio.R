@@ -13,7 +13,7 @@ get.tumour.normal.ratio <- function(ns.counts, ref, chips.info, per.chip = FALSE
 
 	# see if user asks for per.chip
 	if (per.chip) {
-		chip.names <- unique(chip.info$Chip);
+		chip.names <- unique(chips.info$Chip);
 	} else if (!per.chip) {
 		chip.names <- 'combined';
 		}
