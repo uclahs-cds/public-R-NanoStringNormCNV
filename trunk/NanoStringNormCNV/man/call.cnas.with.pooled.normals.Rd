@@ -3,7 +3,9 @@
 \title{Call CNAs using a pooled reference}
 \description{Wrapper function that performs CNA calling on tumour samples against a reference comprised of pooled normal samples.}
 \usage{
-call.cnas.with.pooled.normals(normalized.data, phenodata, per.chip = FALSE, kd.option = 0, kd.values = NULL)
+call.cnas.with.pooled.normals(
+  normalized.data, phenodata, per.chip = FALSE, kd.option = 0, kd.values = NULL
+  )
 }
 \arguments{
   \item{normalized.data}{The NanoString normalized counts for both test and control samples}
@@ -13,7 +15,7 @@ call.cnas.with.pooled.normals(normalized.data, phenodata, per.chip = FALSE, kd.o
   1) define thresholds based on values observed in reference samples
   2) create thresholds with kernel density approach using default KD values
   3) create thresholds with kernel density approach using user-provided KD values }
-  \item{kd.values}{KD values to use in defining thresholds. Required when kd.option = 3. Defaults to NULL}
+  \item{kd.values}{A 2- or 4-element vector containing KD values to use in defining thresholds. Only required when kd.option = 3. Defaults to NULL}
 }
 \details{Get copy number states for each gene in each using corresponding matched normal samples. Preferable when most tumour samples do not have a matched normal. Pooled reference is created by taking the mean count of all normal samples.}
 \value{A list containing 4 items (each being a gene X sample matrix):
