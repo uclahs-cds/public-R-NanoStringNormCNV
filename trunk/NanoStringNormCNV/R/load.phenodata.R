@@ -67,28 +67,47 @@ load.phenodata <- function(fname){
 	# check replicate information
 	if (!all(phenodata$has.repl == 0 | phenodata$has.repl == 1)) {
 		stop(paste0(
-			"Column 'has.repl' must contain the following values:",
+			"Column 'has.repl' must contain only the following values:",
 			"\n\t1 for sample with replicate",
 			"\n\t0 for sample without replicates"
 			));
+		}
+
+	# check for sex information
+	if ("sex" %in% tolower(names(phenodata))) {
+		names(phenodata)[which("sex" == tolower(names(phenodata)))] <- "sex";
+
+		phenodata$sex[tolower(phenodata$sex) %in% c("female", "f")] <- "F";
+		phenodata$sex[tolower(phenodata$sex) %in% c("male", "m")]   <- "M";
+
+		if (any(na.omit(phenodata$sex) != "M" & na.omit(phenodata$sex) != "F")) {
+			stop("Column 'sex' must contain only the following values: M, F, NA");
+			}
+
+		# all samples belonging to one patient should have the same sex!
+		for (i in unique(phenodata$Patient)) {
+			if (length(unique(phenodata[phenodata$Patient == i,]$sex)) > 1) {
+				stop(paste0("More than one sex assigned to patient ", i, "!"));
+				}
+			}
+
+	} else {
+		phenodata$sex <- NA;
 		}
 
 	# ensure 'SampleID' and 'Name' values don't contain special characters
 	pattern <- "[^a-zA-Z0-9\\.]";
 
 	if (any(grepl(pattern, phenodata$SampleID))) {
-		flog.warn("'SampleID' values should only contain alphanumeric characters. Replacing non-alphanumeric with '.'");
+		flog.info("'SampleID' values should only contain alphanumeric characters. Replacing non-alphanumeric with '.'");
 		phenodata$ref.name[phenodata$ref.name %in% phenodata$SampleID] <- gsub(pattern, "\\.", phenodata$ref.name[phenodata$ref.name %in% phenodata$SampleID]);
 		phenodata$SampleID <- gsub(pattern, "\\.", phenodata$SampleID);
 		}
 
 	if (any(grepl(pattern, phenodata$Name))) {
-		flog.warn("'Name' values should only contain alphanumeric characters. Replacing non-alphanumeric with '.'");
+		flog.info("'Name' values should only contain alphanumeric characters. Replacing non-alphanumeric with '.'");
 		phenodata$Name <- gsub(pattern, "\\.", phenodata$Name);
 		}
-
-	# order data
-	phenodata <- phenodata[order(phenodata$SampleID),];
 
 	return(phenodata);
 	}
