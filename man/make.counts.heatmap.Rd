@@ -4,10 +4,10 @@
 \description{Make a heatmap for counts}
 \usage{
 make.counts.heatmap(
-	nano.counts, fname.stem = NULL, covs.rows = NULL, covs.cols = NULL,
+  nano.counts, fname.stem = NULL, covs.rows = NULL, covs.cols = NULL,
   covs.legend = NULL, clust.dim = 'both', clust.method = 'euclidean',
   print.ylab = NULL
-	)
+  )
 }
 \arguments{
   \item{nano.counts}{A matrix with nanostring count info, genes X samples}
