@@ -1,4 +1,11 @@
-call.cnas.with.pooled.normals <- function(normalized.data, phenodata, per.chip = FALSE, kd.option = 0, kd.values = NULL) {
+call.cnas.with.pooled.normals <- function(
+	normalized.data,
+	phenodata,
+	per.chip = FALSE,
+	kd.option = 0,
+	kd.values = NULL
+	) {
+	
 	flog.warn("Currently, cannot call on chromosomes X and Y!");
 
 	# use non-control probes (from autosomes only)
@@ -47,17 +54,18 @@ call.cnas.with.pooled.normals <- function(normalized.data, phenodata, per.chip =
 			# NanoString recommended thresholds
 			thresh <- c(0.4, 1.5, 2.5, 3.5);
 		} else {
-			# thresh.offset <- diff(range(cna.normals.unadj) * 0.15);
+			thresh.offset <- diff(range(cna.normals.unadj) * 0.15);
 
 			thresh <- c(
 				min(cna.normals.unadj),
-				quantile(
-					x = unlist(cna.normals.unadj),
-					probs = c(0.1, 0.9),
-					names = FALSE
-					),
-				# min(cna.normals.unadj) + thresh.offset,
-				# max(cna.normals.unadj) - thresh.offset,
+				### using quantiles seems more robust to outliers!
+				# quantile(
+				# 	x = unlist(cna.normals.unadj),
+				# 	probs = c(0.1, 0.9),
+				# 	names = FALSE
+				# 	),
+				min(cna.normals.unadj) + thresh.offset,
+				max(cna.normals.unadj) - thresh.offset,
 				max(cna.normals.unadj)
 				);
 			}
@@ -72,13 +80,13 @@ call.cnas.with.pooled.normals <- function(normalized.data, phenodata, per.chip =
 			);
 	} else {
 		# call copy number states using kernel density values
-		if (kd.option == 3) { 
-			if (length(kd.values) != 4 & !is.numeric(kd.values)) {
+		if (kd.option == 3) {
+			if ((length(kd.values) != 4 & length(kd.values) != 2) | !is.numeric(kd.values)) {
 				flog.warn(paste0(
-					"For 'kd.option' 3, user must provide 4 kernel density values!\n",
-					"Switching to default values ('kd.option' 2)."
+					"For 'kd.option' 3, user must provide 4 or 2 kernel density values!\n",
+					"Switching to default KD values (setting 'kd.option' to 2)."
 					));
-				kd.option <- 1;
+				kd.option <- 2;
 				}
 			}
 		if (kd.option == 2) { kd.values <- c(0.9, 0.87, 0.93, 0.96); }# put whatever ends up being the default in apply.kd.cna.thresh here!!
@@ -113,4 +121,5 @@ call.cnas.with.pooled.normals <- function(normalized.data, phenodata, per.chip =
 		);
 
 	return(cna.all);
+
 	}
