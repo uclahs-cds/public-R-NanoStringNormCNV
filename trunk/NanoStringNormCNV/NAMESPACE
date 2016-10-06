@@ -28,5 +28,6 @@ importFrom(
 importFrom(
 	"utils",
 	"head",
-	"tail"
+	"tail",
+	"read.csv"
 	);
