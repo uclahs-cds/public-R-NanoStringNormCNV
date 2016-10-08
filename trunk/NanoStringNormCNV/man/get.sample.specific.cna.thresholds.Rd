@@ -4,7 +4,7 @@
 \description{Determines sample-specific thresholds to call CNA states. Basic formula is median - x*SD.}
 \usage{get.sample.specific.cna.thresholds(cna.data, percent = 0.8)}
 \arguments{
-  \item{cna.data}{A vector with the log2ratio values, no NAs allowed}
+  \item{cna.data}{A vector with the log2ratio values}
   \item{percent}{The percent of density you would like to have between the threshold bounds (0.1 - 0.99), Default = 0.8}
 }
 \details{This script will return the log2-ratio thresholds that should be used for a sample to call CNA states. Copy neutral is 0. Kernel type is gaussian}

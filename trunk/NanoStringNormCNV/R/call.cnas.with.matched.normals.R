@@ -5,11 +5,8 @@ call.cnas.with.matched.normals <- function(
 	kd.option = 0
 	) {
 	
-	flog.warn("Currently, cannot call on chromosomes X and Y!");
-
-	# use non-control probes (from autosomes only)
+	# use non-control probes
 	use.genes <- which(normalized.data$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"));
-	use.genes <- use.genes[!(use.genes %in% grep("chr[XY]", normalized.data$Name))];
 
 	has.ref 	<- which(phenodata$ref.name != 'missing' & phenodata$type == 'Tumour');
 	cna.raw 	<- matrix(nrow = length(use.genes), ncol = length(has.ref));
@@ -23,6 +20,10 @@ call.cnas.with.matched.normals <- function(
 		cna.raw[,tmr] <- NanoStringNormCNV::call.copy.number.state(
 			input = normalized.data[use.genes, c(1:3, tmr.ind, ref.ind), drop = FALSE],
 			reference = phenodata$ref.name[has.ref[tmr]],
+			sex.info = phenodata[
+				c(has.ref[tmr], which(phenodata$SampleID == phenodata$ref.name[has.ref[tmr]])),
+				c("SampleID", "sex")
+				],
 			thresh.method = 'none',
 			multi.factor = 2
 			)[,4];

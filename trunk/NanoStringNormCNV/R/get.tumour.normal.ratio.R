@@ -46,7 +46,7 @@ get.tumour.normal.ratio <- function(ns.counts, ref, chips.info, per.chip = FALSE
 		if (length(tmp.ref) > 1) {
 
 			# take the average and create a new column in ns.counts as avg.ref
-			ns.counts$avg.ref <- apply(X = ns.counts[,tmp.ref], MARGIN = 1, FUN = mean);
+			ns.counts$avg.ref <- apply(X = ns.counts[,tmp.ref], MARGIN = 1, FUN = mean, na.rm = TRUE);
 
 			# and change tmp.ref to 'avg.ref'
 			tmp.ref <- 'avg.ref';

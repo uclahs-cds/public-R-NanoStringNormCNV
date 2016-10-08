@@ -6,12 +6,9 @@ call.cnas.with.pooled.normals <- function(
 	kd.values = NULL
 	) {
 	
-	flog.warn("Currently, cannot call on chromosomes X and Y!");
-
-	# use non-control probes (from autosomes only)
+	# use non-control probes
 	use.genes <- which(normalized.data$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"));
-	use.genes <- use.genes[!(use.genes %in% grep("chr[XY]", normalized.data$Name))];
-
+	
 	cna.normals <- matrix(
 		nrow = length(use.genes),
 		ncol = length(which(phenodata$type == 'Reference'))
@@ -42,6 +39,7 @@ call.cnas.with.pooled.normals <- function(
 	cna.normals.unadj <- NanoStringNormCNV::call.copy.number.state(
 		input = norm.data.normals.only[use.genes,],
 		reference = 'avg.ref',
+		sex.info = phenodata[, c("SampleID", "sex")],
 		per.chip = per.chip,
 		chip.info = phenodata[is.ref,],
 		thresh.method = 'none',
