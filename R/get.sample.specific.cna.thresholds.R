@@ -7,17 +7,13 @@
 get.sample.specific.cna.thresholds <- function(cna.data, percent = 0.8) {
 
 	# perform data check
-	if(any(is.na(cna.data))){
-		stop("You must specify a non-NA data vector of length > 1");
+	if(length(cna.data) < 2){
+		stop("You must specify a data vector of length > 1");
 		} 
 
-	# calculate sample median and sample sd
-	sample.median <- median(cna.data);
-	sample.sd 	  <- sd(cna.data);
-
 	# calculate thresholds based on a kernel density method
-    dx <- density(x = cna.data, kernel = 'gaussian');
-    dn <- cumsum(dx$y) / sum(dx$y);
+    dx <- density(x = cna.data, kernel = 'gaussian', na.rm = TRUE);
+    dn <- cumsum(dx$y) / sum(dx$y, na.rm = TRUE);
     li <- which(dn >= (1 - percent) / 2)[1];
     ui <- which(dn >= 1 - (1 - percent) / 2)[1];
 

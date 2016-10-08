@@ -186,7 +186,7 @@ if (interactive()) {
 	opts$inv 	 <- 1;
 	opts$oth 	 <- 0;
 	opts$matched <- 0;
-	opts$kd 	 <- 2;
+	opts$kd 	 <- 3;
 	opts$col 	 <- 0;
 } else {
 	params <- matrix(
@@ -294,10 +294,21 @@ phenodata <- load.phenodata(fname = paste0(data.dir, "/NSannotation.csv"));
 # phenodata <- phenodata[,!(names(phenodata) %in% 'location')];
 
 phenodata$Name <- gsub("(.*)\\.M.*", "\\1", phenodata$Name);
-phenodata$Chip <- paste('Chip', phenodata$cartridge);
+# phenodata$Chip <- paste('Chip', phenodata$cartridge);
 # phenodata$SampleID <- as.character(gsub("-", ".", phenodata$SampleID));
 # phenodata$ref.name <- as.character(gsub("-", ".", phenodata$ref.name));
 # phenodata$DNA.mass <- as.character(phenodata$DNA.mass);
+phenodata <- phenodata[, c(
+	"SampleID",
+	"Patient",
+	# "Name",
+	"cartridge",
+	"type",
+	"ref.name",
+	"has.repl",
+	"Chip",
+	"sex"
+	)];
 
 # match raw colnames to pheno Sample ID
 check.names <- gsub("_[0-9]+", "", names(nano.raw)[-(1:3)]);
@@ -544,13 +555,6 @@ if (opts$col == 1) {
 	}
 
 ### Call CNAs ######################################################################################
-# # use non-control probes (from autosomes only)
-# use.genes <- which(norm.data$CodeClass %in% qw("Endogenous Housekeeping Invariant"));
-# use.genes <- use.genes[!(use.genes %in% grep("chr[XY]", norm.data$Name))];
-
-# cna.normals 	  <- matrix(nrow = length(use.genes), ncol = length(which(phenodata$type == 'Reference')));
-# cna.normals.unadj <- matrix(nrow = length(use.genes), ncol = length(which(phenodata$type == 'Reference')));
-
 if (opts$matched == 1) {
 	flog.info('Going to call CNAs with matched normals');
 

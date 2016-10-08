@@ -1,5 +1,5 @@
 
-call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', multi.factor = 2, kd.vals = c(0.85, 0.95), adjust = FALSE, cna.thresh = c(0.4, 1.5, 2.5, 3.5)) {
+call.copy.number.state <- function (input, reference, sex.info, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', multi.factor = 2, kd.vals = c(0.85, 0.95), adjust = FALSE, cna.thresh = c(0.4, 1.5, 2.5, 3.5)) {
 
 	# Check input
 	if (! thresh.method %in% (unlist(strsplit("round KD kd none","\\s")))) {
@@ -20,19 +20,22 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 		}
 
 	# grep X and Y-chromosome genes
-	x.genes <- input$Name[grep(x = input$Name, pattern = 'chrX')];
-	y.genes <- input$Name[grep(x = input$Name, pattern = 'chrY')];
-	if (length(x.genes) > 0) {
-		warning("*** AT THE MOMENT WE IGNORE GENES/PROBES ON CHRX AND CHRY!!! ***");
-		# remove x.genes from input
-		# TO DO: get gender info to determine whether this should be done!
-		input <- input[!input$Name %in% x.genes,];
+	x.genes <- grep(x = tolower(input$Name), pattern = 'chrx');
+	y.genes <- grep(x = tolower(input$Name), pattern = 'chry');
+
+	if (length(x.genes) > 0 | length(y.genes) > 0) {
+		flog.info("Identified the following as sex chromosome probes:");
+		cat(paste(c("\t", input$Name[x.genes], input$Name[y.genes], "\n"), collapse = "\n\t"));
 		}
-	if (length(y.genes) > 0) {
-		warning("*** AT THE MOMENT WE IGNORE GENES/PROBES ON CHRX AND CHRY!!! ***");
-		# remove y.genes from input
-		# TO DO: get gender info to determine whether this should be done!
-		input <- input[!input$Name %in% y.genes,];
+
+	# removing chrY probes from female samples
+	for (i in sex.info[sex.info$sex %in% "F",]$SampleID) {
+		input[y.genes, i] <- NA;
+		}
+	
+	# removing chrX and chrY probes where sex is not provided
+	for (i in sex.info[is.na(sex.info$sex),]$SampleID) {
+		input[c(x.genes, y.genes), i] <- NA;	
 		}
 
 	### Analysis
@@ -44,10 +47,19 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 		per.chip = per.chip
 		);
 
+	# boosting probes
 	out.cna <- out.cna * multi.factor;
 
 	# if specified to make the median CN = multi.factor, adjust the values
-	if (adjust) { out.cna <- apply(out.cna, 2, function(f) f - (median(f) - multi.factor)); }
+	if (adjust) {
+		out.cna <- apply(out.cna, 2, function(f) f - (median(f, na.rm = TRUE) - multi.factor));
+		}
+
+	# undo boosting of chrX/Y probe values in male samples
+	for (i in sex.info[sex.info$sex %in% 'M',]$SampleID) {
+		out.cna[x.genes, i] <- (out.cna[x.genes, i] / multi.factor);
+		out.cna[y.genes, i] <- (out.cna[y.genes, i] / multi.factor);
+		}
 
 	# round if specified (based on NS recommendataions)
 	if (thresh.method == 'round') {
@@ -63,7 +75,9 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 		# segment using kernel density
 		out.cna.final <- NanoStringNormCNV::apply.kd.cna.thresh(
 			tmr2ref = out.cna,
-			kd.thresh = kd.vals
+			kd.thresh = kd.vals,
+			sex.info = sex.info,
+			sex.probes = rownames(out.cna)[c(x.genes, y.genes)]
 			);
 
 	} else {
