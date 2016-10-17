@@ -186,7 +186,7 @@ if (interactive()) {
 	opts$inv 	 <- 1;
 	opts$oth 	 <- 0;
 	opts$matched <- 0;
-	opts$kd 	 <- 2;
+	opts$kd 	 <- 3;
 	opts$col 	 <- 0;
 } else {
 	params <- matrix(
@@ -437,7 +437,8 @@ do.nsn.norm <- TRUE;
 if (opts$kd == 0) kd.vals <- NULL; # 'round'; using NS-provided thresholds
 if (opts$kd == 1) kd.vals <- NULL; # 'round'; using min/max seen in normals
 if (opts$kd == 2) kd.vals <- NULL;						# 'KD'; "pkg defaults"   --ToDo
-if (opts$kd == 3) kd.vals <- c(0.95, 0.73, 0.66, 0.87); # 'KD'; "user-provided"  --ToDo
+if (opts$kd == 3) kd.vals <- c(0.998, 0.79, 0.88, 0.989); # 'KD'; "user-provided"  --ToDo
+# if (opts$kd == 3) kd.vals <- c(0.89, 0.69, 0.65, 0.87); # 'KD'; "user-provided"  --ToDo
 
 ### RUN NORMALIZATION ##############################################################################
 setwd(plot.dir);
@@ -730,15 +731,14 @@ if (! check.sample.order(sub(x = phenodata$SampleID[has.ref], pattern = 'outlier
 pheno.cna <- phenodata[has.ref , ];
 
 ### Density plots ##################################################################################
-# for kd option 3
-normal.for.plot <- na.omit(as.vector(unlist(cna.normals.unadj)));
-tumour.for.plot <- na.omit(as.vector(unlist(cna.raw)));
-cnas.for.plot   <- na.omit(as.vector(unlist(cna.rounded)));
+normal.for.plot <- as.vector(na.omit(as.vector(unlist(cna.normals.unadj))));
+tumour.for.plot <- as.vector(na.omit(as.vector(unlist(cna.raw))));
+cnas.for.plot   <- as.vector(na.omit(as.vector(unlist(cna.rounded))));
 
-density.thresh <- 6;
-normal.for.plot <- normal.for.plot[normal.for.plot < density.thresh];
-tumour.for.plot <- tumour.for.plot[tumour.for.plot < density.thresh];
-cnas.for.plot   <- cnas.for.plot[cnas.for.plot < density.thresh];
+density.thresh <- 5;
+normal.for.plot[normal.for.plot > density.thresh] <- density.thresh;
+tumour.for.plot[tumour.for.plot > density.thresh] <- density.thresh;
+cnas.for.plot[	  cnas.for.plot > density.thresh] <- density.thresh;
 
 normal.density <- density(
 	normal.for.plot,
@@ -756,10 +756,15 @@ cnas.density <- density(
 	to = max(cnas.for.plot)
 	);
 
-plot.colours = default.colours(3);
+# plotting calls
+plot.colours <- default.colours(3);
 create.densityplot(
-	list(tumour = tumour.for.plot, normal = normal.for.plot, cnas = cnas.for.plot),
-	filename = paste0(plot.dir, "densityplot_comparison_kd-option-", opts$kd, ".tiff"),
+	list(
+		cnas = cnas.for.plot,
+		tumour = tumour.for.plot,
+		normal = normal.for.plot
+		),
+	filename = paste0(plot.dir, "/densityplot_comparison_kd-option-", opts$kd, ".tiff"),
 	col = plot.colours,
 	legend = list(
 		inside = list(
@@ -767,23 +772,59 @@ create.densityplot(
 			args = list(
 				key = list(
 					points = list(col = plot.colours, fill = plot.colours, pch = 19),
-					text = list(lab = c("tumour", "normal", "CNAs"))
+					text = list(lab = c("CNAs", "tumour", "normal"))
 					)
-				)
+				),
+			x = 0.75,
+			y = 0.85
 			)
-		)
+		),
+	ylimits = c(-0.1, max(c(normal.density$y, tumour.density$y, cnas.density$y)) + .5),
+	type = c('l', 'g'),
+	xgrid.at = seq(-1, 6, 0.1),
+	ygrid.at = seq(0, 20, 0.25)
 	);
 
-density.difference <- normal.density$y - cnas.density$y;
-intersection.point <- cnas.density$x[which(diff(density.difference > 0) != 0) + 1];
-intersection.point <- intersection.point[intersection.point < density.thresh];
+# plotting raw tumour and normal
+plot.colours <- default.colours(3)[2:3];
+create.densityplot(
+	list(
+		tumour = tumour.for.plot,
+		normal = normal.for.plot
+		),
+	filename = paste0(plot.dir, "/densityplot_comparison_raw.tiff"),
+	col = plot.colours,
+	legend = list(
+		inside = list(
+			fun = draw.key,
+			args = list(
+				key = list(
+					points = list(col = plot.colours, fill = plot.colours, pch = 19),
+					text = list(lab = c("tumour", "normal"))
+					)
+				),
+			x = 0.75,
+			y = 0.85
+			)
+		),
+	ylimits = c(-0.1, max(c(normal.density$y, tumour.density$y)) + .25),
+	type = c('l', 'g'),
+	xgrid.at = seq(-1, 6, 0.1),
+	ygrid.at = seq(0, 20, 0.25)
+	);
 
-intersection.point <- as.list(intersection.point[c(1, 3, 6, 7)]);
+# for kd option 3
+density.difference <- normal.density$y - tumour.density$y;
+intersection.point <- normal.density$x[which(diff(density.difference > 0) != 0) + 1];
+
+# chosen from above/plot
+intersection.point <- c(0.3, 1.67, 2.42, 3.57);
+
 kd.vals <- list();
-kd.vals[[1]] <- 1 - length(which(cnas.density$x < intersection.point[1])) / length(cnas.density$x);
-kd.vals[[2]] <- 1 - length(which(cnas.density$x < intersection.point[2])) / length(cnas.density$x);
-kd.vals[[3]] <- length(which(cnas.density$x < intersection.point[3])) / length(cnas.density$x);
-kd.vals[[4]] <- length(which(cnas.density$x < intersection.point[4])) / length(cnas.density$x);
+kd.vals[[1]] <- 1 - length(which(tumour.for.plot < intersection.point[1])) / length(tumour.for.plot);
+kd.vals[[2]] <- 1 - length(which(tumour.for.plot < intersection.point[2])) / length(tumour.for.plot);
+kd.vals[[3]] <- length(which(tumour.for.plot < intersection.point[3])) / length(tumour.for.plot);
+kd.vals[[4]] <- length(which(tumour.for.plot < intersection.point[4])) / length(tumour.for.plot);
 
 ### Evaluate replicates ############################################################################
 reps <- evaluation.replicates(norm.data[use.genes,], pheno.cna, cna.rounded);
