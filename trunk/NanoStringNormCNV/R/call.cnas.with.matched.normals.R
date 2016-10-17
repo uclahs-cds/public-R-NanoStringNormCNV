@@ -2,7 +2,8 @@ call.cnas.with.matched.normals <- function(
 	normalized.data,
 	phenodata,
 	per.chip = FALSE,
-	kd.option = 0
+	kd.option = 0,
+	kd.values = NULL
 	) {
 	
 	# use non-control probes
@@ -17,13 +18,15 @@ call.cnas.with.matched.normals <- function(
 		tmr.ind <- which(colnames(normalized.data) == phenodata$SampleID[has.ref[tmr]]);
 		ref.ind <- which(colnames(normalized.data) == phenodata$ref.name[has.ref[tmr]]);
 
+		sample.sex <- phenodata[
+				c(has.ref[tmr], which(phenodata$SampleID == phenodata$ref.name[has.ref[tmr]])),
+				c("SampleID", "sex")
+				];
+
 		cna.raw[,tmr] <- NanoStringNormCNV::call.copy.number.state(
 			input = normalized.data[use.genes, c(1:3, tmr.ind, ref.ind), drop = FALSE],
 			reference = phenodata$ref.name[has.ref[tmr]],
-			sex.info = phenodata[
-				c(has.ref[tmr], which(phenodata$SampleID == phenodata$ref.name[has.ref[tmr]])),
-				c("SampleID", "sex")
-				],
+			sex.info = sample.sex,
 			thresh.method = 'none',
 			multi.factor = 2
 			)[,4];
@@ -33,25 +36,32 @@ call.cnas.with.matched.normals <- function(
 			# 	# NanoString recommended thresholds
 			# 	thresh <- c(0.4, 1.5, 2.5, 3.5);
 			# } else {
-			# 	thresh.offset <- diff(range(normalized.data[use.genes, ref.ind]) * 0.15);
+			# 	thresh.offset <- diff(
+				# range(
+				# 	normalized.data[use.genes, ref.ind],
+				# 	na.rm = TRUE
+				# 	) * 0.15
+				# );
 
 			# 	thresh <- c(
-			# 		min(normalized.data[use.genes, ref.ind]),
+			# 		min(normalized.data[use.genes, ref.ind], na.rm = TRUE),
 			# 		# # using quantiles seems more robust to outliers!
 			# 		# quantile(
 			# 		# 	x = unlist(normalized.data[use.genes, ref.ind]),
 			# 		# 	probs = c(0.1, 0.9),
-			# 		# 	names = FALSE
+			# 		# 	names = FALSE,
+			#		# 	na.rm = TRUE
 			# 		# 	),
-			# 		min(normalized.data[use.genes, ref.ind]) + thresh.offset,
-			# 		max(normalized.data[use.genes, ref.ind]) - thresh.offset,
-			# 		max(normalized.data[use.genes, ref.ind])
+			# 		min(normalized.data[use.genes, ref.ind], na.rm = TRUE) + thresh.offset,
+			# 		max(normalized.data[use.genes, ref.ind], na.rm = TRUE) - thresh.offset,
+			# 		max(normalized.data[use.genes, ref.ind], na.rm = TRUE)
 			# 		);
 			# 	}
 
 			cna.rounded[,tmr] <- NanoStringNormCNV::call.copy.number.state(
 				input = normalized.data[use.genes, c(1:3, tmr.ind, ref.ind), drop = FALSE],
 				reference = phenodata$ref.name[has.ref[tmr]],
+				sex.info = sample.sex,	
 				per.chip = per.chip,
 				chip.info = phenodata#,
 				# cna.thresh = thresh
@@ -72,6 +82,7 @@ call.cnas.with.matched.normals <- function(
 			cna.rounded[,tmr] <- NanoStringNormCNV::call.copy.number.state(
 				input = normalized.data[use.genes, c(1:3, tmr.ind, ref.ind), drop = FALSE],
 				reference = phenodata$ref.name[has.ref[tmr]],
+				sex.info = sample.sex,
 				per.chip = per.chip,
 				chip.info = phenodata,
 				thresh.method = 'KD'#,

@@ -53,7 +53,7 @@ make.cna.densities.plots <- function(cnas, xlab, fname.stem = NULL) {
 		);
 
 	# per sample logged plots
-	if (min(cnas) > 0) {
+	if (min(cnas, na.rm = TRUE) > 0) {
 		sample.list 	   <- lapply(seq(1:ncol(cnas)), function(f) log2(cnas[, f]));
 		names(sample.list) <- paste0('sample', 1:length(sample.list));
 

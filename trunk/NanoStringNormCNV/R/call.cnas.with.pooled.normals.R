@@ -24,6 +24,7 @@ call.cnas.with.pooled.normals <- function(
 	cna.raw <- NanoStringNormCNV::call.copy.number.state(
 		input = normalized.data[use.genes,],
 		reference = phenodata$SampleID[is.ref],
+		sex.info = phenodata[, c("SampleID", "sex")],
 		per.chip = per.chip,
 		chip.info = phenodata,
 		thresh.method = 'none',
@@ -39,7 +40,10 @@ call.cnas.with.pooled.normals <- function(
 	cna.normals.unadj <- NanoStringNormCNV::call.copy.number.state(
 		input = norm.data.normals.only[use.genes,],
 		reference = 'avg.ref',
-		sex.info = phenodata[, c("SampleID", "sex")],
+		sex.info = phenodata[
+			phenodata$SampleID %in% names(normalized.data[, c(is.ref + 3)]),
+			c("SampleID", "sex")
+			],
 		per.chip = per.chip,
 		chip.info = phenodata[is.ref,],
 		thresh.method = 'none',
@@ -52,25 +56,32 @@ call.cnas.with.pooled.normals <- function(
 			# NanoString recommended thresholds
 			thresh <- c(0.4, 1.5, 2.5, 3.5);
 		} else {
-			thresh.offset <- diff(range(cna.normals.unadj) * 0.15);
+			thresh.offset <- diff(
+				range(
+					cna.normals.unadj,
+					na.rm = TRUE
+					) * 0.15
+				);
 
 			thresh <- c(
-				min(cna.normals.unadj),
+				min(cna.normals.unadj, na.rm = TRUE),
 				### using quantiles seems more robust to outliers!
 				# quantile(
 				# 	x = unlist(cna.normals.unadj),
 				# 	probs = c(0.1, 0.9),
-				# 	names = FALSE
+				# 	names = FALSE,
+				# 	na.rm = TRUE
 				# 	),
-				min(cna.normals.unadj) + thresh.offset,
-				max(cna.normals.unadj) - thresh.offset,
-				max(cna.normals.unadj)
+				min(cna.normals.unadj, na.rm = TRUE) + thresh.offset,
+				max(cna.normals.unadj, na.rm = TRUE) - thresh.offset,
+				max(cna.normals.unadj, na.rm = TRUE)
 				);
 			}
 
 		cna.rounded <- NanoStringNormCNV::call.copy.number.state(
 			input = normalized.data[use.genes,],
 			reference = phenodata$SampleID[is.ref],
+			sex.info = phenodata[, c("SampleID", "sex")],
 			per.chip = per.chip,
 			chip.info = phenodata,
 			adjust = TRUE,
@@ -87,11 +98,12 @@ call.cnas.with.pooled.normals <- function(
 				kd.option <- 2;
 				}
 			}
-		if (kd.option == 2) { kd.values <- c(0.9, 0.87, 0.93, 0.96); }# put whatever ends up being the default in apply.kd.cna.thresh here!!
+		if (kd.option == 2) { kd.values <- c(0.85, 0.95); }# put whatever ends up being the default in apply.kd.cna.thresh here!!
 
 		cna.rounded <- NanoStringNormCNV::call.copy.number.state(
 			input = normalized.data[use.genes,],
 			reference = phenodata$SampleID[is.ref],
+			sex.info = phenodata[, c("SampleID", "sex")],
 			per.chip = per.chip,
 			chip.info = phenodata,
 			thresh.method = 'KD',
