@@ -22,7 +22,6 @@ source("~/svn/Resources/code/R/ParameterEval/R/generate.covariates.R")
 # source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
 source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/call_signature_pga.R")
 load_all("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV");
-# source("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV/R/score.runs.R");
 
 # specifically samples with low restriction frag ratios
 dropoutliers <- 0;
@@ -66,11 +65,11 @@ make_dir_name <- function(params) {
 		}
 
 	if (params$oth == 1) {
-		name <- paste(name, 'vsn', sep = '_');
+		name <- paste(name, 'oth-vsn', sep = '_');
 	} else if (params$oth == 2) {
-		name <- paste(name, 'quant', sep = '_');
+		name <- paste(name, 'oth-quant', sep = '_');
 	} else if (params$oth == 3) {
-		name <- paste(name, 'rank', sep = '_');
+		name <- paste(name, 'oth-rank', sep = '_');
 		}
 
 	if (params$matched == 1) {
@@ -80,11 +79,13 @@ make_dir_name <- function(params) {
 		}
 
 	if (params$kd == 0) {
-		name <- paste(name, 'threshCNAs', sep = '_');
+		name <- paste(name, 'kd-NS', sep = '_');
 	} else if (params$kd == 1) {
-		name <- paste(name, 'kdCNAsEL', sep = '_');
+		name <- paste(name, 'kd-minMax', sep = '_');
 	} else if (params$kd == 2) {
-		name <- paste(name, 'kdCNAsDS', sep = '_');
+		name <- paste(name, 'kd-default', sep = '_');
+	} else if (params$kd == 3) {
+		name <- paste(name, 'kd-other', sep = '_');
 		}
 
 	if (params$col == 1) {
@@ -123,8 +124,7 @@ prep_analysis_dir <- function(dir.name, stats = TRUE, plots = TRUE, others = NUL
 		}
 	}
 
-
-check.sample.order <- function(names1, names2){
+check.sample.order <- function(names1, names2) {
 	if(all(names1 == names2)){
 		return(TRUE);
 	}else{
@@ -133,7 +133,7 @@ check.sample.order <- function(names1, names2){
 		}
 	}
 
-evaluation.replicates <- function(norm.data, full.phenodata, full.cnas){
+evaluation.replicates <- function(norm.data, full.phenodata, full.cnas) {
 	# prepare data
 	nano.reps <- norm.data[, full.phenodata$SampleID[which(full.phenodata$has.repl==1)]];
 	pheno.reps <- full.phenodata[which(full.phenodata$has.repl==1), ];
@@ -186,7 +186,7 @@ if (interactive()) {
 	opts$inv 	 <- 1;
 	opts$oth 	 <- 0;
 	opts$matched <- 0;
-	opts$kd 	 <- 3;
+	opts$kd 	 <- 2;
 	opts$col 	 <- 0;
 } else {
 	params <- matrix(
@@ -224,7 +224,7 @@ root.dir     <- '/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarra
 training.dir <- '~/svn/Training/Dorota\ Sendorek/NanoStringNormCNV/';
 
 setwd(root.dir);
-data.dir <- paste0(root.dir, '/test_data');
+data.dir <- paste0(root.dir, '/test_data/');
 
 if (dropoutliers == 1) {
 	prep_analysis_dir(
@@ -240,7 +240,7 @@ if (dropoutliers == 1) {
 	out.dir <- paste0(root.dir, '/normalization_assessment/', home.dir);
 	}
 
-plot.dir <- paste0(out.dir, '/plots');
+plot.dir <- paste0(out.dir, '/plots/');
 
 ### READ DATA ######################################################################################
 setwd(data.dir);
@@ -437,42 +437,22 @@ do.nsn.norm <- TRUE;
 if (opts$kd == 0) kd.vals <- NULL; # 'round'; using NS-provided thresholds
 if (opts$kd == 1) kd.vals <- NULL; # 'round'; using min/max seen in normals
 if (opts$kd == 2) kd.vals <- NULL;						# 'KD'; "pkg defaults"   --ToDo
-if (opts$kd == 3) kd.vals <- c(0.9, 0.8, 0.87, 0.9); 	# 'KD'; "user-provided"  --ToDo
-
-# if (opts$kd == 1) kd.vals <- c(0.85,0.95); # this doesn't seem to be getting used anywhere..
-# } else if (opts$kd == 2) {
-# 	kd.vals <- c(0.9, 0.87,0.93, 0.96);
-# } else if (opts$kd == 3) {
-# 	kd.vals <- c(0.9, 0.8, 0.87, 0.9);
-# } else if (opts$kd == 4) {
-# 	kd.vals <- c(0.9, 0.885, 0.92, 0.97);
-# 	}
+if (opts$kd == 3) kd.vals <- c(0.95, 0.73, 0.66, 0.87); # 'KD'; "user-provided"  --ToDo
 
 ### RUN NORMALIZATION ##############################################################################
 setwd(plot.dir);
 
-# Positive control normalization + plots
+### Positive control normalization + plots
 corrs <- positive.control.norm(nano.raw);
 make.positive.control.plot(corrs[,c('R2')]);
 
-# Restriction digestion normalization + plots
+### Restriction digestion normalization + plots
 restr.frag.norm.output <- restriction.fragmentation.norm(nano.raw);
 
-# Invariant probe normalization
-inv.probe.norm.output <- invariant.probe.norm(nano.raw, phenodata);
-inv.probe.norm.output <- inv.probe.norm.output[inv.probe.norm.output$CodeClass == 'Invariant',];
-
-# check that there are no samples with INV-normalized invariant probes < 100
-if (any(apply(inv.probe.norm.output[,-(1:3)], 2, mean) < 100)) { 
-	stop("Low quality samples after invariant probe normalization!");
-	}
-
-# write bad samples to file
-setwd(paste0(root.dir, "/normalization_assessment/"));
-
+# write bad restr dig samples to file
 write.table(
 	restr.frag.norm.output,
-	file = "restr-frag-norm_output.txt",
+	file = paste0(root.dir, "/normalization_assessment/restr-frag-norm_output.txt"),
 	quote = FALSE,
 	sep = "\t"
 	);
@@ -480,7 +460,7 @@ write.table(
 if (dropoutliers == 0) {
 	write.table(
 		rownames(restr.frag.norm.output[restr.frag.norm.output$ratio < 10,]),
-		file = "restriction-fragmentation_low-ratio.txt",
+		file = paste0(root.dir, "/normalization_assessment/restriction-fragmentation_low-ratio.txt"),
 		quote = FALSE,
 		sep = "\t",
 		row.names = FALSE,
@@ -488,7 +468,33 @@ if (dropoutliers == 0) {
 		);
 	}
 
-# NanoStringNorm
+### Invariant probe normalization (this is actually in the main norm fcns)
+inv.probe.norm.output <- invariant.probe.norm(nano.raw, phenodata);
+inv.probe.norm.output <- inv.probe.norm.output[inv.probe.norm.output$CodeClass == 'Invariant',];
+
+# check that there are no samples with mean invariant probe count < 100
+low.count.samples <- names(which(apply(
+	X = nano.raw[nano.raw$CodeClass == "Invariant", -(1:3)],
+	MARGIN = 2,
+	FUN = mean
+	) < 100));
+
+# drop low counts samples
+if (length(low.count.samples) > 0) {
+	print(paste0(
+		"Removing low invariant count samples: ",
+		paste(low.count.samples, collapse = "  ")
+		));
+
+	nano.raw <- nano.raw[, !(colnames(nano.raw) %in% low.count.samples)];
+	phenodata <- phenodata[!(phenodata$SampleID %in% low.count.samples),];
+	pheno.df <- pheno.df[!(rownames(pheno.df) %in% low.count.samples),];
+	}
+
+# changing ref sample for CPCG248-F1 since original was poor quality
+phenodata[phenodata$SampleID == "CPCG0248F1",]$ref.name <- "CPCG0248B.M1";
+
+### NanoStringNorm
 setwd(out.dir);
 
 phenodata$outlier <- 0;
@@ -562,7 +568,8 @@ if (opts$matched == 1) {
 		normalized.data = norm.data, 
 		phenodata = phenodata,
 		per.chip = opts$perchip,
-		kd.option = opts$kd
+		kd.option = opts$kd,
+		kd.values = kd.vals
 		);
 
 	cna.raw <- cna.all$raw;
@@ -713,6 +720,8 @@ if (opts$matched == 1) {
 		}
 	}
 
+has.ref <- which(phenodata$type == 'Tumour');
+
 # sanity check
 if (! check.sample.order(sub(x = phenodata$SampleID[has.ref], pattern = 'outlier', ''), colnames(cna.rounded))) {
 	stop("Sorry, sample order doesn't match after normalization, see above.");
@@ -720,7 +729,63 @@ if (! check.sample.order(sub(x = phenodata$SampleID[has.ref], pattern = 'outlier
 
 pheno.cna <- phenodata[has.ref , ];
 
-# ### Evaluate replicates ############################################################################
+### Density plots ##################################################################################
+# for kd option 3
+normal.for.plot <- na.omit(as.vector(unlist(cna.normals.unadj)));
+tumour.for.plot <- na.omit(as.vector(unlist(cna.raw)));
+cnas.for.plot   <- na.omit(as.vector(unlist(cna.rounded)));
+
+density.thresh <- 6;
+normal.for.plot <- normal.for.plot[normal.for.plot < density.thresh];
+tumour.for.plot <- tumour.for.plot[tumour.for.plot < density.thresh];
+cnas.for.plot   <- cnas.for.plot[cnas.for.plot < density.thresh];
+
+normal.density <- density(
+	normal.for.plot,
+	from = min(c(normal.for.plot, tumour.for.plot)),
+	to = max(c(normal.for.plot, tumour.for.plot))
+	);
+tumour.density <- density(
+	tumour.for.plot,
+	from = min(c(normal.for.plot, tumour.for.plot)),
+	to = max(c(normal.for.plot, tumour.for.plot))
+	);
+cnas.density <- density(
+	cnas.for.plot,
+	from = min(cnas.for.plot),
+	to = max(cnas.for.plot)
+	);
+
+plot.colours = default.colours(3);
+create.densityplot(
+	list(tumour = tumour.for.plot, normal = normal.for.plot, cnas = cnas.for.plot),
+	filename = paste0(plot.dir, "densityplot_comparison_kd-option-", opts$kd, ".tiff"),
+	col = plot.colours,
+	legend = list(
+		inside = list(
+			fun = draw.key,
+			args = list(
+				key = list(
+					points = list(col = plot.colours, fill = plot.colours, pch = 19),
+					text = list(lab = c("tumour", "normal", "CNAs"))
+					)
+				)
+			)
+		)
+	);
+
+density.difference <- normal.density$y - cnas.density$y;
+intersection.point <- cnas.density$x[which(diff(density.difference > 0) != 0) + 1];
+intersection.point <- intersection.point[intersection.point < density.thresh];
+
+intersection.point <- as.list(intersection.point[c(1, 3, 6, 7)]);
+kd.vals <- list();
+kd.vals[[1]] <- 1 - length(which(cnas.density$x < intersection.point[1])) / length(cnas.density$x);
+kd.vals[[2]] <- 1 - length(which(cnas.density$x < intersection.point[2])) / length(cnas.density$x);
+kd.vals[[3]] <- length(which(cnas.density$x < intersection.point[3])) / length(cnas.density$x);
+kd.vals[[4]] <- length(which(cnas.density$x < intersection.point[4])) / length(cnas.density$x);
+
+### Evaluate replicates ############################################################################
 reps <- evaluation.replicates(norm.data[use.genes,], pheno.cna, cna.rounded);
 
 ### OUTPUT #########################################################################################

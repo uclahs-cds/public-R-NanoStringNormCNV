@@ -23,7 +23,8 @@ importFrom(
         "dist",
 	"hclust",
 	"median",
-	"sd"
+	"sd",
+	"na.omit"
 	);
 importFrom(
 	"utils",
