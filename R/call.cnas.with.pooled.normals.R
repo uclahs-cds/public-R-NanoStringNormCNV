@@ -2,7 +2,7 @@ call.cnas.with.pooled.normals <- function(
 	normalized.data,
 	phenodata,
 	per.chip = FALSE,
-	kd.option = 0,
+	call.method = 0,
 	kd.values = NULL
 	) {
 	
@@ -51,17 +51,13 @@ call.cnas.with.pooled.normals <- function(
 		);
 	cna.normals.unadj <- cna.normals.unadj[, -c(1:3)];
 	
-	if (kd.option <= 1) {
-		if (kd.option == 0) {
+	if (call.method <= 1) {
+		if (call.method == 0) {
 			# NanoString recommended thresholds
 			thresh <- c(0.4, 1.5, 2.5, 3.5);
 		} else {
-			thresh.offset <- diff(
-				range(
-					cna.normals.unadj,
-					na.rm = TRUE
-					) * 0.15
-				);
+			# Thresholds from max/min values
+			thresh.offset <- diff(range(cna.normals.unadj, na.rm = TRUE) * 0.15);
 
 			thresh <- c(
 				min(cna.normals.unadj, na.rm = TRUE),
@@ -89,16 +85,16 @@ call.cnas.with.pooled.normals <- function(
 			);
 	} else {
 		# call copy number states using kernel density values
-		if (kd.option == 3) {
+		if (call.method == 3) {
 			if ((length(kd.values) != 4 & length(kd.values) != 2) | !is.numeric(kd.values)) {
 				flog.warn(paste0(
-					"For 'kd.option' 3, user must provide 4 or 2 kernel density values!\n",
-					"Switching to default KD values (setting 'kd.option' to 2)."
+					"For 'call.method' 3, user must provide 4 or 2 kernel density values!\n",
+					"Switching to default KD values (setting 'call.method' to 2)."
 					));
-				kd.option <- 2;
+				call.method <- 2;
 				}
 			}
-		if (kd.option == 2) { kd.values <- c(0.85, 0.95); }# put whatever ends up being the default in apply.kd.cna.thresh here!!
+		if (call.method == 2) { kd.values <- c(0.85, 0.95); }# put whatever ends up being the default in apply.kd.cna.thresh here!!
 
 		cna.rounded <- NanoStringNormCNV::call.copy.number.state(
 			input = normalized.data[use.genes,],
