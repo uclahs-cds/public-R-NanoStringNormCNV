@@ -5,8 +5,7 @@
 \usage{
 make.counts.heatmap(
   nano.counts, fname.stem = NULL, covs.rows = NULL, covs.cols = NULL,
-  covs.legend = NULL, clust.dim = 'both', clust.method = 'euclidean',
-  print.ylab = NULL
+  clust.dim = 'both', clust.method = 'euclidean', print.ylab = NULL
   )
 }
 \arguments{
@@ -14,7 +13,6 @@ make.counts.heatmap(
   \item{fname.stem}{To use in filename, description of how CNAs were called is suggested. Defaults to NULL}
   \item{covs.rows}{A covariate object for samples to be passed directly to create.heatmap. Defaults to NULL}
   \item{covs.cols}{A covariate object for genes to be passed directly to create.heatmap. Defaults to NULL}
-  \item{covs.legend}{A legend object to be passed directly to create.heatmap. Defaults to NULL}
   \item{clust.dim}{Which dimensions to cluster. Defaults to both}
   \item{clust.method}{Which distance method should be used for clustering. Defaults to euclidean}
   \item{print.ylab}{Whether to print the yaxis labels. Passed directly to heatmap, so keep as NULL (default) if you don't want them printed}
