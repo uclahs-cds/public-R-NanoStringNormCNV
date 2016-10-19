@@ -95,6 +95,7 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 		covariates.grid.border = list(col = 'black', lwd = 1.5),
 		covariates.top = col.cov.obj,
 		covariates.top.grid.border = list(col = 'black', lwd = 1.5),
+		legend.title.just = 'left',
 		covariate.legends = covs.legend,
 		legend.border.padding = 1.5,
 		colour.scheme = c('white', 'black'),
