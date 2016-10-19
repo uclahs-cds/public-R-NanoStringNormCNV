@@ -1,49 +1,99 @@
 
-make.positive.control.plot <- function(correlations) {		### TO DO: Add in covariates and allow clustering
+make.positive.control.plot <- function(correlations, covs = NULL, print.x.labels = TRUE) {
 	# order correlation by size
-	correlations <- sort(correlations);
+	correlations <- correlations[order(correlations$R2),];
 
-	# set up x-axis
-	xaxis.range <- pretty(seq(0, length(correlations)), n = 4);
-	xaxis.range <- xaxis.range[xaxis.range < length(correlations)];
-	
+	# check and set up covariates
+	if (!is.null(covs)) {
+		# check completeness and order
+		if (! all( correlations$SampleID %in% covs$SampleID )) {
+			stop("Must provide covariate information for every sample!");
+		} else {
+			covs <- covs[match(correlations$SampleID, covs$SampleID),];
+			}
+
+		covs <- covs[, !(names(covs) == 'SampleID'), drop = FALSE];
+		rownames(covs) <- NULL;
+
+		# create covariate object
+		cov.obj   <- NanoStringNormCNV::generate.plot.covariates(cov.info = covs);
+		clust.dim <- 'columns';
+	} else {
+		cov.obj   <- NULL;
+		clust.dim <- 'none';
+		}
+
+	# set up legend
+	if (!is.null(covs)) {
+		covs.legend <- NanoStringNormCNV::generate.plot.legend(cov.info = as.list(covs));
+	} else {
+		covs.legend <- NULL;
+		}
+
+	# set up plot parameters
+	if (print.x.labels) {
+		xlab.label <- 'Sample ID';
+		xaxis.labels <- correlations[, 'SampleID'];
+		xat <- 1:length(xaxis.labels);
+		plot.height <- 4;
+	} else {
+		xaxis.labels <- xat <- NULL;
+		xlab.label <- '';
+		plot.height <- 3;
+		}
+
+	# plot
 	BoutrosLab.plotting.general::create.heatmap(
-		x = as.matrix(correlations),
+		x = cbind(correlations[, 'R2'], correlations[, 'R2']),
 		filename = paste0(Sys.Date(), '_positive-control-correlations_full-range.tiff'),
-		cluster.dimensions = 'none',
+		cluster.dimensions = clust.dim,
+		cols.distance.method = 'euclidean',
 		main = 'Positive Probe Correlations',
 		main.cex = 1.8,
 		scale.data = FALSE,
-		xlab.label = 'Samples',
+		xlab.label = xlab.label,
 		xlab.cex = 1.2,
-		xat = xaxis.range,
-		xaxis.lab = xaxis.range,
+		xaxis.lab = xaxis.labels,
+		xat = xat,
+		xaxis.cex = 0.5,
 		yaxis.tck = 0,
+		covariates.top.grid.border = list(col = 'black', lwd = 1.5),
+		covariates.top = cov.obj,
+		covariate.legends = covs.legend,
+		legend.title.just = 'left',
 		colour.scheme = c('red', 'white', 'blue'),
 		colour.centering.value = 0.5,
 		colourkey.cex = 1.5,
 		at = seq(0, 1, by = 0.01),
 		right.padding = 2,
-		height = 2,
+		height = plot.height,
+		width = 5 + nrow(correlations) * 0.09,
 		resolution = 600
 		);
 	
 	BoutrosLab.plotting.general::create.heatmap(
-		x = as.matrix(correlations),
+		x = cbind(correlations[, 'R2'], correlations[, 'R2']),
 		filename = paste0(Sys.Date(), '_positive-control-correlations_zoomed-in.tiff'),
-		cluster.dimensions = 'none',
+		cluster.dimensions = clust.dim,
+		cols.distance.method = 'euclidean',
 		main = 'Positive Probe Correlations',
 		main.cex = 1.8,
 		scale.data = FALSE,
-		xlab.label = 'Samples',
+		xlab.label = xlab.label,
 		xlab.cex = 1.2,
-		xat = xaxis.range,
-		xaxis.lab = xaxis.range,
+		xaxis.lab = xaxis.labels,
+		xat = xat,
+		xaxis.cex = 0.5,
 		yaxis.tck = 0,
+		covariates.top.grid.border = list(col = 'black', lwd = 1.5),
+		covariates.top = cov.obj,
+		covariate.legends = covs.legend,
+		legend.title.just = 'left',
 		colour.scheme = c('white','blue'),
 		colourkey.cex = 1.5,
 		right.padding = 2,
-		height = 2,
+		height = plot.height,
+		width = 5 + nrow(correlations) * 0.09,
 		resolution = 600
 		);
 	}
