@@ -18,12 +18,10 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 
 	# check and set up covariates
 	if (!is.null(c.row)) {
-		# check if information is complete
+		# check completeness and order
 		if (! all( colnames(nano.counts) %in% c.row$SampleID )) {
 			stop("Must provide covariate information for every sample!");
-			}
-		# check if samples are ordered correctly
-		if (! all( colnames(nano.counts) == c.row$SampleID )) {
+		} else {
 			c.row <- c.row[match(colnames(nano.counts), c.row$SampleID),];
 			}
 
@@ -39,14 +37,11 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 		}
 
 	if (!is.null(c.col)) {
-		# check if information is complete
+		# check completeness and order
 		if (! all( rownames(nano.counts) %in% c.col$Name )) {
 			stop("Must provide covariate information for every gene!");
-			}
-		# check if genes are ordered correctly
-		if (! all( rownames(nano.counts) == c.col$Name )) {
+		} else {
 			c.col <- c.col[match(rownames(nano.counts), c.col$Name),];
-			rownames(c.col) <- NULL;
 			}
 
 		c.col <- c.col[, !(names(c.col) == 'Name'), drop = FALSE];
