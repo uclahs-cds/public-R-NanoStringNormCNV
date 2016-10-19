@@ -870,65 +870,59 @@ write.table(
 setwd(plot.dir);
 
 {
-	# ### Set up covariates and legend for custom plots
-	# nano.raw$CodeClass 	<- as.factor(nano.raw$CodeClass);
-	# phenodata$type 		<- as.factor(phenodata$type);
-	# phenodata$Patient 	<- as.factor(phenodata$Patient);
-	# phenodata$outlier 	<- as.factor(phenodata$outlier);
-	# pheno.cna$cartridge <- as.factor(pheno.cna$cartridge);
-	# phenodata$cartridge <- as.factor(phenodata$cartridge);
-	# pheno.cna$outlier 	<- as.factor(pheno.cna$outlier);
+	### Set up covariates and legend for custom plots
+	nano.raw$CodeClass 	<- as.factor(nano.raw$CodeClass);
+	phenodata$type 		<- as.factor(phenodata$type);
+	phenodata$Patient 	<- as.factor(phenodata$Patient);
+	phenodata$outlier 	<- as.factor(phenodata$outlier);
+	pheno.cna$cartridge <- as.factor(pheno.cna$cartridge);
+	phenodata$cartridge <- as.factor(phenodata$cartridge);
+	pheno.cna$outlier 	<- as.factor(pheno.cna$outlier);
 
-	# samples.cna.covs   <- generate.plot.covariates(cov.info = pheno.cna[, c('type', 'cartridge')]);
-	# sample.counts.covs <- generate.plot.covariates(cov.info = phenodata[, c('type', 'cartridge')]);
-	# gene.covs 		   <- generate.plot.covariates(cov.info = nano.raw[, 'CodeClass', drop = FALSE]);
+	samples.cna.covs   <- generate.plot.covariates(cov.info = pheno.cna[, c('type', 'cartridge')]);
+	sample.counts.covs <- generate.plot.covariates(cov.info = phenodata[, c('type', 'cartridge')]);
+	gene.covs 		   <- generate.plot.covariates(cov.info = nano.raw[, 'CodeClass', drop = FALSE]);
 
-	# sample.legend <- generate.plot.legend(
-	# 	type.info = phenodata$type,
-	# 	cartridge.info = phenodata$cartridge,
-	# 	CodeClass.info = nano.raw$CodeClass
-	# 	);
+	sample.legend <- list(
+		legend = list(
+			colours = colours()[c(507,532)],
+			labels = c("Blood", "Tumour")
+			),
+		legend = list(
+			colours = colour.gradient('purple', nlevels(phenodata$cartridge)),
+			labels = paste0("Chip", levels(phenodata$cartridge))
+			),
+		legend = list(
+			colours = default.colours(nlevels(nano.raw$CodeClass)),
+			labels = levels(nano.raw$CodeClass)
+			)
+		);
 
-	# sample.legend <- list(
-	# 	legend = list(
-	# 		colours = colours()[c(507,532)],
-	# 		labels = c("Blood", "Tumour")
-	# 		),
-	# 	legend = list(
-	# 		colours = colour.gradient('purple', nlevels(phenodata$cartridge)),
-	# 		labels = paste0("Chip", levels(phenodata$cartridge))
-	# 		),
-	# 	legend = list(
-	# 		colours = default.colours(nlevels(nano.raw$CodeClass)),
-	# 		labels = levels(nano.raw$CodeClass)
-	# 		)
-	# 	);
+	sample.legend2 <- list(
+		legend = list(
+			colours = colours()[c(507,532)],
+			labels = c("Blood", "Tumour"),
+			borders = 'black',
+			fontfamily = 'Arial'
+			),
+		legend = list(
+			colours = colour.gradient('purple', nlevels(phenodata$cartridge)),
+			labels = paste0("Chip", levels(phenodata$cartridge)),
+			borders = 'black',
+			fontfamily = 'Arial'
+			)
+		);
 
-	# sample.legend2 <- list(
-	# 	legend = list(
-	# 		colours = colours()[c(507,532)],
-	# 		labels = c("Blood", "Tumour"),
-	# 		borders = 'black',
-	# 		fontfamily = 'Arial'
-	# 		),
-	# 	legend = list(
-	# 		colours = colour.gradient('purple', nlevels(phenodata$cartridge)),
-	# 		labels = paste0("Chip", levels(phenodata$cartridge)),
-	# 		borders = 'black',
-	# 		fontfamily = 'Arial'
-	# 		)
-	# 	);
-
-	# sample.legend3 <- list(
-	# 	legend = list(
-	# 		colours = colour.gradient('purple', nlevels(phenodata$cartridge)),
-	# 		labels = paste0("Chip", levels(phenodata$cartridge))
-	# 		),
-	# 	legend = list(
-	# 		colours = default.colours(nlevels(nano.raw$CodeClass)),
-	# 		labels = levels(nano.raw$CodeClass)
-	# 		)
-	# 	);
+	sample.legend3 <- list(
+		legend = list(
+			colours = colour.gradient('purple', nlevels(phenodata$cartridge)),
+			labels = paste0("Chip", levels(phenodata$cartridge))
+			),
+		legend = list(
+			colours = default.colours(nlevels(nano.raw$CodeClass)),
+			labels = levels(nano.raw$CodeClass)
+			)
+		);
 }
 
 ### Custom plots
@@ -953,16 +947,22 @@ make.counts.heatmap(
 	covs.cols = nano.raw[, c('Name', 'CodeClass')]
 	);
 
-###
 make.sample.correlations.heatmap(
-	x = log10(nano.raw[, -c(1:3)] + 1),
+	data = log10(nano.raw[, -c(1:3)] + 1),
 	fname.stem = 'unnormalized',
 	covs = sample.counts.covs,
 	covs.legend = sample.legend2
 	);
 
+data = log10(nano.raw[, -c(1:3)] + 1)
+fname.stem = 'unnormalized'
+covs = sample.counts.covs
+covs.legend = sample.legend2
+# data = log10(counts.raw + 1)
+# covs = phenodata[, c('SampleID', 'type', 'cartridge')]
+
 make.sample.correlations.heatmap(
-	x = log10(counts.only + 1),
+	data = log10(counts.only + 1),
 	fname.stem = 'normalized',
 	covs = sample.counts.covs,
 	covs.legend = sample.legend2
