@@ -6,8 +6,8 @@
 positive.control.norm(nano.df)
 }
 \arguments{
-  \item{nano.df}{A data-frame with the raw counts}
+  \item{nano.df}{A data-frame of raw NanoString counts. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs }
 }
-\description{Find the correlation of positive control probes and the expected amounts based on NanoString manual (y=171.23x + 214.12)}
-\value{A data-frame with SampleName and R2 for Pearson correlations}
+\description{Find the correlation of positive control probes and the expected amounts based on NanoString manual (y = 171.23x + 214.12)}
+\value{A data-frame with 'SampleID' and 'R2' for Pearson correlations}
 \author{Cindy Yao and Emilie Lalonde}
