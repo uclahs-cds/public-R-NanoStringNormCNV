@@ -9,5 +9,5 @@ positive.control.norm(nano.df)
   \item{nano.df}{A data-frame of raw NanoString counts. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs }
 }
 \description{Find the correlation of positive control probes and the expected amounts based on NanoString manual (y = 171.23x + 214.12)}
-\value{A data-frame with 'SampleID' and 'R2' for Pearson correlations}
+\value{A data-frame of Pearson correlations by sample}
 \author{Cindy Yao and Emilie Lalonde}
