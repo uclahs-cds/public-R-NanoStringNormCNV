@@ -1,39 +1,32 @@
 
 make.positive.control.plot <- function(correlations, covs = NULL, print.x.labels = TRUE) {
 	# order correlation by size
-	correlations <- correlations[order(correlations$R2),];
+	correlations <- correlations[, order(correlations[1,])];
 
-	# check and set up covariates
+	# set up covariates and legend
 	if (!is.null(covs)) {
-		# check completeness and order
-		if (! all( correlations$SampleID %in% covs$SampleID )) {
-			stop("Must provide covariate information for every sample!");
-		} else {
-			covs <- covs[match(correlations$SampleID, covs$SampleID),];
-			}
+		# covariates
+		cov.objs <- NanoStringNormCNV::generate.plot.covariates(
+			plotting.data = correlations,
+			sample.covariates = covs
+			);
+		cov.obj <- cov.objs[['sample']];
+		
+		# legend
+		covs <- covs[, names(covs) != 'SampleID'];
+		covs.legend <- NanoStringNormCNV::generate.plot.legend(cov.info = as.list(covs));
 
-		covs <- covs[, !(names(covs) == 'SampleID'), drop = FALSE];
-		rownames(covs) <- NULL;
-
-		# create covariate object
-		cov.obj   <- NanoStringNormCNV::generate.plot.covariates(cov.info = covs);
 		clust.dim <- 'columns';
 	} else {
-		cov.obj   <- NULL;
-		clust.dim <- 'none';
-		}
-
-	# set up legend
-	if (!is.null(covs)) {
-		covs.legend <- NanoStringNormCNV::generate.plot.legend(cov.info = as.list(covs));
-	} else {
 		covs.legend <- NULL;
+		cov.obj <- NULL;
+		clust.dim <- 'none';
 		}
 
 	# set up plot parameters
 	if (print.x.labels) {
 		xlab.label <- 'Sample ID';
-		xaxis.labels <- correlations[, 'SampleID'];
+		xaxis.labels <- colnames(correlations);
 		xat <- 1:length(xaxis.labels);
 		plot.height <- 4;
 	} else {
@@ -44,7 +37,7 @@ make.positive.control.plot <- function(correlations, covs = NULL, print.x.labels
 
 	# plot
 	BoutrosLab.plotting.general::create.heatmap(
-		x = cbind(correlations[, 'R2'], correlations[, 'R2']),
+		x = t(rbind(correlations, correlations)),
 		filename = paste0(Sys.Date(), '_positive-control-correlations_full-range.tiff'),
 		cluster.dimensions = clust.dim,
 		cols.distance.method = 'euclidean',
@@ -67,12 +60,12 @@ make.positive.control.plot <- function(correlations, covs = NULL, print.x.labels
 		at = seq(0, 1, by = 0.01),
 		right.padding = 2,
 		height = plot.height,
-		width = 5 + nrow(correlations) * 0.09,
+		width = 5 + ncol(correlations) * 0.09,
 		resolution = 600
 		);
 	
 	BoutrosLab.plotting.general::create.heatmap(
-		x = cbind(correlations[, 'R2'], correlations[, 'R2']),
+		x = t(rbind(correlations, correlations)),
 		filename = paste0(Sys.Date(), '_positive-control-correlations_zoomed-in.tiff'),
 		cluster.dimensions = clust.dim,
 		cols.distance.method = 'euclidean',
@@ -93,7 +86,7 @@ make.positive.control.plot <- function(correlations, covs = NULL, print.x.labels
 		colourkey.cex = 1.5,
 		right.padding = 2,
 		height = plot.height,
-		width = 5 + nrow(correlations) * 0.09,
+		width = 5 + ncol(correlations) * 0.09,
 		resolution = 600
 		);
 	}

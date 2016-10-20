@@ -3,12 +3,14 @@
 \title{Generate plot covariate object}
 \description{Generate a covariate object for plotting purposes}
 \usage{
-generate.plot.covariates(cov.info)
+generate.plot.covariates(plotting.data, sample.covariates = NULL, gene.covariates = NULL)
 }
 \arguments{
-  \item{cov.info}{A sample by covariate data-frame. Currently accepts only the following covariate columns: 'type', 'cartridge', 'CodeClass'}
+  \item{plotting.data}{A matrix or data-frame that contains the main plotting data. Sample IDs are expected for column names}
+  \item{sample.covariates}{A sample by covariate data-frame. Currently only accepts sample covariates 'type' and 'cartridge'. A 'SampleID' column is mandatory to match to 'nano.counts' sample IDs. Defaults to NULL}
+  \item{gene.covariates}{A gene by covariate data-frame. Currently only accepts gene covariate 'CodeClass'. A 'Name' column is mandatory to match to 'nano.counts' gene probe names. Defaults to NULL}
 }
 \details{Creates a covariate annotate (as a fully formed list) that can be passed onto a plot}
-\value{A list where each item contains border colour and fill colour information for a given covariate}
+\value{A list of 2 sub-lists that contain border colour and fill colour information for 1) sample covariates and 2) gene covariates}
 \author{Dorota Sendorek and Emilie Lalonde}
 \seealso{\code{\link{generate.plot.legend}}}
