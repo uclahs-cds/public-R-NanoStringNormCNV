@@ -6,7 +6,7 @@ make.sample.correlations.heatmap <- function(nano.counts, cor.method = 'pearson'
 		if (! all( colnames(nano.counts) %in% covs$SampleID )) {
 			stop("Must provide covariate information for every sample!");
 		} else {
-			c.row <- c.row[match(colnames(nano.counts), c.row$SampleID),];
+			covs <- covs[match(colnames(nano.counts), covs$SampleID),];
 			}
 
 		covs <- covs[, !(names(covs) == 'SampleID'), drop = FALSE];
