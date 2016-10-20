@@ -1,7 +1,4 @@
 make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL, covs.cols = NULL, clust.dim = 'both', clust.method = 'euclidean', print.ylab = NULL) {
-	c.row <- covs.rows;
-	c.col <- covs.cols;
-
 	# set up plot labelling
 	split.by  	  <- 1;
 	key.labels.at <- NULL;
@@ -16,54 +13,30 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 		key.labels 	  <- c(0, 1);
 		}
 
-	# check and set up covariates
-	if (!is.null(c.row)) {
-		# check completeness and order
-		if (! all( colnames(nano.counts) %in% c.row$SampleID )) {
-			stop("Must provide covariate information for every sample!");
-		} else {
-			c.row <- c.row[match(colnames(nano.counts), c.row$SampleID),];
-			}
+	# set up covariates and legend
+	row.cov.obj <- NULL;
+	col.cov.obj <- NULL;
 
-		c.row <- c.row[, !(names(c.row) == 'SampleID'), drop = FALSE];
-		rownames(c.row) <- NULL;
-
-		# create row covariate object
-		row.cov.obj <- NanoStringNormCNV::generate.plot.covariates(
-			cov.info = c.row
+	if (!is.null(covs.cols) | !is.null(covs.rows)) {
+		# covariates
+		cov.objs <- NanoStringNormCNV::generate.plot.covariates(
+			plotting.data = nano.counts,
+			sample.covariates = covs.rows,
+			gene.covariates = covs.cols
 			);
-	} else {
-		row.cov.obj <- NULL;
-		}
+		row.cov.obj <- cov.objs[['sample']];
+		col.cov.obj <- cov.objs[['gene']];
 
-	if (!is.null(c.col)) {
-		# check completeness and order
-		if (! all( rownames(nano.counts) %in% c.col$Name )) {
-			stop("Must provide covariate information for every gene!");
-		} else {
-			c.col <- c.col[match(rownames(nano.counts), c.col$Name),];
+		# legend
+		if (!is.null(covs.cols) & !is.null(covs.rows)) {
+			cov.list <- mapply(c, list(covs.cols), list(covs.rows), SIMPLIFY = FALSE)[[1]];
+		} else if (!is.null(covs.cols)) {
+			cov.list <- as.list(covs.cols);
+		} else if (!is.null(covs.rows)) {
+			cov.list <- as.list(covs.rows);
 			}
-
-		c.col <- c.col[, !(names(c.col) == 'Name'), drop = FALSE];
-		rownames(c.col) <- NULL;
-
-		# create column covariate object
-		col.cov.obj <- NanoStringNormCNV::generate.plot.covariates(
-			cov.info = c.col
-			);
-	} else {
-		col.cov.obj <- NULL;
-		}
-
-	# set up legend
-	if (!is.null(c.col) | !is.null(c.row)) {
-		if (!is.null(c.col) & !is.null(c.row)) {
-			cov.list <- mapply(c, list(c.col), list(c.row), SIMPLIFY = FALSE)[[1]];
-		} else if (!is.null(c.col)) {
-			cov.list <- as.list(c.col);
-		} else if (!is.null(c.row)) {
-			cov.list <- as.list(c.row);
-			}
+			
+		cov.list <- cov.list[!(names(cov.list) %in% c('SampleID', 'Name'))];
 		covs.legend <- NanoStringNormCNV::generate.plot.legend(cov.info = cov.list);
 	} else {
 		covs.legend <- NULL;

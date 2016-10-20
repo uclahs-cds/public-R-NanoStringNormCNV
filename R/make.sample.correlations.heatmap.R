@@ -1,28 +1,20 @@
 
 make.sample.correlations.heatmap <- function(nano.counts, cor.method = 'pearson', fname.stem = NULL, covs = NULL) {
-	# check and set up covariates
-	if (!is.null(covs)) {
-		# check completeness and order
-		if (! all( colnames(nano.counts) %in% covs$SampleID )) {
-			stop("Must provide covariate information for every sample!");
-		} else {
-			covs <- covs[match(colnames(nano.counts), covs$SampleID),];
-			}
-
-		covs <- covs[, !(names(covs) == 'SampleID'), drop = FALSE];
-		rownames(covs) <- NULL;
-
-		# create covariate object
-		cov.obj <- NanoStringNormCNV::generate.plot.covariates(cov.info = covs);
-	} else {
-		cov.obj <- NULL;
-		}
-
 	# set up legend
 	if (!is.null(covs)) {
+		# covariates
+		cov.objs <- NanoStringNormCNV::generate.plot.covariates(
+			plotting.data = nano.counts,
+			sample.covariates = covs
+			);
+		cov.obj <- cov.objs[['sample']];
+
+		# legend
+		covs <- covs[, names(covs) != 'SampleID'];
 		covs.legend <- NanoStringNormCNV::generate.plot.legend(cov.info = as.list(covs));
 	} else {
 		covs.legend <- NULL;
+		cov.obj <- NULL;
 		}
 
 	# set up file name
