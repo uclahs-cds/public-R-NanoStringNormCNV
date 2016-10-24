@@ -3,7 +3,7 @@ evaluate.replicates <- function(normalized.data, phenodata, cnas) {
 	pheno.reps <- phenodata[which(phenodata$has.repl == 1),];
 
 	nano.reps <- normalized.data[, colnames(normalized.data) %in% pheno.reps$SampleID];
-	cna.reps  <- normalized.data[, colnames(cnas) %in% pheno.reps$SampleID];
+	cna.reps  <- cnas[, colnames(cnas) %in% pheno.reps$SampleID];
 
 	pheno.reps.nano <- pheno.reps[pheno.reps$SampleID %in% colnames(nano.reps),];
 	pheno.reps.cnas <- pheno.reps[pheno.reps$SampleID %in% colnames(cna.reps),];
