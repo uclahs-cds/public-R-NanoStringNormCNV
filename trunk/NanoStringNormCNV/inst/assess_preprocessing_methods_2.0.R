@@ -289,6 +289,7 @@
 
 	# get phenodata and match Emilie's formatting
 	phenodata <- load.phenodata(fname = paste0(data.dir, "/NSannotation.csv"));
+	phenodata$Name[phenodata$Name == "CPCG0346B.M2.01"] <- "CPCG0346.B.M2.01";
 	phenodata$Name <- gsub("(.*)\\.M.*", "\\1", phenodata$Name);
 	phenodata <- phenodata[, c("SampleID", "Patient", "Name", "cartridge", "type", "ref.name", "has.repl", "sex")];
 
@@ -820,59 +821,12 @@ make.cna.densities.plots(nano.cnas = cna.rounded, fname.stem = 'tmr2ref_rounded'
 make.cna.densities.plots(nano.cnas = cna.raw, fname.stem = 'tmr2ref_raw');
 
 ## make heatmaps for reps ################################################
-phenodata$replID   <- phenodata$SampleID;
-ref.inds 		   <- which(phenodata$SampleID %in% reps$pheno$ref.name);
-reps$pheno 		   <- rbind(reps$pheno, phenodata[ref.inds,]);
-reps$pheno$Patient <- factor(reps$pheno$Patient);
-reps$pheno$type    <- factor(reps$pheno$type);
-reps$pheno$outlier <- factor(reps$pheno$outlier, levels = c(0,1));
-reps$norm.counts   <- norm.data[ , reps$pheno$SampleID];
-reps$raw.counts    <- nano.raw[ , reps$pheno$SampleID];
+ref.inds.count 	 <- which(phenodata$SampleID %in% reps$count.pheno$ref.name);
+reps$count.pheno$Patient <- factor(reps$count.pheno$Patient);
+reps$count.pheno$type    <- factor(reps$count.pheno$type);
+reps$count.pheno$outlier <- factor(reps$count.pheno$outlier, levels = c(0,1));
+reps$raw.counts  <- nano.raw[, reps$count.pheno$SampleID];
 rownames(reps$raw.counts) <- nano.raw$Name;
-#reps$raw.counts   <- nano.raw[ , unlist(lapply(reps$pheno$replID, function(f) which(colnames(nano.raw) == f))) ];
-
-{
-	# # make new covariates
-	# sample.covs <- generate.covariates(
-	# 	x = data.frame(
-	# 		Patient = reps$pheno[, "Patient"],
-	# 		Type = factor(reps$pheno[, 'type'], levels = c('Blood', 'Tumour')),
-	# 		Outlier = reps$pheno$outlier
-	# 		),
-	# 	colour.list = list(
-	# 		Patient = default.colours(nlevels(reps$pheno$Patient)),
-	# 		Type = colours()[c(507,532)],
-	# 		Outlier = c('white', 'black')
-	# 		)
-	# 	);
-
-	# sample.covs2 <- generate.covariates(
-	# 	x = data.frame(
-	# 		Patient = reps$pheno[, "Patient"],
-	# 		Outlier = reps$pheno$outlier
-	# 		),
-	# 	colour.list = list(Patient = default.colours(nlevels(reps$pheno$Patient)), Outlier = c('white', 'black'))
-	# 	);
-
-	# sample.legend <- list(
-	# 	legend = list(
-	# 		colours = colours()[c(507,532)],
-	# 		labels = c("Blood", "Tumour")
-	# 		),
-	#     legend = list(
-	# 		colours = default.colours(nlevels(reps$pheno$Patient)),
-	# 		labels = levels(reps$pheno$Patient)
-	# 		),
-	# 	legend = list(
-	# 		colours = default.colours(nlevels(nano.raw$CodeClass)),
-	# 		labels = levels(nano.raw$CodeClass)
-	# 		),
-	# 	legend = list(
-	# 		colours = c('white', 'black'),
-	# 		labels = c('Yes', 'No')
-	# 		)
-	# 	);
-}
 
 make.counts.heatmap(
 	reps$norm.counts,
@@ -888,10 +842,9 @@ make.counts.heatmap(
 	covs.cols = gene.cov,
 	);
 
-######################################################################
 make.cna.heatmap(
-	reps$cnas,
-	# reps$cnas + 1,
+	reps$cna.calls,
+	# reps$cna.calls + 1,
 	fname.stem = 'replicate_cnas',
 	rounded = TRUE,
 	covs.cols = gene.cov,
@@ -911,7 +864,7 @@ make.sample.correlations.heatmap(
 	covs = sample.cov
 	);
 make.sample.correlations.heatmap(
-	log10(reps$norm.counts[, which(reps$pheno$type == 'Tumour')] + 1),
+	log10(reps$norm.counts[, which(reps$count.pheno$type == 'Tumour')] + 1),
 	fname.stem = 'replicate-tumours-normalized',
 	covs = sample.cov
 	);
@@ -930,8 +883,14 @@ summary.data$cnas 	 <- opts$kd
 summary.data$col 	 <- opts$col;
 
 # sanity check
-if(! check.sample.order(reps$pheno$SampleID, colnames(reps$norm.counts))){
+if(! check.sample.order(reps$count.pheno$SampleID, colnames(reps$norm.counts))){
 	stop("Sorry, sample order doesn't match prior to ARI analysis, see above.");
+	}
+
+if (opts$matched == 0) {
+	score.run.normals <- cna.normals;
+} else {
+	score.run.normals <- NULL;
 	}
 
 summary.scores <- score.runs(
@@ -939,14 +898,10 @@ summary.scores <- score.runs(
 	normalized = norm.data,
 	cnas = cna.rounded,
 	sample.annot = phenodata,
-	genes = gene.info,
-	normals = cna.normals
+	normals = score.run.normals
 	);
 
-### ??
-plot.val.rates(summary.scores, fname.stem = 'PCR');
-
-summary.data <- c(summary.data, summary.scores);	# verify this
+summary.data <- c(summary.data, summary.scores);
 print(melt(summary.data));
 
 ### print to file
