@@ -41,9 +41,9 @@ evaluate.replicates <- function(normalized.data, phenodata, cnas) {
 			variance = var.matrix,
 			concordance = conc.matrix,
 			conc.summary = conc.summary,
-			norm.data = nano.reps,
-			norm.pheno = pheno.reps.nano,
-			cna.data = cna.reps,
+			norm.counts = nano.reps,
+			count.pheno = pheno.reps.nano,
+			cna.calls = cna.reps,
 			cna.pheno = pheno.reps.cnas
 			)
 		);
