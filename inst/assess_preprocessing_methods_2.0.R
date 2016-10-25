@@ -133,49 +133,6 @@
 			}
 		}
 
-	# evaluation.replicates <- function(norm.data, full.phenodata, full.cnas) {
-	# 	# prepare data
-	# 	nano.reps <- norm.data[, full.phenodata$SampleID[which(full.phenodata$has.repl==1)]];
-	# 	pheno.reps <- full.phenodata[which(full.phenodata$has.repl==1), ];
-	# 	if(! check.sample.order(colnames(nano.reps), pheno.reps$SampleID)){
-	# 		stop("Sorry, samples don't match as expected. See above");
-	# 		}
-
-	# 	# order according to samples
-	# 	reps.order <- order(pheno.reps$SampleID);
-	# 	nano.reps <- nano.reps[, reps.order];
-	# 	pheno.reps <- pheno.reps[reps.order , ];
-	# 	if(! check.sample.order(colnames(nano.reps), pheno.reps$SampleID)){
-	# 		stop("Sorry, samples don't match as expected. See above");
-	# 		}
-	# 	cna.reps <- full.cnas[ , pheno.reps$SampleID];
-
-	# 	# deal with patient/sample/repl IDs
-	# 	samples.backup 		<- pheno.reps$SampleID;
-	# 	pheno.reps$replID 	<- pheno.reps$SampleID;
-	# 	# pheno.reps$SampleID <- pheno.reps$Patient;
-	# 	colnames(cna.reps) 	<- pheno.reps$SampleID;
-	# 	pheno.reps$Name 	<- substr(pheno.reps$replID,1,10);
-	# 	# names(nano.reps)	<- substr(names(nano.reps),1,10);
-
-	# 	# check variance
-	# 	var.matrix <- calculate.replicate.variance(nano.reps, pheno.reps, norm.data$Name);
-
-	# 	### check CNA concordance
-	# 	pheno.reps$Name <- substr(pheno.reps$replID,1,10);
-	# 	pheno.reps$SampleID <- pheno.reps$Name;
-	# 	colnames(cna.reps) <- pheno.reps$Name;
-	# 	print(dim(cna.reps));
-	# 	print(dim(pheno.reps));
-	# 	print(dim(norm.data));
-	# 	print(pheno.reps$Name);
-	# 	conc.matrix <- calculate.replicate.concordance(cna.reps, pheno.reps, norm.data$Name);
-	# 	conc.summary <- apply(conc.matrix, 2, sum)/nrow(conc.matrix);
-
-	# 	pheno.reps$SampleID <- samples.backup;
-	# 	return(list(variance = var.matrix, concordance = conc.matrix, conc.summary = conc.summary, pheno = pheno.reps, cnas = cna.reps));
-	# 	}
-
 	### SET PARAMETERS #################################################################################
 	if (interactive()) {
 		opts <- list();
@@ -187,7 +144,7 @@
 		opts$oth 	 <- 0;
 		opts$matched <- 0;
 		opts$kd 	 <- 3;
-		opts$col 	 <- 0;
+		opts$col 	 <- 1;
 	} else {
 		params <- matrix(
 			c(
@@ -527,27 +484,7 @@
 
 	### Collapse genes per region if requested #########################################################
 	if (opts$col == 1) {
-
-		# save annotations as they will disappear after merge
-		norm.annot 	  <- norm.data[, colnames(norm.data) %in% c('Accession', 'CodeClass', 'Name')];
-		norm.data 	  <- collapse.genes(norm.data[ , !colnames(norm.data) %in% c('CodeClass', 'Name')]);
-		matching.inds <- unlist(lapply(norm.data$Name, function(f) which(norm.annot$Accession == f)[1]));
-		norm.data 	  <- cbind(
-			Name = norm.data$Name,
-			norm.annot[matching.inds, qw("Accession CodeClass")],
-			norm.data[, !colnames(norm.data) == 'Name']
-			);
-		
-		# save gene info
-		gene.info <- norm.data[,1:3];
-		colnames(gene.info)[2] <- 'Symbol';
-
-	} else {
-
-		# save gene info
-		gene.info <- norm.data[,1:3];
-		colnames(gene.info)[3] <- 'Symbol';
-
+		norm.data <- collapse.genes(nano.df = norm.data);
 		}
 
 	### Call CNAs ######################################################################################
@@ -564,6 +501,8 @@
 
 		cna.raw <- cna.all$raw;
 		cna.rounded <- cna.all$rounded;
+	
+		has.ref <- which(phenodata$ref.name != "missing" & ! is.na(phenodata$ref.name));
 	} else {
 		flog.info('Going to call CNAs with pooled normals');
 
@@ -579,9 +518,9 @@
 		cna.raw <- cna.all$raw;
 		cna.normals <- cna.all$normals;
 		cna.normals.unadj <- cna.all$normals.unadj;
+	
+		has.ref <- which(phenodata$type == 'Tumour');
 		}
-
-	has.ref <- which(phenodata$type == 'Tumour');
 
 	# sanity check
 	if (! check.sample.order(sub(x = phenodata$SampleID[has.ref], pattern = 'outlier', ''), colnames(cna.rounded))) {
@@ -590,112 +529,114 @@
 
 	pheno.cna <- phenodata[has.ref , ];
 
-	### Density plots ##################################################################################
-	# normal.for.plot <- norm.data[, phenodata[phenodata$type == "Reference",]$SampleID];
-	# normal.for.plot <- as.vector(unlist(normal.for.plot));
-	# tumour.for.plot <- norm.data[, phenodata[phenodata$type == "Tumour",]$SampleID];
-	# tumour.for.plot <- as.vector(unlist(tumour.for.plot));
+	{
+		### Density plots ##################################################################################
+		# normal.for.plot <- norm.data[, phenodata[phenodata$type == "Reference",]$SampleID];
+		# normal.for.plot <- as.vector(unlist(normal.for.plot));
+		# tumour.for.plot <- norm.data[, phenodata[phenodata$type == "Tumour",]$SampleID];
+		# tumour.for.plot <- as.vector(unlist(tumour.for.plot));
 
-	# normal.for.plot <- log10(normal.for.plot + 1);
-	# tumour.for.plot <- log10(tumour.for.plot + 1);
-	normal.for.plot <- as.vector(na.omit(as.vector(unlist(cna.normals.unadj))));
-	tumour.for.plot <- as.vector(na.omit(as.vector(unlist(cna.raw))));
-	cnas.for.plot   <- as.vector(na.omit(as.vector(unlist(cna.rounded))));
+		# normal.for.plot <- log10(normal.for.plot + 1);
+		# tumour.for.plot <- log10(tumour.for.plot + 1);
+		normal.for.plot <- as.vector(na.omit(as.vector(unlist(cna.normals.unadj))));
+		tumour.for.plot <- as.vector(na.omit(as.vector(unlist(cna.raw))));
+		cnas.for.plot   <- as.vector(na.omit(as.vector(unlist(cna.rounded))));
 
-	density.thresh <- 5;
-	normal.for.plot[normal.for.plot > density.thresh] <- density.thresh;
-	tumour.for.plot[tumour.for.plot > density.thresh] <- density.thresh;
-	cnas.for.plot[	  cnas.for.plot > density.thresh] <- density.thresh;
+		density.thresh <- 5;
+		normal.for.plot[normal.for.plot > density.thresh] <- density.thresh;
+		tumour.for.plot[tumour.for.plot > density.thresh] <- density.thresh;
+		cnas.for.plot[	  cnas.for.plot > density.thresh] <- density.thresh;
 
-	normal.density <- density(
-		normal.for.plot,
-		from = min(c(normal.for.plot, tumour.for.plot)),
-		to = max(c(normal.for.plot, tumour.for.plot))
-		);
-	tumour.density <- density(
-		tumour.for.plot,
-		from = min(c(normal.for.plot, tumour.for.plot)),
-		to = max(c(normal.for.plot, tumour.for.plot))
-		);
-	cnas.density <- density(
-		cnas.for.plot,
-		from = min(cnas.for.plot),
-		to = max(cnas.for.plot)
-		);
+		normal.density <- density(
+			normal.for.plot,
+			from = min(c(normal.for.plot, tumour.for.plot)),
+			to = max(c(normal.for.plot, tumour.for.plot))
+			);
+		tumour.density <- density(
+			tumour.for.plot,
+			from = min(c(normal.for.plot, tumour.for.plot)),
+			to = max(c(normal.for.plot, tumour.for.plot))
+			);
+		cnas.density <- density(
+			cnas.for.plot,
+			from = min(cnas.for.plot),
+			to = max(cnas.for.plot)
+			);
 
-	# plotting calls
-	plot.colours <- default.colours(3);
-	create.densityplot(
-		list(
-			cnas = cnas.for.plot,
-			tumour = tumour.for.plot,
-			normal = normal.for.plot
-			),
-		filename = paste0(plot.dir, "/densityplot_comparison_kd-option-", opts$kd, ".tiff"),
-		col = plot.colours,
-		legend = list(
-			inside = list(
-				fun = draw.key,
-				args = list(
-					key = list(
-						points = list(col = plot.colours, fill = plot.colours, pch = 19),
-						text = list(lab = c("CNAs", "tumour", "normal"))
-						)
-					),
-				x = 0.75,
-				y = 0.85
-				)
-			),
-		ylimits = c(-0.1, max(c(normal.density$y, tumour.density$y, cnas.density$y)) + .5),
-		type = c('l', 'g'),
-		xgrid.at = seq(-1, 6, 0.1),
-		ygrid.at = seq(0, 20, 0.25)
-		);
+		# plotting calls
+		plot.colours <- default.colours(3);
+		create.densityplot(
+			list(
+				cnas = cnas.for.plot,
+				tumour = tumour.for.plot,
+				normal = normal.for.plot
+				),
+			filename = paste0(plot.dir, "/densityplot_comparison_kd-option-", opts$kd, ".tiff"),
+			col = plot.colours,
+			legend = list(
+				inside = list(
+					fun = draw.key,
+					args = list(
+						key = list(
+							points = list(col = plot.colours, fill = plot.colours, pch = 19),
+							text = list(lab = c("CNAs", "tumour", "normal"))
+							)
+						),
+					x = 0.75,
+					y = 0.85
+					)
+				),
+			ylimits = c(-0.1, max(c(normal.density$y, tumour.density$y, cnas.density$y)) + .5),
+			type = c('l', 'g'),
+			xgrid.at = seq(-1, 6, 0.1),
+			ygrid.at = seq(0, 20, 0.25)
+			);
 
-	# plotting raw tumour and normal
-	plot.colours <- default.colours(3)[2:3];
-	create.densityplot(
-		list(
-			tumour = tumour.for.plot,
-			normal = normal.for.plot
-			),
-		filename = paste0(plot.dir, "/densityplot_comparison_raw.tiff"),
-		col = plot.colours,
-		legend = list(
-			inside = list(
-				fun = draw.key,
-				args = list(
-					key = list(
-						points = list(col = plot.colours, fill = plot.colours, pch = 19),
-						text = list(lab = c("tumour", "normal"))
-						)
-					),
-				x = 0.75,
-				y = 0.85
-				)
-			),
-		ylimits = c(-0.1, max(c(normal.density$y, tumour.density$y)) + .25),
-		type = c('l', 'g'),
-		xgrid.at = seq(-1, 6, 0.1),
-		ygrid.at = seq(0, 20, 0.25)
-		);
+		# plotting raw tumour and normal
+		plot.colours <- default.colours(3)[2:3];
+		create.densityplot(
+			list(
+				tumour = tumour.for.plot,
+				normal = normal.for.plot
+				),
+			filename = paste0(plot.dir, "/densityplot_comparison_raw.tiff"),
+			col = plot.colours,
+			legend = list(
+				inside = list(
+					fun = draw.key,
+					args = list(
+						key = list(
+							points = list(col = plot.colours, fill = plot.colours, pch = 19),
+							text = list(lab = c("tumour", "normal"))
+							)
+						),
+					x = 0.75,
+					y = 0.85
+					)
+				),
+			ylimits = c(-0.1, max(c(normal.density$y, tumour.density$y)) + .25),
+			type = c('l', 'g'),
+			xgrid.at = seq(-1, 6, 0.1),
+			ygrid.at = seq(0, 20, 0.25)
+			);
 
-	# for kd option 3
-	density.difference <- normal.density$y - tumour.density$y;
-	intersection.point <- normal.density$x[which(diff(density.difference > 0) != 0) + 1];
+		# for kd option 3
+		density.difference <- normal.density$y - tumour.density$y;
+		intersection.point <- normal.density$x[which(diff(density.difference > 0) != 0) + 1];
 
-	# chosen from above/plot
-	intersection.point <- c(0.3, 1.67, 2.42, 3.57);
+		# chosen from above/plot
+		intersection.point <- c(0.3, 1.67, 2.42, 3.57);
 
-	kd.vals <- list();
-	kd.vals[[1]] <- 1 - length(which(tumour.for.plot < intersection.point[1])) / length(tumour.for.plot);
-	kd.vals[[2]] <- 1 - length(which(tumour.for.plot < intersection.point[2])) / length(tumour.for.plot);
-	kd.vals[[3]] <- length(which(tumour.for.plot < intersection.point[3])) / length(tumour.for.plot);
-	kd.vals[[4]] <- length(which(tumour.for.plot < intersection.point[4])) / length(tumour.for.plot);
+		kd.vals <- list();
+		kd.vals[[1]] <- 1 - length(which(tumour.for.plot < intersection.point[1])) / length(tumour.for.plot);
+		kd.vals[[2]] <- 1 - length(which(tumour.for.plot < intersection.point[2])) / length(tumour.for.plot);
+		kd.vals[[3]] <- length(which(tumour.for.plot < intersection.point[3])) / length(tumour.for.plot);
+		kd.vals[[4]] <- length(which(tumour.for.plot < intersection.point[4])) / length(tumour.for.plot);
+	}
 }
 
 ### Evaluate replicates ############################################################################
-use.genes <- which(nano.raw$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"));
+use.genes <- which(norm.data$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"));
 reps <- evaluate.replicates(
 	normalized.data = norm.data[use.genes,],
 	phenodata = phenodata,
@@ -750,8 +691,9 @@ setwd(plot.dir);
 
 ### Custom plots
 # covariates
-sample.cov <- phenodata[, c('SampleID', 'type', 'cartridge')];
-gene.cov <- nano.raw[, c('Name', 'CodeClass')];
+sample.cov 	  <- phenodata[, c('SampleID', 'type', 'cartridge')];
+gene.cov.raw  <- nano.raw[, c('Name', 'CodeClass')];
+gene.cov.norm <- norm.data[, c('Name', 'CodeClass')];
 
 # plot input
 counts.raw <- nano.raw[,-c(1:3)];
@@ -765,13 +707,13 @@ make.counts.heatmap(
 	nano.counts = counts.raw,
 	fname.stem = 'raw',
 	covs.rows = sample.cov,
-	covs.cols = gene.cov
+	covs.cols = gene.cov.raw
 	);
 make.counts.heatmap(
 	nano.counts = counts.norm,
 	fname.stem = 'norm',
 	covs.rows = sample.cov,
-	covs.cols = gene.cov
+	covs.cols = gene.cov.norm
 	);
 
 make.sample.correlations.heatmap(
@@ -803,7 +745,7 @@ make.cna.heatmap(
 	nano.cnas = cna.rounded,
 	fname.stem = 'tmr2ref_rounded',
 	rounded = TRUE,
-	covs.cols = gene.cov,
+	covs.cols = gene.cov.norm,
 	covs.rows = sample.cov,
 	width = 7
 	);
@@ -811,7 +753,7 @@ make.cna.heatmap(
 	nano.cnas = cna.raw,
 	fname.stem = 'tmr2ref_raw',
 	rounded = TRUE,
-	covs.cols = gene.cov,
+	covs.cols = gene.cov.norm,
 	covs.rows = sample.cov,
 	width = 7
 	);
@@ -832,14 +774,14 @@ make.counts.heatmap(
 	reps$norm.counts,
 	# reps$norm.counts + 1,
 	fname.stem = 'replicate_norm_counts',
-	covs.cols = gene.cov,
+	covs.cols = gene.cov.norm,
 	covs.rows = sample.cov
 	);
 make.counts.heatmap(
 	reps$raw.counts,
 	fname.stem = 'replicate_raw_counts',
 	covs.rows = sample.cov,
-	covs.cols = gene.cov,
+	covs.cols = gene.cov.raw,
 	);
 
 make.cna.heatmap(
@@ -847,14 +789,14 @@ make.cna.heatmap(
 	# reps$cna.calls + 1,
 	fname.stem = 'replicate_cnas',
 	rounded = TRUE,
-	covs.cols = gene.cov,
+	covs.cols = gene.cov.norm,
 	covs.rows = sample.cov
 	);
 
 make.counts.heatmap(
 	reps$concordance,
 	fname.stem = 'replicate_cna_concordance',
-	covs.cols = gene.cov,
+	covs.cols = gene.cov.norm,
 	print.ylab = TRUE
 	);
 
@@ -917,4 +859,3 @@ write.table(
 
 ### SESSION_INFO ##################################################################################
 save.session.profile(generate.filename('NS_norm_eval', 'Session_Info','txt'), FALSE);
-
