@@ -5,7 +5,7 @@
 \usage{
 make.cna.heatmap(
   nano.cnas, fname.stem = NULL, covs.rows = NULL, covs.cols = NULL,
-  rounded = FALSE, clust.dim = 'both', centering.value = 2, ...
+  rounded = FALSE, clust.dim = 'both', centering.value = 2, min.cn = NULL, ...
   )
 }
 \arguments{
@@ -16,6 +16,7 @@ make.cna.heatmap(
   \item{rounded}{Whether the CNA data has been rounded to the nearest integer. If false (default), correlation is used as the method. If true, jaccard is used}
   \item{clust.dim}{Which dimensions to cluster. Accepts 'none', 'rows', 'columns', or 'both' (default)}
   \item{centering.value}{The center value of the colour map. Defaults to 2}
+  \item{min.cn}{A value to be set as the colour scheme minimum. If NULL (default), takes minimum value of 'nano.cnas'}
   \item{...}{Other parameters to be passed to the BoutrosLab.plotting.general::create.heatmap function}
 }
 \details{Make a clustered heatmap for all samples and genes}

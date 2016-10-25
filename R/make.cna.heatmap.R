@@ -1,10 +1,10 @@
-make.cna.heatmap <- function(nano.cnas, fname.stem = NULL, covs.rows = NULL, covs.cols = NULL, rounded = FALSE, clust.dim = 'both', centering.value = 2, ...) {
+make.cna.heatmap <- function(nano.cnas, fname.stem = NULL, covs.rows = NULL, covs.cols = NULL, rounded = FALSE, clust.dim = 'both', centering.value = 2, min.cn = NULL, ...) {
 	c.row <- covs.rows;
 	c.col <- covs.cols;
 
 	# must add in random CNAs to make plot work if all values are identical
 	if(length(unique(c(nano.cnas))) == 1) {
-		nano.cnas[1, 1] 							<- 1;
+		nano.cnas[1, 1] 							<- 0;
 		nano.cnas[nrow(nano.cnas), ncol(nano.cnas)] <- 4;
 		}
 
@@ -49,8 +49,9 @@ make.cna.heatmap <- function(nano.cnas, fname.stem = NULL, covs.rows = NULL, cov
 
 	# define parameters up front
 	dist.method <- ifelse(rounded, 'jaccard', 'euclidean');
-	plot.at 	<- seq(floor(min(nano.cnas, na.rm = TRUE)), ceiling(max(nano.cnas, na.rm = TRUE)), 0.1);
-	plot.seq 	<- seq(min(plot.at), max(plot.at));
+	if (is.null(min.cn)) { min.cn <- floor(min(nano.cnas, na.rm = TRUE)); }
+	plot.at  <- seq(min.cn, ceiling(max(nano.cnas, na.rm = TRUE)), 0.1);
+	plot.seq <- seq(min(plot.at), max(plot.at));
 
 	# set up file name
 	if (!is.null(fname.stem)) { fname.stem <- paste0("_", fname.stem); }
