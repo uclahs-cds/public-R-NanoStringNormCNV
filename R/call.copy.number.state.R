@@ -24,8 +24,9 @@ call.copy.number.state <- function (input, reference, sex.info, per.chip = FALSE
 	y.genes <- grep(x = tolower(input$Name), pattern = 'chry');
 
 	if (length(x.genes) > 0 | length(y.genes) > 0) {
+		sex.probes <- c(as.vector(input$Name[x.genes]), as.vector(input$Name[y.genes]));
 		flog.info("Identified the following as sex chromosome probes:");
-		cat(paste(c("\t", input$Name[x.genes], input$Name[y.genes], "\n"), collapse = "\n\t"));
+		cat(paste(c("\t", sex.probes, "\n"), collapse = "\n\t"));
 		}
 
 	# removing chrY probes from female samples
@@ -46,7 +47,7 @@ call.copy.number.state <- function (input, reference, sex.info, per.chip = FALSE
 		chips.info = chip.info,
 		per.chip = per.chip
 		);
-
+	
 	# boosting probes
 	out.cna <- out.cna * multi.factor;
 
