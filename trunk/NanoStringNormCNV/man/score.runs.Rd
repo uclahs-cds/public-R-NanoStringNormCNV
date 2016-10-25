@@ -6,7 +6,7 @@
 \arguments{
   \item{replicates}{A list of replicate information. See output in \code{\link{evaluate.replicates}}}
   \item{normalized}{A gene by sample data-frame of normalized NanoString counts}
-  \item{cnas}{A gene by sample data-frame of CNA calls for test and control samples. See 'cna.rounded' in output of \code{\link{call.cnas.with.matched.normals}} or \code{\link{call.cnas.with.pooled.normals}}}
+  \item{cnas}{A gene by sample data-frame of CNA calls for test and control samples. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs. See 'cna.rounded' in output of \code{\link{call.cnas.with.matched.normals}} or \code{\link{call.cnas.with.pooled.normals}}}
   \item{sample.annot}{A data-frame containing phenotype information. Must include columns 'SampleID', 'Patient', 'cartridge' and 'type'. See output in \code{\link{load.phenodata}}}
   \item{normals}{A gene by sample data-frame of CNA calls for normal samples only. See 'cna.normals' in output of \code{\link{call.cnas.with.pooled.normals}}. Defaults to NULL}
 }

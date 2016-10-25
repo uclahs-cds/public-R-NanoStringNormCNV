@@ -6,7 +6,7 @@
 collapse.genes(nano.df)
 }
 \arguments{
-  \item{nano.df}{The NanoString data-frame with normalized counts}
+  \item{nano.df}{A data-frame of normalized NanoString counts. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs}
 }
 \details{Collapse counts for probes within the same gene. Collapsing is done with the mean count}
 \value{A data-frame with collapsed counts}
