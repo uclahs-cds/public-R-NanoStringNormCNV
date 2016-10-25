@@ -15,7 +15,7 @@ score.runs <- function(replicates, normalized, cnas, sample.annot, normals = NUL
 		);
 
 	replicates$norm.counts <- replicates$norm.counts[, replicates$count.pheno$SampleID[which(replicates$count.pheno$type == 'Tumour')]];
-	colnames(replicates$norm.counts) <- phenodata[match(colnames(replicates$norm.counts), phenodata$SampleID),]$Patient;
+	colnames(replicates$norm.counts) <- sample.annot[match(colnames(replicates$norm.counts), sample.annot$SampleID),]$Patient;
 	
 	scores$ari.pts.normcor <- NanoStringNormCNV::get.ari(
 		data = log10(replicates$norm.counts + 1),
@@ -43,7 +43,7 @@ score.runs <- function(replicates, normalized, cnas, sample.annot, normals = NUL
 	# replicates using CNA data
 	scores$ari.pts <- NanoStringNormCNV::get.ari(
 		data = replicates$cna.calls,
-		feature = phenodata[match(colnames(replicates$cna.calls), phenodata$SampleID),]$Patient
+		feature = sample.annot[match(colnames(replicates$cna.calls), sample.annot$SampleID),]$Patient
 		);
 
 	### SD for control genes
