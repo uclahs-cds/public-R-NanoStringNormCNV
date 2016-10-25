@@ -18,7 +18,7 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 	if (ncol(nano.counts) == 1) {
 		if (! is.null(print.ylab)) {
 			print.ylab <- NULL;
-			ylab.label <- paste0("Sample: ", names(nano.counts));
+			ylab.label <- paste0("Sample:\n", names(nano.counts));
 			}
 		nano.counts <- cbind(nano.counts, nano.counts);
 		}
@@ -58,7 +58,7 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 	# plot
 	BoutrosLab.plotting.general::create.heatmap(
 		x = nano.counts,
-		filename = paste0(Sys.Date(), fname.stem, '_counts_heatmap.tiff'),
+		filename = paste0(Sys.Date(), fname.stem, '_counts-heatmap.tiff'),
 		cluster.dimensions = clust.dim,
 		rows.distance.method = clust.method,
 		cols.distance.method = clust.method,
