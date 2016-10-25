@@ -13,6 +13,16 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 		key.labels 	  <- c(0, 1);
 		}
 
+	# allow for single sample
+	ylab.label <- 'Samples';
+	if (ncol(nano.counts) == 1) {
+		if (! is.null(print.ylab)) {
+			print.ylab <- NULL;
+			ylab.label <- paste0("Sample: ", names(nano.counts));
+			}
+		nano.counts <- cbind(nano.counts, nano.counts);
+		}
+
 	# set up covariates and legend
 	row.cov.obj <- NULL;
 	col.cov.obj <- NULL;
@@ -53,7 +63,7 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 		rows.distance.method = clust.method,
 		cols.distance.method = clust.method,
 		xlab.label = 'Genes',
-		ylab.label = 'Samples',
+		ylab.label = ylab.label,
 		xlab.cex = 2,
 		ylab.cex = 2,
 		yaxis.tck = 0,
