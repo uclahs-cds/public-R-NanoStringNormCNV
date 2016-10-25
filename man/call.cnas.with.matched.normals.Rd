@@ -8,7 +8,7 @@ call.cnas.with.matched.normals(
   )
 }
 \arguments{
-  \item{normalized.data}{The NanoString normalized counts for both test and control samples}
+  \item{normalized.data}{A data-frame of normalized NanoString counts for both test and control samples. A data-frame of normalized NanoString counts. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs}
   \item{phenodata}{Data-frame containing phenotype information. See output in \code{\link{load.phenodata}}}
   \item{per.chip}{Whether to use the reference specific to each chip only. Defaults to FALSE.}
   \item{call.method}{An integer specifying the CNA calling method passed on to \code{\link{call.copy.number.state}}:

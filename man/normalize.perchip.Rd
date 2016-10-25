@@ -9,7 +9,7 @@ normalize.per.chip(
 }
 \arguments{
   \item{pheno}{A data-frame with the annotations for each sample, which must include a 'cartridge' field. May include a 'type' field (specifying whether Tumour or Reference).}
-  \item{raw.data}{The NanoString data-frame with raw counts for all samples in experiment}
+  \item{raw.data}{A gene by sample data-frame of raw NanoString counts for all samples in experiment. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs}
   \item{cc}{Requested CodeCount NSN normalization. Can be 'none', 'sum', and 'geo.mean'.}
   \item{bc}{Requested Background NSN normalization. Can be 'none', 'mean', 'mean.2sd' and 'max'.}
   \item{sc}{Requested SampleContent NSN normalization. Can be 'none', 'housekeeping.geo.mean', 'total.sum', 'top.geo.mean' and 'low.cv.geo.mean'.}

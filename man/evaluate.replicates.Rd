@@ -6,7 +6,7 @@
 evaluate.replicates(normalized.data, phenodata, cnas)
 }
 \arguments{
-  \item{normalized.data}{A gene by sample data-frame of normalized NanoString counts}
+  \item{normalized.data}{A gene by sample data-frame of normalized NanoString counts. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs}
   \item{phenodata}{Data-frame containing phenotype information (specifically 'SampleID', 'Name', 'type', and 'has.repl'). See output in \code{\link{load.phenodata}}}
   \item{cnas}{A gene by sample data-frame of NanoString CNA calls, where column names are sample IDs and row names are gene probe names}
 }
