@@ -4,10 +4,10 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 	key.labels.at <- NULL;
 	key.labels 	  <- NULL;
 
-	if (max(nano.counts) > 5000) {
+	if (max(nano.counts, na.rm = TRUE) > 5000) {
 		nano.counts <- log10(nano.counts + 1);
 		split.by 	<- 0.1;
-	} else if (max(nano.counts) == 1) {
+	} else if (max(nano.counts, na.rm = TRUE) == 1) {
 		split.by 	  <- 0.5;
 		key.labels.at <- c(0.25, 0.75);
 		key.labels 	  <- c(0, 1);
@@ -80,7 +80,7 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 		colourkey.cex = 2,
 		colourkey.labels.at = key.labels.at,
 		colourkey.labels = key.labels,
-		at = seq(0, ceiling(max(nano.counts)), by = split.by),
+		at = seq(0, ceiling(max(nano.counts, na.rm = TRUE)), by = split.by),
 		resolution = 600,
 		axis.xlab.padding = 1.5,
 		width = 7
