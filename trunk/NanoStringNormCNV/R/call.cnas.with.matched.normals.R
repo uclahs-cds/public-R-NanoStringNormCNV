@@ -18,10 +18,14 @@ call.cnas.with.matched.normals <- function(
 		tmr.ind <- which(colnames(normalized.data) == phenodata$SampleID[has.ref[tmr]]);
 		ref.ind <- which(colnames(normalized.data) == phenodata$ref.name[has.ref[tmr]]);
 
+		chip.info <- phenodata[
+			c(has.ref[tmr], which(phenodata$SampleID == phenodata$ref.name[has.ref[tmr]])),
+			c("SampleID", "cartridge")
+			];
 		sample.sex <- phenodata[
-				c(has.ref[tmr], which(phenodata$SampleID == phenodata$ref.name[has.ref[tmr]])),
-				c("SampleID", "sex")
-				];
+			c(has.ref[tmr], which(phenodata$SampleID == phenodata$ref.name[has.ref[tmr]])),
+			c("SampleID", "sex")
+			];
 
 		cna.raw[,tmr] <- NanoStringNormCNV::call.copy.number.state(
 			input = normalized.data[use.genes, c(1:3, tmr.ind, ref.ind), drop = FALSE],
@@ -58,7 +62,7 @@ call.cnas.with.matched.normals <- function(
 				reference = phenodata$ref.name[has.ref[tmr]],
 				sex.info = sample.sex,	
 				per.chip = per.chip,
-				chip.info = phenodata,
+				chip.info = chip.info,
 				cna.thresh = thresh
 				)[,4];
 		} else {
@@ -79,13 +83,13 @@ call.cnas.with.matched.normals <- function(
 				reference = phenodata$ref.name[has.ref[tmr]],
 				sex.info = sample.sex,
 				per.chip = per.chip,
-				chip.info = phenodata,
+				chip.info = chip.info,
 				thresh.method = 'KD',
 				kd.vals = kd.values
 				)[,4];
 			}
 		}
-
+		
 	colnames(cna.rounded) <- phenodata$SampleID[has.ref];
 	colnames(cna.raw)     <- phenodata$SampleID[has.ref];
 
