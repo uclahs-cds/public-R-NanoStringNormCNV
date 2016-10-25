@@ -6,7 +6,7 @@
 \arguments{
     \item{ns.counts}{A gene by sample data-frame of raw NanoString counts for tumour and reference samples}
     \item{ref}{A vector of the reference sample name(s)}
-    \item{chips.info}{Data-frame of sample annotation with columns 'Chip' and 'SampleID'}
+    \item{chips.info}{Data-frame of sample annotation with columns 'cartridge' and 'SampleID'}
     \item{per.chip}{Whether to use the reference specific to each chip only. Defaults to FALSE}
 }
 \details{None}
