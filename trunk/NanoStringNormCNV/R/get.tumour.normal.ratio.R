@@ -6,15 +6,25 @@ get.tumour.normal.ratio <- function(ns.counts, ref, chips.info, per.chip = FALSE
 	cols.to.keep   <- colnames(ns.counts);
 	cols.to.remove <- c('Code.Class', 'CodeClass', 'Name', 'Accession');
 
-	if (any(cols.to.remove %in% cols.to.keep)) { cols.to.keep <- cols.to.keep[!cols.to.keep %in% cols.to.remove]; }
+	if (any(cols.to.remove %in% cols.to.keep)) {
+		cols.to.keep <- cols.to.keep[!cols.to.keep %in% cols.to.remove];
+		}
+	if (! any(chips.info$SampleID %in% colnames(ns.counts))) {
+		chips.info <- chips.info[match(colnames(ns.counts), chips.info$SampleID),];
+		}
 
 	output <- output[, cols.to.keep, drop = FALSE];
 	output[, cols.to.keep] <- NA;
 
 	# see if user asks for per.chip
 	if (per.chip) {
-		chip.names <- unique(chips.info$Chip);
+		chip.names <- unique(chips.info$cartridge);
 	} else if (!per.chip) {
+		chip.names <- 'combined';
+		}
+
+	if (length(chip.names) < 1) {
+		flog.warn("Cannot process data per chip: missing cartridge (chip) information!");
 		chip.names <- 'combined';
 		}
 
@@ -30,15 +40,15 @@ get.tumour.normal.ratio <- function(ns.counts, ref, chips.info, per.chip = FALSE
 		if (this.chip != 'combined') {
 
 			# get the tmp.ref for given chip
-			tmp.ref <- chips.info$SampleID[chips.info$Chip %in% this.chip & chips.info$SampleID %in% ref];
+			tmp.ref <- chips.info$SampleID[chips.info$cartridge %in% this.chip & chips.info$SampleID %in% ref];
 
 			# skip when per chip is requested but there are no ref samples on the chip
 			if (length(tmp.ref) < 1) { 
-				flog.warn(paste0("No reference samples on ", this.chip, ". Try calling CNAs with per.chip = FALSE"));
+				flog.warn(paste0("No reference samples on cartridge ", this.chip, ". Try calling CNAs with per.chip = FALSE"));
 				next;
 				}
 
-			samples.to.loop <- chips.info$SampleID[this.chip == chips.info$Chip];
+			samples.to.loop <- chips.info$SampleID[this.chip == chips.info$cartridge];
 			samples.to.loop <- c(samples.to.loop[!samples.to.loop %in% tmp.ref], tmp.ref);
 			}
 
