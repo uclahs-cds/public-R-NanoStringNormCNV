@@ -27,7 +27,7 @@ make.sample.correlations.heatmap <- function(nano.counts, cor.method = 'pearson'
 	cov.border <- list(col = 'black', lwd = 1.5);
 	BoutrosLab.plotting.general::create.heatmap(
 		x = correlations,
-		filename = paste0(Sys.Date(), fname.stem, '_inter-sample-correlation_heatmap.tiff'),
+		filename = paste0(Sys.Date(), fname.stem, '_inter-sample-correlation-heatmap.tiff'),
 		clustering.method = 'complete',
 		plot.dendrograms = 'both',
 		xaxis.rot = 90,
