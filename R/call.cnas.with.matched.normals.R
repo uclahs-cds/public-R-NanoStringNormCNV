@@ -89,6 +89,9 @@ call.cnas.with.matched.normals <- function(
 	colnames(cna.rounded) <- phenodata$SampleID[has.ref];
 	colnames(cna.raw)     <- phenodata$SampleID[has.ref];
 
+	rownames(cna.rounded) <- rownames(normalized.data[use.genes,]);
+	rownames(cna.raw)	  <- rownames(normalized.data[use.genes,]);
+
 	# combine output
 	cna.all <- list(rounded = cna.rounded, raw = cna.raw);
 
