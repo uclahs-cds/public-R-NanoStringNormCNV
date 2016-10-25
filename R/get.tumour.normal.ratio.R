@@ -53,7 +53,7 @@ get.tumour.normal.ratio <- function(ns.counts, ref, chips.info, per.chip = FALSE
 			}   
 
 		# avoid divisions by 0 by adding a pseudo-count, if needed
-		if (any(0 == ns.counts[,tmp.ref])) { ns.counts[,tmp.ref][0 == ns.counts[,tmp.ref]] <- 1; }
+		if (any(na.omit(0 == ns.counts[,tmp.ref]))) { ns.counts[,tmp.ref][0 == ns.counts[,tmp.ref]] <- 1; }
 
 		# divide each test sample probe value by corresponding probes in the ref samples
 		output[,samples.to.loop] <- ns.counts[,samples.to.loop] / ns.counts[,tmp.ref];
