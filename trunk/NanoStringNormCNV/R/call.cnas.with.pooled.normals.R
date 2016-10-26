@@ -5,7 +5,10 @@ call.cnas.with.pooled.normals <- function(
 	call.method = 0,
 	kd.values = NULL
 	) {
-	
+		
+	# ensure sample order matches
+	phenodata <- phenodata[match(colnames(normalized.data)[-(1:3)], phenodata$SampleID),];
+
 	# use non-control probes
 	use.genes <- which(normalized.data$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"));
 	
@@ -30,27 +33,28 @@ call.cnas.with.pooled.normals <- function(
 		thresh.method = 'none',
 		adjust = TRUE
 		);
-	
+
 	# make an average ref sample to use to call CNAs in normals
+	norm.data.normals.only <- normalized.data[, c(1:3, (is.ref + 3))];
 	norm.data.normals.only <- cbind(
-		normalized.data[, c(1:3, (is.ref + 3))],
-		avg.ref = apply(X = normalized.data[, (is.ref + 3)], MARGIN = 1, FUN = mean)
+		norm.data.normals.only,
+		avg.ref = apply(X = normalized.data[, (is.ref + 3)], MARGIN = 1, FUN = mean, na.rm = TRUE)
 		);
 
 	cna.normals.unadj <- NanoStringNormCNV::call.copy.number.state(
 		input = norm.data.normals.only[use.genes,],
 		reference = 'avg.ref',
 		sex.info = phenodata[
-			phenodata$SampleID %in% names(normalized.data[, c(is.ref + 3)]),
+			phenodata$SampleID %in% colnames(norm.data.normals.only)[-(1:3)],
 			c("SampleID", "sex")
 			],
-		per.chip = per.chip,
+		per.chip = FALSE,
 		chip.info = phenodata[is.ref,],
 		thresh.method = 'none',
 		adjust = TRUE
 		);
 	cna.normals.unadj <- cna.normals.unadj[, -c(1:3)];
-	
+
 	if (call.method <= 1) {
 		if (call.method == 0) {
 			# NanoString recommended thresholds

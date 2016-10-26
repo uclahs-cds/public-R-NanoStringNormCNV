@@ -136,7 +136,7 @@
 	### SET PARAMETERS #################################################################################
 	if (interactive()) {
 		opts <- list();
-		opts$perchip <- 0;
+		opts$perchip <- 1;
 		opts$ccn  	 <- 2;
 		opts$bc 	 <- 2;
 		opts$scc 	 <- 2;
@@ -437,6 +437,7 @@
 
 	# changing ref sample for CPCG248-F1 since original was poor quality
 	phenodata[phenodata$SampleID == "CPCG0248F1",]$ref.name <- "CPCG0248B.M1";
+	phenodata[phenodata$SampleID == "CPCG0233F1",]$ref.name <- "CPCG0233B.M1";# because 'M2' ref is weird..
 
 	# setting has.repl for replicates to 0
 	phenodata[phenodata$SampleID %in% c("CPCG0266B.M2", "CPCG0248B.M1"),]$has.repl <- 0;
@@ -498,7 +499,6 @@
 			call.method = opts$kd,
 			kd.values = kd.vals
 			);
-
 		cna.raw <- cna.all$raw;
 		cna.rounded <- cna.all$rounded;
 	
@@ -513,7 +513,7 @@
 			call.method = opts$kd,
 			kd.values = kd.vals
 			);
-
+	
 		cna.rounded <- cna.all$rounded;
 		cna.raw <- cna.all$raw;
 		cna.normals <- cna.all$normals;
@@ -689,126 +689,14 @@ write.table(
 ## PLOTS ##################################################################
 setwd(plot.dir);
 
-### Custom plots
-# covariates
-sample.cov 	  <- phenodata[, c('SampleID', 'type', 'cartridge')];
-gene.cov.raw  <- nano.raw[, c('Name', 'CodeClass')];
-gene.cov.norm <- norm.data[, c('Name', 'CodeClass')];
-
-# plot input
-counts.raw <- nano.raw[,-c(1:3)];
-row.names(counts.raw) <- nano.raw$Name;
-
-counts.norm <- norm.data[,-c(1:3)];
-row.names(counts.norm) <- norm.data$Name;
-
-# make heatmaps of raw vs normalized data
-make.counts.heatmap(
-	nano.counts = counts.raw,
-	fname.stem = 'raw',
-	covs.rows = sample.cov,
-	covs.cols = gene.cov.raw
-	);
-make.counts.heatmap(
-	nano.counts = counts.norm,
-	fname.stem = 'norm',
-	covs.rows = sample.cov,
-	covs.cols = gene.cov.norm
-	);
-
-make.sample.correlations.heatmap(
-	nano.counts = log10(counts.raw + 1),
-	fname.stem = 'unnormalized',
-	covs = sample.cov
-	);
-make.sample.correlations.heatmap(
-	nano.counts = log10(counts.norm + 1),
-	fname.stem = 'normalized',
-	covs = sample.cov
-	);
-
-# positive control plots
-corrs <- positive.control.norm(nano.raw);
-make.positive.control.plot(
-	correlations = corrs,
-	covs = NULL,
-	print.x.labels = FALSE
-	);
-make.positive.control.plot(
-	correlations = corrs,
-	covs = sample.cov
-	);
-
-# and for CNAs
-cna.raw[cna.raw > 10] <- 10;
-make.cna.heatmap(
-	nano.cnas = cna.rounded,
-	fname.stem = 'tmr2ref_rounded',
-	rounded = TRUE,
-	covs.cols = gene.cov.norm,
-	covs.rows = sample.cov,
-	width = 7
-	);
-make.cna.heatmap(
-	nano.cnas = cna.raw,
-	fname.stem = 'tmr2ref_raw',
-	rounded = TRUE,
-	covs.cols = gene.cov.norm,
-	covs.rows = sample.cov,
-	width = 7
-	);
-
-# make the densities of the CNAs for each call type
-make.cna.densities.plots(nano.cnas = cna.rounded, fname.stem = 'tmr2ref_rounded');
-make.cna.densities.plots(nano.cnas = cna.raw, fname.stem = 'tmr2ref_raw');
-
-## make heatmaps for reps ################################################
-ref.inds.count 	 <- which(phenodata$SampleID %in% reps$count.pheno$ref.name);
-reps$count.pheno$Patient <- factor(reps$count.pheno$Patient);
-reps$count.pheno$type    <- factor(reps$count.pheno$type);
-reps$count.pheno$outlier <- factor(reps$count.pheno$outlier, levels = c(0,1));
-reps$raw.counts  <- nano.raw[, reps$count.pheno$SampleID];
-rownames(reps$raw.counts) <- nano.raw$Name;
-
-make.counts.heatmap(
-	reps$norm.counts,
-	# reps$norm.counts + 1,
-	fname.stem = 'replicate_norm_counts',
-	covs.cols = gene.cov.norm,
-	covs.rows = sample.cov
-	);
-make.counts.heatmap(
-	reps$raw.counts,
-	fname.stem = 'replicate_raw_counts',
-	covs.rows = sample.cov,
-	covs.cols = gene.cov.raw,
-	);
-
-make.cna.heatmap(
-	reps$cna.calls,
-	# reps$cna.calls + 1,
-	fname.stem = 'replicate_cnas',
-	rounded = TRUE,
-	covs.cols = gene.cov.norm,
-	covs.rows = sample.cov
-	);
-
-make.counts.heatmap(
-	reps$concordance,
-	fname.stem = 'replicate_cna_concordance',
-	covs.cols = gene.cov.norm,
-	print.ylab = TRUE
-	);
-
-make.sample.correlations.heatmap(
-	log10(reps$norm.counts+1),
-	fname.stem = 'replicate-normalized',
-	covs = sample.cov
-	);
-make.sample.correlations.heatmap(
-	log10(reps$norm.counts[, which(reps$count.pheno$type == 'Tumour')] + 1),
-	fname.stem = 'replicate-tumours-normalized',
-	covs = sample.cov
+visualize.results(
+	raw.counts = nano.raw,
+	norm.counts = norm.data,
+	phenodata = phenodata,
+	cna.rounded = cna.rounded,
+	cna.raw = cna.raw,
+	replicate.eval = reps,
+	max.cn = 10
 	);
 
 ### Save items to compare runs ####################################################################
