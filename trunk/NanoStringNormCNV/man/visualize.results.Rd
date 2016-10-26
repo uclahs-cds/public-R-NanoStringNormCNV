@@ -11,7 +11,7 @@ visualize.results(
 \arguments{
   \item{raw.counts}{A gene by sample data-frame of raw NanoString counts. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs}
   \item{norm.counts}{A gene by sample data-frame of normalized NanoString counts. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs}
-  \item{phenodata}{Data-frame containing annotation for sample covariates. Expects columns 'SampleID' and, optionally, 'type' and 'cartridge'. Defaults to NULL}
+  \item{phenodata}{Data-frame containing annotation for sample covariates. Expects columns 'SampleID' and 'type' or 'cartridge' or both. Defaults to NULL}
   \item{cna.rounded}{A gene by sample data-frame of rounded CNA calls, where column names are sample IDs and row names are gene probe names. Defaults to NULL}
   \item{cna.raw}{A gene by sample data-frame of raw CNA calls, where column names are sample IDs and row names are gene probe names. Defaults to NULL}
   \item{max.cn}{Maximum copy number for 'cna.raw' data. Sets copy numbers of more than 'max.cn' to 'max.cn'. Defaults to 5}

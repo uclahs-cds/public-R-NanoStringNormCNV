@@ -4,7 +4,14 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 
 	if (!exclude.covs) {
 		if (! is.null(phenodata)) {
-			sample.covs <- phenodata[, c('SampleID', 'type', 'cartridge')];
+			sample.covs <- phenodata[, colnames(phenodata) %in% c('SampleID', 'type', 'cartridge'), drop = FALSE];
+			if (! any(colnames(sample.covs) %in% 'SampleID')) {
+				stop("Must include sample IDs in phenodata!");
+				}
+			if (ncol(sample.covs) < 2) {
+				sample.covs <- NULL;
+				flog.warn("Excluding sample covariates due to missing information!");
+				}
 			}
 		gene.covs.pre.norm  <- raw.counts[, c('Name', 'CodeClass')];
 		gene.covs.post.norm <- norm.counts[, c('Name', 'CodeClass')];
