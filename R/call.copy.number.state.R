@@ -47,7 +47,7 @@ call.copy.number.state <- function (input, reference, sex.info, per.chip = FALSE
 		chips.info = chip.info,
 		per.chip = per.chip
 		);
-	
+
 	# boosting probes
 	out.cna <- out.cna * multi.factor;
 

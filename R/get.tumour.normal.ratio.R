@@ -18,21 +18,21 @@ get.tumour.normal.ratio <- function(ns.counts, ref, chips.info, per.chip = FALSE
 
 	# see if user asks for per.chip
 	if (per.chip) {
-		chip.names <- unique(chips.info$cartridge);
-	} else if (!per.chip) {
-		chip.names <- 'combined';
+		chips <- unique(chips.info$cartridge);
+		if (length(chips) < 1) {
+			flog.warn("Cannot process data per chip: missing cartridge (chip) information!");
+			per.chip <- 0;
+			}
 		}
-
-	if (length(chip.names) < 1) {
-		flog.warn("Cannot process data per chip: missing cartridge (chip) information!");
-		chip.names <- 'combined';
+	if (!per.chip) {
+		chips <- 'combined';
 		}
 
 	# define sample order here so the reference sample is placed at the end
 	samples.to.loop <- c(colnames(output)[!colnames(output) %in% ref], ref);
 
-	# loop over chip names
-	for (this.chip in chip.names) {
+	# loop over chips
+	for (this.chip in chips) {
 
 		# define a tmp.ref every time before the start of a new iteration
 		tmp.ref <- ref;
