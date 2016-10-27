@@ -30,8 +30,10 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 
 	reps$count.pheno$Patient <- factor(reps$count.pheno$Patient);
 	reps$count.pheno$type    <- factor(reps$count.pheno$type);
-	reps$count.pheno$outlier <- factor(reps$count.pheno$outlier, levels = c(0,1));
-	
+	if (any(names(reps$count.pheno) == 'outlier')) {
+		reps$count.pheno$outlier <- factor(reps$count.pheno$outlier, levels = c(0,1));
+		}
+
 	reps$raw.counts <- raw.counts[, reps$count.pheno$SampleID];
 	rownames(reps$raw.counts) <- raw.counts$Name;
 
