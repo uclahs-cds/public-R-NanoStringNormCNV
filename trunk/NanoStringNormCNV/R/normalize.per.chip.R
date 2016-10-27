@@ -28,7 +28,7 @@ normalize.per.chip <- function(pheno, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.
 			NanoStringNorm::Plot.NanoStringNorm(
 				x = nano.parts[[chip]],
 				label.best.guess = TRUE,
-				plot.type = unlist(strsplit("cv mean.sd norm.factors missing RNA.estimates positive.controls", "\\s"))
+				plot.type = plot.types
 				);
 			dev.off();
 			
