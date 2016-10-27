@@ -20,7 +20,7 @@ normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs
 		NanoStringNorm::Plot.NanoStringNorm(
 			x = nano.norm,
 			label.best.guess = TRUE,
-			plot.type = unlist(strsplit("cv mean.sd batch.effects norm.factors missing RNA.estimages positive.controls","\\s"))
+			plot.type = plot.types
 			);
 		dev.off();
 	} else {
@@ -32,5 +32,4 @@ normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs
 		}
 	return(normalized.data);
 	}
-
 
