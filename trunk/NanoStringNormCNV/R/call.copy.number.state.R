@@ -90,6 +90,7 @@ call.copy.number.state <- function (input, reference, sex.info, per.chip = FALSE
 
 	# add the probe information back to out.cna.round
 	header.names <- c('Code.Class', 'CodeClass', 'Name', 'Accession');
+	rownames(input) <- input[, colnames(input) == 'Name'];
 	out.cna.final <- cbind(
 		input[,colnames(input)[colnames(input) %in% header.names], drop = FALSE],
 		out.cna.final

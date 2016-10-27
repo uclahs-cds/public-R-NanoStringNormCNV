@@ -69,6 +69,9 @@ get.tumour.normal.ratio <- function(ns.counts, ref, chips.info, per.chip = FALSE
 		output[,samples.to.loop] <- ns.counts[,samples.to.loop] / ns.counts[,tmp.ref];
 		}
 
+	# ensure row names are probe names
+	rownames(output) <- ns.counts$Name;
+
 	return(output);
 	}
 
