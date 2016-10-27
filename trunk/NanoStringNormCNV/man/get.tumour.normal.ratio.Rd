@@ -10,7 +10,7 @@
     \item{per.chip}{Whether to use the reference specific to each chip only. Defaults to FALSE}
 }
 \details{None}
-\value{None}
+\value{A gene by sample matrix, where column names are sample IDs and row names are probe names}
 \author{Emilie Lalonde}
     
 
