@@ -7,20 +7,13 @@
 {
 	library(mclust);
 	library(NanoStringNorm);
-	# library(BoutrosLab.utilities.copynumber);
-	# library(BoutrosLab.pipeline.limma);
 	library(BoutrosLab.plotting.general);
 	library(futile.logger);
 	library(vsn);
 	library(reshape2);
 	library(devtools)
 	library(getopt);
-	# library(BoutrosLab.dist.overload);
-	# load_all("~/svn/Resources/code/R/prostate.acgh.biomarkers");
-	# source("~/svn/Training/elalonde/OncoScan_reprocess/cna.plotting.functions.R");
-	# source("~/svn/Resources/code/R/ParameterEval/R/generate.covariates.R")
-	# source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
-	source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/call_signature_pga.R")
+	# source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/call_signature_pga.R")
 	load_all("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV");
 
 	# specifically samples with low restriction frag ratios
@@ -144,10 +137,10 @@
 			opts$bc 	 <- 1;
 			opts$scc 	 <- 1;
 			opts$inv 	 <- 1;
-			opts$oth 	 <- 0;
-			opts$matched <- 1;
+			opts$oth 	 <- 2;
+			opts$matched <- 0;
 			opts$kd 	 <- 3;
-			opts$col 	 <- 1;
+			opts$col 	 <- 0;
 		} else {
 			params <- matrix(
 				c(
@@ -318,11 +311,11 @@
 			for (i in 1:nrow(original.hk)) {
 				# Step 1:
 				# adding random noise to original probe at given patient (separately for all 3 simulations)
-				noisy.probes <- original.hk[i,j] + rnorm(n = 3, mean = 0, sd = 15);
+				noisy.probes <- original.hk[i,j] + rnorm(n = 3, mean = 0, sd = 200);
 
 				# Step 2:
 				# shifting mean of probe values per simulation by adding some randomly chosen constant
-				noisy.probes <- noisy.probes - c(10, 20, -15);
+				noisy.probes <- noisy.probes - c(100, 200, -150);
 
 				# make sure there are no negative values before adding
 				noisy.probes[noisy.probes < 1] <- 1;
@@ -374,6 +367,7 @@
 		if (opts$oth == 1) oth.val <- 'vsn';
 		if (opts$oth == 2) oth.val <- 'rank.normal';
 		if (opts$oth == 3) oth.val <- 'quantile';
+		# if (opts$oth == 4) oth.val <- 'zscore';# ignoring because it outputs NAs
 
 		do.nsn.norm <- TRUE;
 
@@ -390,34 +384,34 @@
 	{
 		setwd(plot.dir);
 
-		### Positive control normalization + plots
-		corrs <- positive.control.norm(nano.raw);
-		make.positive.control.plot(
-			correlations = corrs,
-			covs = phenodata[, c('SampleID', 'type', 'cartridge')]
-			);
+		# ### Positive control normalization + plots
+		# corrs <- positive.control.norm(nano.raw);
+		# make.positive.control.plot(
+		# 	correlations = corrs,
+		# 	covs = phenodata[, c('SampleID', 'type', 'cartridge')]
+		# 	);
 
-		### Restriction digestion normalization + plots
-		restr.frag.norm.output <- restriction.fragmentation.norm(nano.raw);
+		# ### Restriction digestion normalization + plots
+		# restr.frag.norm.output <- restriction.fragmentation.norm(nano.raw);
 
-		# write bad restr dig samples to file
-		write.table(
-			restr.frag.norm.output,
-			file = paste0(root.dir, "/normalization_assessment/restr-frag-norm_output.txt"),
-			quote = FALSE,
-			sep = "\t"
-			);
+		# # write bad restr dig samples to file
+		# write.table(
+		# 	restr.frag.norm.output,
+		# 	file = paste0(root.dir, "/normalization_assessment/restr-frag-norm_output.txt"),
+		# 	quote = FALSE,
+		# 	sep = "\t"
+		# 	);
 
-		if (dropoutliers == 0) {
-			write.table(
-				rownames(restr.frag.norm.output[restr.frag.norm.output$ratio < 10,]),
-				file = paste0(root.dir, "/normalization_assessment/restriction-fragmentation_low-ratio.txt"),
-				quote = FALSE,
-				sep = "\t",
-				row.names = FALSE,
-				col.names = FALSE
-				);
-			}
+		# if (dropoutliers == 0) {
+		# 	write.table(
+		# 		rownames(restr.frag.norm.output[restr.frag.norm.output$ratio < 10,]),
+		# 		file = paste0(root.dir, "/normalization_assessment/restriction-fragmentation_low-ratio.txt"),
+		# 		quote = FALSE,
+		# 		sep = "\t",
+		# 		row.names = FALSE,
+		# 		col.names = FALSE
+		# 		);
+		# 	}
 
 		### Invariant probe normalization (this is actually in the main norm fcns)
 		inv.probe.norm.output <- invariant.probe.norm(nano.raw, phenodata);
@@ -452,39 +446,52 @@
 		### NanoStringNorm
 		setwd(out.dir);
 
-		phenodata$outlier <- 0;
+		# phenodata$outlier <- 0;
 		if (opts$perchip == 1) {
 			norm.data <- normalize.per.chip(
-				phenodata,
-				nano.raw,
-				cc.val,
-				bc.val,
-				sc.val,
-				oth.val,
-				do.nsn.norm,
-				do.rcc.inv.norm,
-				pheno.df,
+				pheno = phenodata,
+				raw.data = nano.raw,
+				cc = cc.val,
+				bc = bc.val,
+				sc = sc.val,
+				oth = oth.val,
+				do.nsn = do.nsn.norm,
+				do.rcc.inv = do.rcc.inv.norm,
+				covs = pheno.df,
+				transform.data = TRUE,
 				plot.types = qw('cv mean.sd norm.factors missing RNA.estimates positive.controls')
 				);
 		} else {
 			norm.data <- normalize.global(
-				nano.raw,
-				cc.val,
-				bc.val,
-				sc.val,
-				oth.val,
-				do.nsn.norm,
-				do.rcc.inv.norm,
-				pheno.df,
+				raw.data = nano.raw,
+				cc = cc.val,
+				bc = bc.val,
+				sc = sc.val,
+				oth = oth.val,
+				do.nsn = do.nsn.norm,
+				do.rcc.inv = do.rcc.inv.norm,
+				covs = pheno.df,
+				# transform.data = FALSE,
 				plot.types = qw('cv mean.sd norm.factors missing RNA.estimates positive.controls'),
 				pheno = phenodata[,c('SampleID', 'type')]
 				);
-
-			# when other normalization is normal.rank we get negative values and need to transform
-			if(oth.val == 'rank.normal'){
-				norm.data[, -c(1:3)] <- (norm.data[, -c(1:3)] - min(norm.data[, -c(1:3)])) + 0.1;
-				}
+			# raw.data = nano.raw
+			# cc = cc.val
+			# bc = bc.val
+			# sc = sc.val
+			# oth = oth.val
+			# do.nsn = do.nsn.norm
+			# do.rcc.inv = do.rcc.inv.norm
+			# covs = pheno.df
+			# transform.data = FALSE
+			# plot.types = qw('cv mean.sd norm.factors missing RNA.estimates positive.controls')
+			# pheno = phenodata[,c('SampleID', 'type')]
 			}
+
+		# # when other normalization is normal.rank we get negative values and need to transform
+		# if(oth.val == 'rank.normal' | oth.val == 'quantile'){
+		# 	norm.data[, -c(1:3)] <- (norm.data[, -c(1:3)] - min(norm.data[, -c(1:3)])) + 0.1;
+		# 	}
 
 		if (! check.sample.order(phenodata$SampleID, colnames(norm.data)[-c(1:3)])) {
 			stop("Sorry, sample order doesn't match after normalization, see above.");
@@ -641,71 +648,71 @@
 		kd.vals[[3]] <- length(which(tumour.for.plot < intersection.point[3])) / length(tumour.for.plot);
 		kd.vals[[4]] <- length(which(tumour.for.plot < intersection.point[4])) / length(tumour.for.plot);
 	}
+
+	### Evaluate replicates ############################################################################
+	use.genes <- which(norm.data$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"));
+	reps <- evaluate.replicates(
+		normalized.data = norm.data[use.genes,],
+		phenodata = phenodata,
+		cnas = cna.rounded
+		);
+
+	### OUTPUT #########################################################################################
+	write.table(
+		cbind(norm.data[use.genes, 1:3], cna.raw),
+		generate.filename('tmr2ref', 'counts', 'txt'),
+		sep = "\t",
+		quote = FALSE
+		);
+
+	write.table(
+		cbind(norm.data[use.genes, 1:3], cna.rounded),
+		generate.filename('tmr2ref', 'rounded_counts', 'txt'),
+		sep = "\t",
+		quote = FALSE
+		);
+
+	write.table(
+		norm.data,
+		generate.filename('normalized', 'counts', 'txt'),
+		sep = "\t",
+		quote = FALSE
+		);
+
+	write.table(
+		reps$variance,
+		generate.filename('replicate_CNAs', 'variance_matrix', 'txt'),
+		sep = "\t",
+		quote = FALSE
+		);
+
+	write.table(
+		reps$concordance,
+		generate.filename('replicate_CNAs', 'concordance_matrix', 'txt'),
+		sep = "\t",
+		quote = FALSE
+		);
+
+	write.table(
+		reps$conc.summary,
+		generate.filename('replicate_CNAs', 'concordance_summary', 'txt'),
+		sep = "\t",
+		quote = FALSE
+		);
+
+	## PLOTS ##################################################################
+	setwd(plot.dir);
+
+	visualize.results(
+		raw.counts = nano.raw,
+		norm.counts = norm.data,
+		phenodata = phenodata,
+		cna.rounded = cna.rounded,
+		cna.raw = cna.raw,
+		replicate.eval = reps,
+		max.cn = 10
+		);
 }
-
-### Evaluate replicates ############################################################################
-use.genes <- which(norm.data$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"));
-reps <- evaluate.replicates(
-	normalized.data = norm.data[use.genes,],
-	phenodata = phenodata,
-	cnas = cna.rounded
-	);
-
-### OUTPUT #########################################################################################
-write.table(
-	cbind(norm.data[use.genes, 1:3], cna.raw),
-	generate.filename('tmr2ref', 'counts', 'txt'),
-	sep = "\t",
-	quote = FALSE
-	);
-
-write.table(
-	cbind(norm.data[use.genes, 1:3], cna.rounded),
-	generate.filename('tmr2ref', 'rounded_counts', 'txt'),
-	sep = "\t",
-	quote = FALSE
-	);
-
-write.table(
-	norm.data,
-	generate.filename('normalized', 'counts', 'txt'),
-	sep = "\t",
-	quote = FALSE
-	);
-
-write.table(
-	reps$variance,
-	generate.filename('replicate_CNAs', 'variance_matrix', 'txt'),
-	sep = "\t",
-	quote = FALSE
-	);
-
-write.table(
-	reps$concordance,
-	generate.filename('replicate_CNAs', 'concordance_matrix', 'txt'),
-	sep = "\t",
-	quote = FALSE
-	);
-
-write.table(
-	reps$conc.summary,
-	generate.filename('replicate_CNAs', 'concordance_summary', 'txt'),
-	sep = "\t",
-	quote = FALSE
-	);
-
-## PLOTS ##################################################################
-setwd(plot.dir);
-
-visualize.results(
-	raw.counts = nano.raw,
-	norm.counts = norm.data,
-	phenodata = phenodata,
-	cna.rounded = cna.rounded,
-	cna.raw = cna.raw,
-	replicate.eval = reps,
-	max.cn = 10
-	);
 
 ### Save items to compare runs ####################################################################
 summary.data <- list();
