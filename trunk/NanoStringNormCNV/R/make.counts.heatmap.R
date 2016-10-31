@@ -80,7 +80,11 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 		colourkey.cex = 2,
 		colourkey.labels.at = key.labels.at,
 		colourkey.labels = key.labels,
-		at = seq(0, ceiling(max(nano.counts, na.rm = TRUE)), by = split.by),
+		at = seq(
+			floor(min(nano.counts, na.rm = TRUE)),
+			ceiling(max(nano.counts, na.rm = TRUE)),
+			by = split.by
+			),
 		resolution = 600,
 		axis.xlab.padding = 1.5,
 		width = 7
