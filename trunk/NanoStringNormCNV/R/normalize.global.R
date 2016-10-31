@@ -1,17 +1,15 @@
-
-### normalize all data in one batch
 normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, plot.types = 'all', pheno = NULL){
+	# normalization using code count, background noise, sample content
 	if (do.nsn) {
 		nano.norm <- NanoStringNorm::NanoStringNorm(
 			x = raw.data[, -c(1:3)],
 			CodeCount = cc,
 			Background = bc,
 			SampleContent = sc,
-			OtherNorm = oth,
 			round.values = FALSE,
 			take.log = FALSE,
 			traits = covs,
-			anno = raw.data[,1:3]
+			anno = raw.data[, 1:3]
 			);
 		normalized.data <- nano.norm$normalized.data;
 		colnames(normalized.data)[1] <- 'CodeClass';
@@ -27,9 +25,24 @@ normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs
 		normalized.data <- raw.data;
 		}
 
+	# invariant probe normalization
 	if (do.rcc.inv) {
 		normalized.data <- NanoStringNormCNV::invariant.probe.norm(normalized.data, pheno);
 		}
+
+	# perform 'other' normalization last
+	if (do.nsn & oth != 'none') {
+		nano.norm <- NanoStringNorm::NanoStringNorm(
+			x = normalized.data[, -(1:3)],
+			OtherNorm = oth,
+			round.values = FALSE,
+			take.log = FALSE,
+			traits = covs,
+			anno = normalized.data[, 1:3]
+			);
+		normalized.data <- nano.norm$normalized.data;
+		colnames(normalized.data)[1] <- 'CodeClass';
+		}
+
 	return(normalized.data);
 	}
-
