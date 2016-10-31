@@ -1,4 +1,4 @@
-normalize.per.chip <- function(pheno, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, plot.types = 'all'){
+normalize.per.chip <- function(pheno, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, transform.data = TRUE, plot.types = 'all'){
 	nano.parts <- list();
 	cartridges <- unique(pheno$cartridge);
 
@@ -69,6 +69,11 @@ normalize.per.chip <- function(pheno, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.
 	normalized.data <- cbind(raw.data[, 1:3], do.call(cbind, lapply(nano.parts, function(f) f[,-c(1:3), drop = FALSE])));
 	normalized.data <- normalized.data[, c(1:3, order(colnames(normalized.data)[-(1:3)]) + 3)];
 	rownames(normalized.data) <- raw.data[, colnames(raw.data) == 'Name'];
+
+	# transform data so there are no negative counts
+	if (transform.data & any(normalized.data[, -(1:3)] < 0)) {
+		normalized.data[, -(1:3)] <- (normalized.data[, -(1:3)] - min(normalized.data[, -(1:3)])) + 0.1;
+		}
 
 	return(normalized.data);
 	}

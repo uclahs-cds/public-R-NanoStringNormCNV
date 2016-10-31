@@ -1,4 +1,4 @@
-normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, plot.types = 'all', pheno = NULL){
+normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, transform.data = TRUE, plot.types = 'all', pheno = NULL){
 	# normalization using code count, background noise, sample content
 	if (do.nsn) {
 		nano.norm <- NanoStringNorm::NanoStringNorm(
@@ -42,6 +42,11 @@ normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs
 			);
 		normalized.data <- nano.norm$normalized.data;
 		colnames(normalized.data)[1] <- 'CodeClass';
+		}
+
+	# transform data so there are no negative counts
+	if (transform.data & any(normalized.data[, -(1:3)] < 0)) {
+		normalized.data[, -(1:3)] <- (normalized.data[, -(1:3)] - min(normalized.data[, -(1:3)])) + 0.1;
 		}
 
 	return(normalized.data);

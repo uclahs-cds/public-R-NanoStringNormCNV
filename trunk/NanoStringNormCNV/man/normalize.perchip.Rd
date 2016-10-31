@@ -4,7 +4,8 @@
 \description{Wrapper function to call all normalization function requested, processing one cartridge at a time}
 \usage{
 normalize.per.chip(
-	pheno, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, plot.types = 'all'
+	pheno, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs,
+  transform.data = TRUE, plot.types = 'all'
 	)
 }
 \arguments{
@@ -17,6 +18,7 @@ normalize.per.chip(
   \item{do.nsn}{Whether or not to even run NanoStringNorm (NSN). Should be inferred from 3 previous parameters}
   \item{do.rcc.inv}{Whether or not to run invariant probe normalization. This is run separately from NSN, and is the recommended method by NanoString.}
   \item{covs}{A data-frame with covariates for which to assess batch effects in NanoStringNorm}
+  \item{transform.data}{Whether to transform data so output does not contain negative values. Defaults to TRUE}
   \item{plot.types}{Which NSN plots to generate, if any, after normalization. Passed directly to NanoStringNorm::Plot.NanoStringNorm. Defaults to 'all'}
 }
 \details{Normalize all data in study one cartridge at a time using NanoStringNorm and/or invariant probe normalizaiton. See individual normalization functions for more details.}
