@@ -299,31 +299,44 @@
 
 		### Simulating 3 new housekeeping genes by adding noise to original
 		original.hk <- nano.raw[nano.raw$CodeClass == 'Housekeeping',];
-		simulate.hk <- matrix(nrow = 9, ncol = ncol(nano.raw), dimnames = list(NULL, colnames(nano.raw)));
-		simulate.hk <- as.data.frame(simulate.hk);
-
-		simulate.hk$CodeClass <- 'Housekeeping';
-		simulate.hk$Accession <- sort(rep(paste0("SIM", 1:3), 3));
-		simulate.hk$Name 	  <- as.vector(sapply(paste0("SIM", 1:3, "-"), function(x) paste0(x, 1:3)));
 
 		# simulated HK genes also contain 3 probes
-		for (j in 4:ncol(original.hk)) {
-			for (i in 1:nrow(original.hk)) {
-				# Step 1:
-				# adding random noise to original probe at given patient (separately for all 3 simulations)
-				noisy.probes <- original.hk[i,j] + rnorm(n = 3, mean = 0, sd = 200);
-
-				# Step 2:
-				# shifting mean of probe values per simulation by adding some randomly chosen constant
-				noisy.probes <- noisy.probes - c(100, 200, -150);
-
-				# make sure there are no negative values before adding
-				noisy.probes[noisy.probes < 1] <- 1;
-				simulate.hk[c(i, i + 3, i + 6), j] <- noisy.probes;
+		for (i in 1:nrow(original.hk)) {
+			for (j in 1:3) {
+				# create a bunch of randomnicity
+				randomness <- rnorm(
+					n = ncol(nano.raw) - 3,
+					mean = rpois(n = ncol(nano.raw) - 3, lambda = 25),
+					sd = rgamma(n = ncol(nano.raw) - 3, shape = 50, scale = 2)
+					);
+				noisy.counts <- original.hk[i, -(1:3)] + floor(randomness);
+				noisy.counts[noisy.counts < 1] <- 1;
+				nano.raw <- rbind(
+					nano.raw,
+					c(
+						CodeClass = "Housekeeping",
+						Name = paste0("SIM", j, "-", i),
+						Accession = paste0("SIM", j),
+						noisy.counts
+						)
+					);
 				}
 			}
 
-		nano.raw <- rbind(nano.raw, simulate.hk);
+		# collapsed <- nano.raw[nano.raw$CodeClass == 'Housekeeping',];
+		# collapsed <- collapse.genes(collapsed);
+		# combins <- combn(1:nrow(collapsed), 2);
+		# for (i in 1:ncol(combins)) {
+		# 	print(combins[,i]);
+		# 	print(
+		# 		cor(
+		# 			unlist(collapsed[combins[1,i],-(1:3)]),
+		# 			unlist(collapsed[combins[2,i],-(1:3)])
+		# 			)
+		# 		);
+		# 	}
+		# hk <- nano.raw[nano.raw$CodeClass == 'Housekeeping',];
+		# hk <- hk[,-(1:3)];
 
 		# fix gene names to prevent NSN crashing
 		nano.raw$Name <- unlist(lapply(strsplit(x = nano.raw$Name, '\\|'), function(f) f[[1]][1]));
