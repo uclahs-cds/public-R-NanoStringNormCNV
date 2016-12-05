@@ -1,9 +1,9 @@
 make.cna.heatmap <- function(nano.cnas, fname.stem = NULL, covs.rows = NULL, covs.cols = NULL, rounded = FALSE, clust.dim = 'both', centering.value = 2, min.cn = NULL, ...) {
-	c.row <- covs.rows;
-	c.col <- covs.cols;
+	c.row <- covs.rows[covs.rows$SampleID %in% colnames(nano.cnas),];
+	c.col <- covs.cols[covs.cols$Name %in% rownames(nano.cnas),];
 
 	# must add in random CNAs to make plot work if all values are identical
-	if(length(unique(c(nano.cnas))) == 1) {
+	if (length(unique(c(nano.cnas))) == 1) {
 		nano.cnas[1, 1] 							<- 0;
 		nano.cnas[nrow(nano.cnas), ncol(nano.cnas)] <- 4;
 		}
@@ -23,16 +23,23 @@ make.cna.heatmap <- function(nano.cnas, fname.stem = NULL, covs.rows = NULL, cov
 	col.cov.obj <- NULL;
 
 	if (!is.null(c.col) | !is.null(c.row)) {
-		# covariates
+		# remove 'type' if all samples are either 'Tumour' or 'Reference'
+		if ("type" %in% colnames(c.row)) {
+			if (nlevels(as.factor(c.row$type)) == 1) {
+				c.row <- c.row[, !colnames(c.row) %in% "type", drop = FALSE];
+				}
+			}
+
+		# create covariates
 		cov.objs <- NanoStringNormCNV::generate.plot.covariates(
 			plotting.data = nano.cnas,
-			sample.covariates = covs.rows,
-			gene.covariates = covs.cols
+			sample.covariates = c.row,
+			gene.covariates = c.col
 			);
 		row.cov.obj <- cov.objs[['sample']];
 		col.cov.obj <- cov.objs[['gene']];
 
-		# legend
+		# create legend
 		if (!is.null(c.col) & !is.null(c.row)) {
 			cov.list <- mapply(c, list(c.col), list(c.row), SIMPLIFY = FALSE)[[1]];
 		} else if (!is.null(c.col)) {
