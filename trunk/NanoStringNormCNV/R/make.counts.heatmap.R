@@ -1,4 +1,7 @@
 make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL, covs.cols = NULL, clust.dim = 'both', clust.method = 'euclidean', print.ylab = NULL) {
+	c.row <- covs.rows[covs.rows$SampleID %in% colnames(nano.counts),];
+	c.col <- covs.cols[covs.cols$Name %in% rownames(nano.counts),];
+
 	# set up plot labelling
 	split.by  	  <- 1;
 	key.labels.at <- NULL;
@@ -27,23 +30,23 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 	row.cov.obj <- NULL;
 	col.cov.obj <- NULL;
 
-	if (!is.null(covs.cols) | !is.null(covs.rows)) {
+	if (!is.null(c.col) | !is.null(c.row)) {
 		# covariates
 		cov.objs <- NanoStringNormCNV::generate.plot.covariates(
 			plotting.data = nano.counts,
-			sample.covariates = covs.rows,
-			gene.covariates = covs.cols
+			sample.covariates = c.row,
+			gene.covariates = c.col
 			);
 		row.cov.obj <- cov.objs[['sample']];
 		col.cov.obj <- cov.objs[['gene']];
 
 		# legend
-		if (!is.null(covs.cols) & !is.null(covs.rows)) {
-			cov.list <- mapply(c, list(covs.cols), list(covs.rows), SIMPLIFY = FALSE)[[1]];
-		} else if (!is.null(covs.cols)) {
-			cov.list <- as.list(covs.cols);
-		} else if (!is.null(covs.rows)) {
-			cov.list <- as.list(covs.rows);
+		if (!is.null(c.col) & !is.null(c.row)) {
+			cov.list <- mapply(c, list(c.col), list(c.row), SIMPLIFY = FALSE)[[1]];
+		} else if (!is.null(c.col)) {
+			cov.list <- as.list(c.col);
+		} else if (!is.null(c.row)) {
+			cov.list <- as.list(c.row);
 			}
 			
 		cov.list <- cov.list[!(names(cov.list) %in% c('SampleID', 'Name'))];
