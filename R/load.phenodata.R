@@ -89,6 +89,7 @@ load.phenodata <- function(fname){
 			}
 
 	} else {
+		flog.warn("Column 'sex' not provided: Will not call CNAs for sex probes!");
 		phenodata$sex <- NA;
 		}
 
