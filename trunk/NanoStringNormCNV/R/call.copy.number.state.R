@@ -1,5 +1,5 @@
 
-call.copy.number.state <- function (input, reference, sex.info, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', multi.factor = 2, kd.vals = c(0.85, 0.95), adjust = FALSE, cna.thresh = c(0.4, 1.5, 2.5, 3.5)) {
+call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', multi.factor = 2, kd.vals = c(0.85, 0.95), adjust = FALSE, cna.thresh = c(0.4, 1.5, 2.5, 3.5)) {
 
 	# Check input
 	if (! thresh.method %in% (unlist(strsplit("round KD kd none","\\s")))) {
@@ -19,26 +19,6 @@ call.copy.number.state <- function (input, reference, sex.info, per.chip = FALSE
 		stop("Invalid KD thresholds -- the order should be hom deletion, het deletion, het gain, hom gain.");
 		}
 
-	# grep X and Y-chromosome genes
-	x.genes <- grep(x = tolower(input$Name), pattern = 'chrx');
-	y.genes <- grep(x = tolower(input$Name), pattern = 'chry');
-
-	if (length(x.genes) > 0 | length(y.genes) > 0) {
-		sex.probes <- c(as.vector(input$Name[x.genes]), as.vector(input$Name[y.genes]));
-		flog.info("Identified the following as sex chromosome probes:");
-		cat(paste(c("\t", sex.probes, "\n"), collapse = "\n\t"));
-		}
-
-	# removing chrY probes from female samples
-	for (i in sex.info[sex.info$sex %in% "F",]$SampleID) {
-		input[y.genes, i] <- NA;
-		}
-	
-	# removing chrX and chrY probes where sex is not provided
-	for (i in sex.info[is.na(sex.info$sex),]$SampleID) {
-		input[c(x.genes, y.genes), i] <- NA;	
-		}
-
 	### Analysis
 	# get tumour ratios
 	out.cna <- NanoStringNormCNV::get.tumour.normal.ratio(
@@ -48,24 +28,19 @@ call.copy.number.state <- function (input, reference, sex.info, per.chip = FALSE
 		per.chip = per.chip
 		);
 
-	# boosting probes
+	# boost probes
 	out.cna <- out.cna * multi.factor;
 
 	# if specified to make the median CN = multi.factor, adjust the values
 	if (adjust) {
-		out.cna <- apply(out.cna, 2, function(f) f - (median(f, na.rm = TRUE) - multi.factor));
-		}
-
-	# undo boosting of chrX/Y probe values in male samples
-	for (i in sex.info[sex.info$sex %in% 'M',]$SampleID) {
-		out.cna[x.genes, i] <- (out.cna[x.genes, i] / multi.factor);
-		out.cna[y.genes, i] <- (out.cna[y.genes, i] / multi.factor);
+		out.cna <- apply(out.cna, 2, function(f) { f - (median(f, na.rm = TRUE) - multi.factor) });
+		out.cna[out.cna < 0] <- 0;
 		}
 
 	# round if specified (based on NS recommendataions)
 	if (thresh.method == 'round') {
 
-		# segment using NS pre-defined thresholds
+		# segment using set thresholds
 		out.cna.final <- NanoStringNormCNV::apply.ns.cna.thresh(
 			tmr2ref = out.cna,
 			thresh = cna.thresh
@@ -76,9 +51,7 @@ call.copy.number.state <- function (input, reference, sex.info, per.chip = FALSE
 		# segment using kernel density
 		out.cna.final <- NanoStringNormCNV::apply.kd.cna.thresh(
 			tmr2ref = out.cna,
-			kd.thresh = kd.vals,
-			sex.info = sex.info,
-			sex.probes = rownames(out.cna)[c(x.genes, y.genes)]
+			kd.thresh = kd.vals
 			);
 
 	} else {
