@@ -1,12 +1,7 @@
 
-apply.kd.cna.thresh <- function(tmr2ref, kd.thresh, sex.info, sex.probes = NULL) {
+apply.kd.cna.thresh <- function(tmr2ref, kd.thresh) {
 	# assign header names
 	headers <- c('Code.Class', 'CodeClass', 'Name', 'Accession');
-
-	# TMP: removing  all sex chrom probes
-	for (i in sex.info$SampleID) {
-		tmr2ref[rownames(tmr2ref) %in% sex.probes, i] <- NA;
-		}
 
 	# define sample columns
 	which.cna <- colnames(tmr2ref)[!colnames(tmr2ref) %in% headers];
@@ -28,24 +23,14 @@ apply.kd.cna.thresh <- function(tmr2ref, kd.thresh, sex.info, sex.probes = NULL)
 		which.cna <- which.cna[which.n];
 		}
 	cna.output <- tmr2ref[, which.cna, drop = FALSE];
-
-	# if male, exclude sex chrom probes from threshold calculations
-	cna.output.tmp <- cna.output;
-	# for (i in sex.info[sex.info$sex %in% "M",]$SampleID) {
-	# 	if (is.null(sex.probes)) {
-	# 		stop("Must provide names of sex chromosome probes if sample is male!");
-	# 	} else {
-	# 		cna.output.tmp[rownames(cna.output.tmp) %in% sex.probes, i] <- NA;
-	# 		}
-		# }
 		
 	# determine the thresholds based on all patients combined
 	# shown to be more stable if only considering small subset of patients
 	if (2 == length(kd.thresh)) {
-		cna.thresh.single <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output.tmp), percent = kd.thresh[1]);
-		cna.thresh.multi  <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output.tmp), percent = kd.thresh[2]);
+		cna.thresh.single <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output), percent = kd.thresh[1]); # het
+		cna.thresh.multi  <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output), percent = kd.thresh[2]); # hom
 
-		# loop over each sample
+		# loop over each sample to call CNAs
 		for (col.ind in 1:ncol(cna.output)) {
 			cna.output[, col.ind] <- NanoStringNormCNV::tumour.normal.ratio.to.cn.state(
 				ratio.data = data.frame(ratio = cna.output[, col.ind]),
@@ -55,12 +40,12 @@ apply.kd.cna.thresh <- function(tmr2ref, kd.thresh, sex.info, sex.probes = NULL)
 	} else if (4 == length(kd.thresh)) {
 		thresh <- vector(length = 4);
 
-		thresh[1] <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output.tmp), percent = kd.thresh[1])[1]; # hom del
-		thresh[2] <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output.tmp), percent = kd.thresh[2])[1]; # het del
-		thresh[3] <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output.tmp), percent = kd.thresh[3])[2]; # het gain
-		thresh[4] <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output.tmp), percent = kd.thresh[4])[2]; # hom gain
+		thresh[1] <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output), percent = kd.thresh[1])[1]; # hom del
+		thresh[2] <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output), percent = kd.thresh[2])[1]; # het del
+		thresh[3] <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output), percent = kd.thresh[3])[2]; # het gain
+		thresh[4] <- NanoStringNormCNV::get.sample.specific.cna.thresholds(cna.data = unlist(cna.output), percent = kd.thresh[4])[2]; # hom gain
 
-		# loop over each sample
+		# loop over each sample to call CNAs
 		for (col.ind in 1:ncol(cna.output)) {
 			cna.output[, col.ind] <- NanoStringNormCNV::tumour.normal.ratio.to.cn.state(
 				ratio.data = data.frame(ratio = cna.output[ , col.ind]),
@@ -68,12 +53,6 @@ apply.kd.cna.thresh <- function(tmr2ref, kd.thresh, sex.info, sex.probes = NULL)
 				);
 			}
 		}
-
-	# # if male, boost sex chrom probes
-	# cna.output.tmp <- cna.output;
-	# for (i in sex.info[sex.info$sex %in% "M",]$SampleID) {
-	# 	cna.output[rownames(cna.output) %in% sex.probes, i] <- cna.output[rownames(cna.output) %in% sex.probes, i] + 1;
-	# 	}
 
 	return(cna.output);
 	}
