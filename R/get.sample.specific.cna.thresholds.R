@@ -23,8 +23,8 @@ get.sample.specific.cna.thresholds <- function(cna.data, percent = 0.8) {
     	);
 
 	thresh.mat <- data.frame(
-		Loss   = thresholds[1], 
-		Gain   = thresholds[2]
+		Loss = thresholds[1], 
+		Gain = thresholds[2]
 		);  
 
 	return(thresh.mat);
