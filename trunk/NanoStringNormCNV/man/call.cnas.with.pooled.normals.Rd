@@ -4,7 +4,8 @@
 \description{Wrapper function that performs CNA calling on tumour samples against a reference comprised of pooled normal samples.}
 \usage{
 call.cnas.with.pooled.normals(
-  normalized.data, phenodata, per.chip = FALSE, call.method = 0, kd.values = NULL
+  normalized.data, phenodata, per.chip = FALSE, call.method = 0, 
+  kd.values = NULL, use.sex.info = TRUE
   )
 }
 \arguments{
@@ -19,6 +20,7 @@ call.cnas.with.pooled.normals(
   Defaults to 0
   }
   \item{kd.values}{A 2- or 4-element vector containing kernel density values to use in defining thresholds for homozygous deletions, heterozygous deletion, single copy gain, multi-copy gain. Only required when kd.option = 3. Defaults to NULL}
+  \item{use.sex.info}{Whether to process sex chromosome probes separately. If TRUE (default), uses sample sex information in determining how to call copy number with these probes. See \code{\link{process.xy.probes}} for more information.}
 }
 \details{Get copy number states for each gene in each using corresponding matched normal samples. Preferable when most tumour samples do not have a matched normal. Pooled reference is created by taking the mean count of all normal samples.}
 \value{A list containing 4 items (each being a gene X sample matrix):
