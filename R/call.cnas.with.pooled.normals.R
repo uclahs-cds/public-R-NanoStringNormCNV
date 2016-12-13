@@ -6,60 +6,35 @@ call.cnas.with.pooled.normals <- function(
 	kd.values = NULL,
 	use.sex.info = TRUE
 	) {
-		
+	
+	# use non-control probes only
+	use.codeclass <- c("Endogenous", "Housekeeping", "Invariant");
+
 	# ensure sample order matches
 	phenodata <- phenodata[match(colnames(normalized.data)[-(1:3)], phenodata$SampleID),];
 
 	is.tmr <- which(phenodata$type == 'Tumour');
 	is.ref <- which(phenodata$type == 'Reference');
 
-	# identify sex chromosome probes in male samples (where a normal CN=2 cannot be assumed)
 	sex.probes <- NULL;
 	if (use.sex.info) {
-		x.genes <- grep(x = tolower(normalized.data$Name), pattern = 'chrx');
-		y.genes <- grep(x = tolower(normalized.data$Name), pattern = 'chry');
-
-		# notify user
-		if (length(x.genes) > 0 | length(y.genes) > 0) {
-			sex.probes <- c(as.vector(normalized.data$Name[x.genes]), as.vector(normalized.data$Name[y.genes]));
-			flog.info("Identified the following as sex chromosome probes:");
-			cat(paste(c("\t", sex.probes, "\n"), collapse = "\n\t"));
-		} else {
-			flog.warn("Identified no sex chromosome probes!");
-			}
-
-		# extract male sex probe info and remove from 'normalized.data' for separate processing
-		normalized.data.XY <- cbind(
-			normalized.data[c(x.genes, y.genes), 1:3, drop = FALSE],
-			normalized.data[
-				c(x.genes, y.genes),
-				colnames(normalized.data) %in% phenodata$SampleID[phenodata$sex %in% 'M', drop = FALSE]
-				]
+		# identify and process XY probes separately
+		xy.processed.data <- process.xy.probes(
+			ns.data = normalized.data,
+			sex.data = phenodata[, c("SampleID", "sex")]
 			);
 
-		for (i in c(x.genes, y.genes)) {
-			for (j in which(colnames(normalized.data) %in% phenodata$SampleID[phenodata$sex %in% 'M'])) {
-				normalized.data[i, j] <- NA;
-				}
-			}
-
-		# remove chrY probes from female samples
-		for (i in sex.info[sex.info$sex %in% "F",]$SampleID) {
-			normalized.data[y.genes, i] <- NA;
-			}
-		
-		# remove chrX and chrY probes where sex is not provided
-		for (i in sex.info[is.na(sex.info$sex),]$SampleID) {
-			normalized.data[c(x.genes, y.genes), i] <- NA;	
-			}
+		normalized.data    <- xy.processed.data$ns.data.without.maleXY;
+		normalized.data.XY <- xy.processed.data$ns.data.maleXY.only;
+		sex.probes 		   <- xy.processed.data$sex.probes;
 
 		is.tmr.XY <- which(phenodata[phenodata$sex %in% 'M',]$type == 'Tumour');
 		is.ref.XY <- which(phenodata[phenodata$sex %in% 'M',]$type == 'Reference');
+
+		use.genes.XY <- which(normalized.data.XY$CodeClass %in% use.codeclass);
 		}
 
-	# use non-control probes
-	use.genes <- which(normalized.data$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"));
-	use.genes.XY <- which(normalized.data.XY$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"));
+	use.genes <- which(normalized.data$CodeClass %in% use.codeclass);
 
 	# calculate tumour-normal ratios (for autosome and female sex chrom probes)
 	cna.raw <- NanoStringNormCNV::call.copy.number.state(
