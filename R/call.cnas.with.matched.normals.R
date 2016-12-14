@@ -18,7 +18,7 @@ call.cnas.with.matched.normals <- function(
 		# identify and process XY probes separately
 		xy.processed.data <- process.xy.probes(
 			ns.data = normalized.data,
-			sex.data = phenodata[, c("SampleID", "sex")]
+			sex.info = phenodata[, c("SampleID", "sex")]
 			);
 
 		normalized.data    <- xy.processed.data$ns.data.without.maleXY;
