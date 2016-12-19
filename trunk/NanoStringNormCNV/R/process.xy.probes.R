@@ -14,6 +14,7 @@ process.xy.probes <- function(ns.data, sex.info) {
 		flog.info("Identified the following as sex chromosome probes:");
 		cat(paste(c("\t", sex.probes, "\n"), collapse = "\n\t"));
 	} else {
+		sex.probes <- NULL;
 		flog.warn("Identified no sex chromosome probes!");
 		}
 
@@ -38,12 +39,13 @@ process.xy.probes <- function(ns.data, sex.info) {
 		}
 	
 	# remove chrX and chrY probes where sex is not provided
-	if (any(is.na(sex.info$sex))) {
+	if (any(is.na(sex.info$sex)) & ! is.null(sex.probes)) {
 		flog.info("Removing XY probes where sample's sex is not available:");
 		for (i in sex.info[is.na(sex.info$sex),]$SampleID) {
 			cat(paste(c("\t", i, "\n")));
 			ns.data[c(x.genes, y.genes), i] <- NA;
 			}
+		cat("\n");
 		}
 
 	# do not return an empty data-frame
