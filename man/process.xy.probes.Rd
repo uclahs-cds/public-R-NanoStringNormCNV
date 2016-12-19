@@ -10,5 +10,5 @@ process.xy.probes(ns.data, sex.info)
   \item{sex.info}{Data-frame containing columns 'SampleID' and 'sex' for each sample in ns.data}
 }
 \details{Sex chromosome probes are identified and processed according to user-provided sample sex information. Chromosome Y probes only are removed from female samples. Chromosome X and Y probes are removed from samples where sex is not available. Finally, chromosome X and Y probe values for male samples are extracted, enabling separate downstream processing.}
-\value{A list containing three items: 1) a data-frame holding 'ns.data' with chrY probes removed from female sample, chrX and chrY probes removed from both male samples and samples where sex is not available, 2) a data-frame holding 'ns.data' for male chrX and chrY probes only and 3) names of all probes identified as corresponding to sex chromosomes}
+\value{A list containing three items: 1) a data-frame holding 'ns.data' with chrY probes removed from female sample, chrX and chrY probes removed from both male samples and samples where sex is not available, 2) a data-frame holding 'ns.data' for male chrX and chrY probes only (or NULL if there are no male samples) and 3) names of all probes identified as corresponding to sex chromosomes}
 \author{Dorota Sendorek}
