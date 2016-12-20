@@ -69,7 +69,7 @@ load.phenodata <- function(fname){
 		}
 
 	# check for sex information
-	if ("Sex" %in% tolower(names(phenodata))) {
+	if ("sex" %in% tolower(names(phenodata))) {
 		names(phenodata)[which("Sex" == tolower(names(phenodata)))] <- "Sex";
 
 		phenodata$Sex[tolower(phenodata$Sex) %in% c("female", "f")] <- "F";
