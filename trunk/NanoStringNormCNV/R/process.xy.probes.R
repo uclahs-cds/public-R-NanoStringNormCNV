@@ -1,6 +1,6 @@
 process.xy.probes <- function(ns.data, sex.info) {
 	# check sex info is provided for each sample
-	if (!all(colnames(normalized.data[, -(1:3)]) %in% sex.info$SampleID)) {
+	if (!all(colnames(ns.data[, -(1:3)]) %in% sex.info$SampleID)) {
 		stop("Must provide sex information (M, F, or NA) for every sample in dataset!");
 		}
 
@@ -23,25 +23,25 @@ process.xy.probes <- function(ns.data, sex.info) {
 		ns.data[c(x.genes, y.genes), 1:3, drop = FALSE],
 		ns.data[
 			c(x.genes, y.genes),
-			colnames(ns.data) %in% sex.info$SampleID[sex.info$sex %in% 'M', drop = FALSE]
+			colnames(ns.data) %in% sex.info$SampleID[sex.info$Sex %in% 'M', drop = FALSE]
 			]
 		);
 
 	for (i in c(x.genes, y.genes)) {
-		for (j in which(colnames(ns.data) %in% sex.info$SampleID[sex.info$sex %in% 'M'])) {
+		for (j in which(colnames(ns.data) %in% sex.info$SampleID[sex.info$Sex %in% 'M'])) {
 			ns.data[i, j] <- NA;
 			}
 		}
 
 	# remove chrY probes from female samples
-	for (i in sex.info[sex.info$sex %in% "F",]$SampleID) {
+	for (i in sex.info[sex.info$Sex %in% "F",]$SampleID) {
 		ns.data[y.genes, i] <- NA;
 		}
 	
 	# remove chrX and chrY probes where sex is not provided
-	if (any(is.na(sex.info$sex)) & ! is.null(sex.probes)) {
+	if (any(is.na(sex.info$Sex)) & ! is.null(sex.probes)) {
 		flog.info("Removing XY probes where sample's sex is not available:");
-		for (i in sex.info[is.na(sex.info$sex),]$SampleID) {
+		for (i in sex.info[is.na(sex.info$Sex),]$SampleID) {
 			cat(paste(c("\t", i, "\n")));
 			ns.data[c(x.genes, y.genes), i] <- NA;
 			}

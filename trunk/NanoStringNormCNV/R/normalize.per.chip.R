@@ -1,14 +1,18 @@
 normalize.per.chip <- function(pheno, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, transform.data = TRUE, plot.types = 'all'){
+	# modify header to NanoStringNorm standard
+	colnames(phenodata)[colnames(phenodata) == 'Cartridge'] <- 'cartridge';
+	colnames(phenodata)[colnames(phenodata) == 'Type'] 		<- 'type';
+
 	nano.parts <- list();
 	cartridges <- unique(pheno$cartridge);
 
 	rownames(raw.data) <- raw.data$Name;
 
-	for (chip in 1:length(unique(pheno$cartridge))) {
+	for (chip in 1:length(cartridges)) {
 		cur.samples <- which(pheno$cartridge == cartridges[chip]);
 
-		if (length(unique(covs[cur.samples, 'Type'])) > 1) {
-			use.covs <- covs[cur.samples, 'Type', drop = FALSE];
+		if (length(unique(covs[cur.samples, 'type'])) > 1) {
+			use.covs <- covs[cur.samples, 'type', drop = FALSE];
 		} else {
 			use.covs  <- NA;
 			}

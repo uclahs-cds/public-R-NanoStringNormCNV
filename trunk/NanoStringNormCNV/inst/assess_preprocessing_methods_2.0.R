@@ -72,14 +72,14 @@
 				name <- paste(name, 'pooledRef', sep = '_');
 				}
 
-			if (params$kd == 0) {
-				name <- paste(name, 'kd-NS', sep = '_');
-			} else if (params$kd == 1) {
-				name <- paste(name, 'kd-minMax', sep = '_');
-			} else if (params$kd == 2) {
-				name <- paste(name, 'kd-default', sep = '_');
-			} else if (params$kd == 3) {
-				name <- paste(name, 'kd-other', sep = '_');
+			if (params$cnas == 0) {
+				name <- paste(name, 'cnas-NS', sep = '_');
+			} else if (params$cnas == 1) {
+				name <- paste(name, 'cnas-minMax', sep = '_');
+			} else if (params$cnas == 2) {
+				name <- paste(name, 'cnas-kdDefault', sep = '_');
+			} else if (params$cnas == 3) {
+				name <- paste(name, 'cnas-kdUser', sep = '_');
 				}
 
 			if (params$col == 1) {
@@ -137,9 +137,9 @@
 			opts$bc 	 <- 1;
 			opts$scc 	 <- 1;
 			opts$inv 	 <- 1;
-			opts$oth 	 <- 2;
+			opts$oth 	 <- 0;
 			opts$matched <- 0;
-			opts$kd 	 <- 3;
+			opts$cnas 	 <- 1;
 			opts$col 	 <- 0;
 		} else {
 			params <- matrix(
@@ -151,7 +151,7 @@
 					'inv',	   'i', 1, 'numeric',
 					'oth',     'h', 1, 'numeric',
 					'matched', 'r', 1, 'numeric',
-					'kd',      'k', 1, 'numeric',
+					'cnas',    'k', 1, 'numeric',
 					'col',     'o', 1, 'numeric'
 					),
 				  ncol = 4,
@@ -246,7 +246,7 @@
 		phenodata <- load.phenodata(fname = paste0(data.dir, "/NSannotation.csv"));
 		phenodata$Name[phenodata$Name == "CPCG0346B.M2.01"] <- "CPCG0346.B.M2.01";
 		phenodata$Name <- gsub("(.*)\\.M.*", "\\1", phenodata$Name);
-		phenodata <- phenodata[, c("SampleID", "Patient", "Name", "cartridge", "type", "ref.name", "has.repl", "sex")];
+		phenodata <- phenodata[, c("SampleID", "Patient", "Name", "Cartridge", "Type", "ReferenceID", "HasReplicate", "Sex")];
 
 		# match raw colnames to pheno Sample ID
 		check.names <- gsub("_[0-9]+", "", names(nano.raw)[-(1:3)]);
@@ -279,12 +279,12 @@
 			nano.raw  <- nano.raw[,!(colnames(nano.raw) %in% bad.samples)];
 
 			# check if any replicates are left
-			repls <- phenodata[phenodata$has.repl == 1,];
+			repls <- phenodata[phenodata$HasReplicate == 1,];
 			repls <- unique(repls[duplicated(repls$Patient) | duplicated(repls$Patient, fromLast = TRUE),]$Patient);
-			unlist(lapply(repls, function(x) { any(summary(factor(phenodata[phenodata$Patient == x,]$type)) > 1) }));
+			unlist(lapply(repls, function(x) { any(summary(factor(phenodata[phenodata$Patient == x,]$Type)) > 1) }));
 
 			# check that there are no missing references
-			if (any(grepl("CPCG", phenodata$ref.name[!(phenodata$ref.name %in% phenodata$SampleID)]))) {
+			if (any(grepl("CPCG", phenodata$ReferenceID[!(phenodata$ReferenceID %in% phenodata$SampleID)]))) {
 				stop("Sorry, reference samples are missing!");
 				}
 
@@ -343,16 +343,16 @@
 		nano.raw$Name <- gsub(x = nano.raw$Name, pattern = '\\.', '');
 
 		# prepare covariates to assess batch effects in NSN
-		cartridge.n <- unique(phenodata$cartridge);
+		cartridge.n <- unique(phenodata$Cartridge);
 		cartridge.matrix <- matrix(nrow = nrow(phenodata), ncol = length(cartridge.n), 1);
 
 		for (n in 1:nrow(phenodata)) {
-			cartridge.matrix[n, which(cartridge.n == phenodata$cartridge[n])] <- 2;
+			cartridge.matrix[n, which(cartridge.n == phenodata$Cartridge[n])] <- 2;
 			}
 
 		pheno.df <- as.data.frame(cartridge.matrix);
 		colnames(pheno.df) <- paste0("Cartridge", seq(1:ncol(cartridge.matrix)));
-		pheno.df$Type <- ifelse(phenodata$type == 'Reference', 1, 2);
+		pheno.df$Type <- ifelse(phenodata$Type == 'Reference', 1, 2);
 		rownames(pheno.df) <- phenodata$SampleID;
 
 		# set up params for NSN
@@ -386,34 +386,34 @@
 
 		# set up kd values if required
 		# if (opts$kd > 0) { thresh.method <- 'KD'; }# this variable doesn't actually exist anywhere
-		if (opts$kd == 0) kd.vals <- NULL; # 'round'; using NS-provided thresholds
-		if (opts$kd == 1) kd.vals <- NULL; # 'round'; using min/max seen in normals
-		if (opts$kd == 2) kd.vals <- NULL;						# 'KD'; "pkg defaults"   --ToDo
-		if (opts$kd == 3) kd.vals <- c(0.998, 0.79, 0.88, 0.989); # 'KD'; "user-provided"  --ToDo
-		# if (opts$kd == 3) kd.vals <- c(0.89, 0.69, 0.65, 0.87); # 'KD'; "user-provided"  --ToDo
+		if (opts$cnas == 0) kd.vals <- NULL; # 'round'; using NS-provided thresholds
+		if (opts$cnas == 1) kd.vals <- NULL; # 'round'; using min/max seen in normals
+		if (opts$cnas == 2) kd.vals <- NULL;						# 'KD'; "pkg defaults"   --ToDo
+		if (opts$cnas == 3) kd.vals <- c(0.998, 0.79, 0.88, 0.989); # 'KD'; "user-provided"  --ToDo
+		# if (opts$cnas == 3) kd.vals <- c(0.89, 0.69, 0.65, 0.87); # 'KD'; "user-provided"  --ToDo
 	}
 
 	### RUN NORMALIZATION ##############################################################################
 	{
 		setwd(plot.dir);
 
-		# ### Positive control normalization + plots
-		# corrs <- positive.control.norm(nano.raw);
-		# make.positive.control.plot(
-		# 	correlations = corrs,
-		# 	covs = phenodata[, c('SampleID', 'type', 'cartridge')]
-		# 	);
+		### Positive control normalization + plots
+		corrs <- positive.control.norm(nano.raw);
+		make.positive.control.plot(
+			correlations = corrs,
+			covs = phenodata[, c('SampleID', 'Type', 'Cartridge')]
+			);
 
-		# ### Restriction digestion normalization + plots
-		# restr.frag.norm.output <- restriction.fragmentation.norm(nano.raw);
+		### Restriction digestion normalization + plots
+		restr.frag.norm.output <- restriction.fragmentation.norm(nano.raw);
 
-		# # write bad restr dig samples to file
-		# write.table(
-		# 	restr.frag.norm.output,
-		# 	file = paste0(root.dir, "/normalization_assessment/restr-frag-norm_output.txt"),
-		# 	quote = FALSE,
-		# 	sep = "\t"
-		# 	);
+		# write bad restr dig samples to file
+		write.table(
+			restr.frag.norm.output,
+			file = paste0(root.dir, "/normalization_assessment/restr-frag-norm_output.txt"),
+			quote = FALSE,
+			sep = "\t"
+			);
 
 		# if (dropoutliers == 0) {
 		# 	write.table(
@@ -444,17 +444,17 @@
 				paste(low.count.samples, collapse = "  ")
 				));
 
-			nano.raw <- nano.raw[, !(colnames(nano.raw) %in% low.count.samples)];
-			phenodata <- phenodata[!(phenodata$SampleID %in% low.count.samples),];
-			pheno.df <- pheno.df[!(rownames(pheno.df) %in% low.count.samples),];
+			nano.raw  <- nano.raw[, !(colnames(nano.raw) %in% low.count.samples)];
+			phenodata <- phenodata[ !(phenodata$SampleID %in% low.count.samples),];
+			pheno.df  <- pheno.df[  !(rownames(pheno.df) %in% low.count.samples),];
 			}
 
 		# changing ref sample for CPCG248-F1 since original was poor quality
-		phenodata[phenodata$SampleID == "CPCG0248F1",]$ref.name <- "CPCG0248B.M1";
-		phenodata[phenodata$SampleID == "CPCG0233F1",]$ref.name <- "CPCG0233B.M1";# because 'M2' ref is weird..
+		phenodata[phenodata$SampleID == "CPCG0248F1",]$ReferenceID <- "CPCG0248B.M1";
+		phenodata[phenodata$SampleID == "CPCG0233F1",]$ReferenceID <- "CPCG0233B.M1";# because 'M2' ref is weird..
 
-		# setting has.repl for replicates to 0
-		phenodata[phenodata$SampleID %in% c("CPCG0266B.M2", "CPCG0248B.M1"),]$has.repl <- 0;
+		# setting HasReplicate for replicates to 0
+		phenodata[phenodata$SampleID %in% c("CPCG0266B.M2", "CPCG0248B.M1"),]$HasReplicate <- 0;
 
 		### NanoStringNorm
 		setwd(out.dir);
@@ -471,7 +471,6 @@
 				do.nsn = do.nsn.norm,
 				do.rcc.inv = do.rcc.inv.norm,
 				covs = pheno.df,
-				transform.data = TRUE,
 				plot.types = qw('cv mean.sd norm.factors missing RNA.estimates positive.controls')
 				);
 		} else {
@@ -484,27 +483,10 @@
 				do.nsn = do.nsn.norm,
 				do.rcc.inv = do.rcc.inv.norm,
 				covs = pheno.df,
-				# transform.data = FALSE,
 				plot.types = qw('cv mean.sd norm.factors missing RNA.estimates positive.controls'),
-				pheno = phenodata[,c('SampleID', 'type')]
+				pheno = phenodata[,c('SampleID', 'Type')]
 				);
-			# raw.data = nano.raw
-			# cc = cc.val
-			# bc = bc.val
-			# sc = sc.val
-			# oth = oth.val
-			# do.nsn = do.nsn.norm
-			# do.rcc.inv = do.rcc.inv.norm
-			# covs = pheno.df
-			# transform.data = FALSE
-			# plot.types = qw('cv mean.sd norm.factors missing RNA.estimates positive.controls')
-			# pheno = phenodata[,c('SampleID', 'type')]
 			}
-
-		# # when other normalization is normal.rank we get negative values and need to transform
-		# if(oth.val == 'rank.normal' | oth.val == 'quantile'){
-		# 	norm.data[, -c(1:3)] <- (norm.data[, -c(1:3)] - min(norm.data[, -c(1:3)])) + 0.1;
-		# 	}
 
 		if (! check.sample.order(phenodata$SampleID, colnames(norm.data)[-c(1:3)])) {
 			stop("Sorry, sample order doesn't match after normalization, see above.");
@@ -524,13 +506,20 @@
 			normalized.data = norm.data, 
 			phenodata = phenodata,
 			per.chip = opts$perchip,
-			call.method = opts$kd,
+			call.method = opts$cnas,
 			kd.values = kd.vals
 			);
+normalized.data = norm.data
+phenodata = phenodata
+per.chip = opts$perchip
+call.method = opts$cnas
+kd.values = kd.vals
+use.sex.info=TRUE
+
 		cna.raw <- cna.all$raw;
 		cna.rounded <- cna.all$rounded;
 	
-		has.ref <- which(phenodata$ref.name != "missing" & ! is.na(phenodata$ref.name));
+		has.ref <- which(phenodata$ReferenceID != "missing" & ! is.na(phenodata$ReferenceID));
 	} else {
 		flog.info('Going to call CNAs with pooled normals');
 
@@ -538,16 +527,23 @@
 			normalized.data = norm.data,
 			phenodata = phenodata,
 			per.chip = opts$perchip,
-			call.method = opts$kd,
+			call.method = opts$cnas,
 			kd.values = kd.vals
 			);
+# original.phenodata = phenodata
+normalized.data = norm.data
+phenodata = original.phenodata
+per.chip = opts$perchip
+call.method = opts$cnas
+kd.values = kd.vals
+use.sex.info = TRUE
 
 		cna.rounded <- cna.all$rounded;
 		cna.raw <- cna.all$raw;
 		cna.normals <- cna.all$normals;
 		cna.normals.unadj <- cna.all$normals.unadj;
 	
-		has.ref <- which(phenodata$type == 'Tumour');
+		has.ref <- which(phenodata$Type == 'Tumour');
 		}
 
 	# sanity check
@@ -559,109 +555,115 @@
 
 	### Density plots ##################################################################################
 	{
-		# normal.for.plot <- norm.data[, phenodata[phenodata$type == "Reference",]$SampleID];
-		# normal.for.plot <- as.vector(unlist(normal.for.plot));
-		# tumour.for.plot <- norm.data[, phenodata[phenodata$type == "Tumour",]$SampleID];
-		# tumour.for.plot <- as.vector(unlist(tumour.for.plot));
+		# # normal.for.plot <- norm.data[, phenodata[phenodata$Type == "Reference",]$SampleID];
+		# # normal.for.plot <- as.vector(unlist(normal.for.plot));
+		# # tumour.for.plot <- norm.data[, phenodata[phenodata$Type == "Tumour",]$SampleID];
+		# # tumour.for.plot <- as.vector(unlist(tumour.for.plot));
 
-		# normal.for.plot <- log10(normal.for.plot + 1);
-		# tumour.for.plot <- log10(tumour.for.plot + 1);
-		normal.for.plot <- as.vector(na.omit(as.vector(unlist(cna.normals.unadj))));
-		tumour.for.plot <- as.vector(na.omit(as.vector(unlist(cna.raw))));
-		cnas.for.plot   <- as.vector(na.omit(as.vector(unlist(cna.rounded))));
+		# # normal.for.plot <- log10(normal.for.plot + 1);
+		# # tumour.for.plot <- log10(tumour.for.plot + 1);
 
-		density.thresh <- 5;
-		normal.for.plot[normal.for.plot > density.thresh] <- density.thresh;
-		tumour.for.plot[tumour.for.plot > density.thresh] <- density.thresh;
-		cnas.for.plot[	  cnas.for.plot > density.thresh] <- density.thresh;
+		# # remove sex probes
+		# cna.normals.unadj.autosomes <- cna.normals.unadj[!grepl("chr[xy]", tolower(rownames(cna.normals.unadj))),];
+		# cna.raw.autosomes 			<- cna.raw[!grepl("chr[xy]", tolower(rownames(cna.raw))),];
+		# cna.rounded.autosomes 		<- cna.rounded[!grepl("chr[xy]", tolower(rownames(cna.rounded))),];
 
-		normal.density <- density(
-			normal.for.plot,
-			from = min(c(normal.for.plot, tumour.for.plot)),
-			to = max(c(normal.for.plot, tumour.for.plot))
-			);
-		tumour.density <- density(
-			tumour.for.plot,
-			from = min(c(normal.for.plot, tumour.for.plot)),
-			to = max(c(normal.for.plot, tumour.for.plot))
-			);
-		cnas.density <- density(
-			cnas.for.plot,
-			from = min(cnas.for.plot),
-			to = max(cnas.for.plot)
-			);
+		# normal.for.plot <- as.vector(na.omit(as.vector(unlist(cna.normals.unadj.autosomes))));
+		# tumour.for.plot <- as.vector(na.omit(as.vector(unlist(cna.raw.autosomes))));
+		# cnas.for.plot   <- as.vector(na.omit(as.vector(unlist(cna.rounded.autosomes))));
 
-		# plotting calls
-		plot.colours <- default.colours(3);
-		create.densityplot(
-			list(
-				cnas = cnas.for.plot,
-				tumour = tumour.for.plot,
-				normal = normal.for.plot
-				),
-			filename = paste0(plot.dir, "/densityplot_comparison_kd-option-", opts$kd, ".tiff"),
-			col = plot.colours,
-			legend = list(
-				inside = list(
-					fun = draw.key,
-					args = list(
-						key = list(
-							points = list(col = plot.colours, fill = plot.colours, pch = 19),
-							text = list(lab = c("CNAs", "tumour", "normal"))
-							)
-						),
-					x = 0.75,
-					y = 0.85
-					)
-				),
-			ylimits = c(-0.1, max(c(normal.density$y, tumour.density$y, cnas.density$y)) + .5),
-			type = c('l', 'g'),
-			xgrid.at = seq(-1, 6, 0.1),
-			ygrid.at = seq(0, 20, 0.25)
-			);
+		# density.thresh <- 5;
+		# normal.for.plot[normal.for.plot > density.thresh] <- density.thresh;
+		# tumour.for.plot[tumour.for.plot > density.thresh] <- density.thresh;
+		# cnas.for.plot[	  cnas.for.plot > density.thresh] <- density.thresh;
 
-		# plotting raw tumour and normal
-		plot.colours <- default.colours(3)[2:3];
-		create.densityplot(
-			list(
-				tumour = tumour.for.plot,
-				normal = normal.for.plot
-				),
-			filename = paste0(plot.dir, "/densityplot_comparison_raw.tiff"),
-			col = plot.colours,
-			legend = list(
-				inside = list(
-					fun = draw.key,
-					args = list(
-						key = list(
-							points = list(col = plot.colours, fill = plot.colours, pch = 19),
-							text = list(lab = c("tumour", "normal"))
-							)
-						),
-					x = 0.75,
-					y = 0.85
-					)
-				),
-			ylimits = c(-0.1, max(c(normal.density$y, tumour.density$y)) + .25),
-			type = c('l', 'g'),
-			xgrid.at = seq(-1, 6, 0.1),
-			ygrid.at = seq(0, 20, 0.25)
-			);
+		# normal.density <- density(
+		# 	normal.for.plot,
+		# 	from = min(c(normal.for.plot, tumour.for.plot)),
+		# 	to = max(c(normal.for.plot, tumour.for.plot))
+		# 	);
+		# tumour.density <- density(
+		# 	tumour.for.plot,
+		# 	from = min(c(normal.for.plot, tumour.for.plot)),
+		# 	to = max(c(normal.for.plot, tumour.for.plot))
+		# 	);
+		# cnas.density <- density(
+		# 	cnas.for.plot,
+		# 	from = min(cnas.for.plot),
+		# 	to = max(cnas.for.plot)
+		# 	);
 
-		# for kd option 3
-		density.difference <- normal.density$y - tumour.density$y;
-		intersection.point <- normal.density$x[which(diff(density.difference > 0) != 0) + 1];
+		# # plotting calls
+		# plot.colours <- default.colours(3);
+		# create.densityplot(
+		# 	list(
+		# 		cnas = cnas.for.plot,
+		# 		tumour = tumour.for.plot,
+		# 		normal = normal.for.plot
+		# 		),
+		# 	filename = paste0(plot.dir, "../../../plots/densityplot_comparison_cnas-option-", opts$cnas, ".tiff"),
+		# 	col = plot.colours,
+		# 	legend = list(
+		# 		inside = list(
+		# 			fun = draw.key,
+		# 			args = list(
+		# 				key = list(
+		# 					points = list(col = plot.colours, fill = plot.colours, pch = 19),
+		# 					text = list(lab = c("CNAs", "tumour", "normal"))
+		# 					)
+		# 				),
+		# 			x = 0.75,
+		# 			y = 0.85
+		# 			)
+		# 		),
+		# 	ylimits = c(-0.1, max(c(normal.density$y, tumour.density$y, cnas.density$y)) + .5),
+		# 	type = c('l', 'g'),
+		# 	xgrid.at = seq(-1, 6, 0.1),
+		# 	ygrid.at = seq(0, 20, 0.25)
+		# 	);
 
-		# chosen from above/plot
-		intersection.point <- c(0.3, 1.67, 2.42, 3.57);
+		# # plotting raw tumour and normal
+		# plot.colours <- default.colours(3)[2:3];
+		# create.densityplot(
+		# 	list(
+		# 		tumour = tumour.for.plot,
+		# 		normal = normal.for.plot
+		# 		),
+		# 	filename = paste0(plot.dir, "../../../plots/densityplot_comparison_raw.tiff"),
+		# 	col = plot.colours,
+		# 	legend = list(
+		# 		inside = list(
+		# 			fun = draw.key,
+		# 			args = list(
+		# 				key = list(
+		# 					points = list(col = plot.colours, fill = plot.colours, pch = 19),
+		# 					text = list(lab = c("tumour", "normal"))
+		# 					)
+		# 				),
+		# 			x = 0.75,
+		# 			y = 0.85
+		# 			)
+		# 		),
+		# 	ylimits = c(-0.1, max(c(normal.density$y, tumour.density$y)) + .25),
+		# 	type = c('l', 'g'),
+		# 	xgrid.at = seq(-1, 6, 0.1),
+		# 	ygrid.at = seq(0, 20, 0.25)
+		# 	);
 
-		kd.vals <- list();
-		kd.vals[[1]] <- 1 - length(which(tumour.for.plot < intersection.point[1])) / length(tumour.for.plot);
-		kd.vals[[2]] <- 1 - length(which(tumour.for.plot < intersection.point[2])) / length(tumour.for.plot);
-		kd.vals[[3]] <- length(which(tumour.for.plot < intersection.point[3])) / length(tumour.for.plot);
-		kd.vals[[4]] <- length(which(tumour.for.plot < intersection.point[4])) / length(tumour.for.plot);
+		# # for cnas option 3
+		# density.difference <- normal.density$y - tumour.density$y;
+		# intersection.point <- normal.density$x[which(diff(density.difference > 0) != 0) + 1];
+
+		# # chosen from above/plot
+		# intersection.point <- c(0.3, 1.67, 2.42, 3.57);
+
+		# kd.vals <- list();
+		# kd.vals[[1]] <- 1 - length(which(tumour.for.plot < intersection.point[1])) / length(tumour.for.plot);
+		# kd.vals[[2]] <- 1 - length(which(tumour.for.plot < intersection.point[2])) / length(tumour.for.plot);
+		# kd.vals[[3]] <- length(which(tumour.for.plot < intersection.point[3])) / length(tumour.for.plot);
+		# kd.vals[[4]] <- length(which(tumour.for.plot < intersection.point[4])) / length(tumour.for.plot);
 	}
-
+	
 	### Evaluate replicates ############################################################################
 	use.genes <- which(norm.data$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"));
 	reps <- evaluate.replicates(
@@ -732,12 +734,12 @@ summary.data <- list();
 
 ### save options
 summary.data$bc 	 <- opts$bc;
-summary.data$cc  	 <- opts$ccn;
+summary.data$ccn  	 <- opts$ccn;
 summary.data$scc 	 <- opts$scc;
-summary.data$other 	 <- opts$oth;
+summary.data$oth 	 <- opts$oth;
 summary.data$matched <- opts$matched;
 summary.data$perchip <- opts$perchip;
-summary.data$cnas 	 <- opts$kd
+summary.data$cnas 	 <- opts$cnas;
 summary.data$col 	 <- opts$col;
 
 # sanity check

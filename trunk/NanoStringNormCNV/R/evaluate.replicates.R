@@ -1,6 +1,6 @@
 evaluate.replicates <- function(normalized.data, phenodata, cnas) {
 	# get samples with replicates
-	pheno.reps <- phenodata[which(phenodata$has.repl == 1),];
+	pheno.reps <- phenodata[which(phenodata$HasReplicate == 1),];
 
 	nano.reps <- normalized.data[, colnames(normalized.data) %in% pheno.reps$SampleID];
 	cna.reps  <- cnas[, colnames(cnas) %in% pheno.reps$SampleID];

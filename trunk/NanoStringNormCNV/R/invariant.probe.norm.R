@@ -7,9 +7,9 @@ invariant.probe.norm <- function(nano.df, pheno = NULL){
 	# remove CodeClass, Name, Accession from colnames
 	grep.cols <- colnames(nano.df)[!colnames(nano.df) %in% c('CodeClass', 'Name', 'Accession')];
 
-	# check if sample ID and type info exists
+	# check if sample ID and tissue type info exists
 	if (!is.null(pheno)) {
-		if (all(c('SampleID', 'type') %in% colnames(pheno))) { pheno <- pheno[,c('SampleID', 'type')]; }
+		if (all(c('SampleID', 'Type') %in% colnames(pheno))) { pheno <- pheno[,c('SampleID', 'Type')]; }
 	} else {
 		pheno <- NULL;
 		}
@@ -32,7 +32,7 @@ invariant.probe.norm <- function(nano.df, pheno = NULL){
 	# low DNA input, leading to unreliable CNA calls. Especially if the low counts are in the reference samples!!
 	NanoStringNormCNV::make.invariant.probe.plot(
 		inv.probe.counts = nano.df['Invariant' == nano.df$CodeClass, grep.cols, drop = FALSE],
-		sample.type = pheno
+		tissue.type = pheno
 		);
 
 	# step 3

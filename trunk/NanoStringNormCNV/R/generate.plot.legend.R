@@ -7,12 +7,12 @@ generate.plot.legend <- function(cov.info) {
 
 		if (i == 'CodeClass') {
 			colours <- BoutrosLab.plotting.general::default.colours(nlevels(cov.info[[i]]));
-		} else if (i == 'type') {
+		} else if (i == 'Type') {
 			colours <- colours()[c(507, 532)[1:nlevels(cov.info[[i]])]];
-		} else if (i == 'cartridge') {
+		} else if (i == 'Cartridge') {
 			colours <- BoutrosLab.plotting.general::colour.gradient('purple', nlevels(cov.info[[i]]));
 		} else {
-			stop("can only accept the following covariates: 'type', 'cartridge', 'CodeClass'");
+			stop("can only accept the following covariates: 'Type', 'Cartridge', 'CodeClass'");
 			}
 
 		sample.legend[[i]] <- list(

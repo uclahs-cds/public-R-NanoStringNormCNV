@@ -1,4 +1,8 @@
 normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, transform.data = TRUE, plot.types = 'all', pheno = NULL){
+	# modify header to NanoStringNorm standard
+	colnames(phenodata)[colnames(phenodata) == 'Cartridge'] <- 'cartridge';
+	colnames(phenodata)[colnames(phenodata) == 'Type'] 		<- 'type';
+
 	# normalization using code count, background noise, sample content
 	if (do.nsn) {
 		nano.norm <- NanoStringNorm::NanoStringNorm(

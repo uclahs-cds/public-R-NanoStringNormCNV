@@ -7,7 +7,7 @@ generate.plot.covariates(plotting.data, sample.covariates = NULL, gene.covariate
 }
 \arguments{
   \item{plotting.data}{A matrix or data-frame that contains the main plotting data. Sample IDs are expected for column names}
-  \item{sample.covariates}{A sample by covariate data-frame. Currently only accepts sample covariates 'type' and 'cartridge'. A 'SampleID' column is mandatory to match to 'nano.counts' sample IDs. Defaults to NULL}
+  \item{sample.covariates}{A sample by covariate data-frame. Currently only accepts sample covariates 'Type' and 'Cartridge'. A 'SampleID' column is mandatory to match to 'nano.counts' sample IDs. Defaults to NULL}
   \item{gene.covariates}{A gene by covariate data-frame. Currently only accepts gene covariate 'CodeClass'. A 'Name' column is mandatory to match to 'nano.counts' gene probe names. Defaults to NULL}
 }
 \details{Creates a covariate annotate (as a fully formed list) that can be passed onto a plot}

@@ -15,10 +15,14 @@ call.cnas.with.matched.normals <- function(
 	
 	sex.probes <- NULL;
 	if (use.sex.info) {
+		if (! 'Sex' %in% colnames(phenodata)) {
+			stop("Sex information not provided in phenodata!");
+			}
+
 		# identify and process XY probes separately
 		xy.processed.data <- process.xy.probes(
 			ns.data = normalized.data,
-			sex.info = phenodata[, c("SampleID", "sex")]
+			sex.info = phenodata[, c("SampleID", "Sex")]
 			);
 
 		sex.probes <- xy.processed.data$sex.probes;
@@ -32,12 +36,12 @@ call.cnas.with.matched.normals <- function(
 				}
 			
 			use.genes.XY <- which(normalized.data.XY$CodeClass %in% use.codeclass);
-			has.ref.XY   <- phenodata$SampleID[!(phenodata$ref.name %in% 'missing') & phenodata$type == 'Tumour' & phenodata$sex %in% 'M'];
+			has.ref.XY   <- phenodata$SampleID[!(phenodata$ReferenceID %in% 'missing') & phenodata$Type == 'Tumour' & phenodata$Sex %in% 'M'];
 			}
 		}
 
 	use.genes <- which(normalized.data$CodeClass %in% use.codeclass);
-	has.ref   <- phenodata$SampleID[!(phenodata$ref.name %in% 'missing') & phenodata$type == 'Tumour'];
+	has.ref   <- phenodata$SampleID[!(phenodata$ReferenceID %in% 'missing') & phenodata$Type == 'Tumour'];
 
 	# set up output variables
 	cna.raw 	<- matrix(nrow = length(use.genes), ncol = length(has.ref));
@@ -51,7 +55,7 @@ call.cnas.with.matched.normals <- function(
 
 	# iterate through each sample here
 	for (tmr in has.ref) {
-		ref <- phenodata[phenodata$SampleID == tmr,]$ref.name;
+		ref <- phenodata[phenodata$SampleID == tmr,]$ReferenceID;
 
 		tmr.ind <- which(colnames(normalized.data) == tmr);
 		ref.ind <- which(colnames(normalized.data) == ref);
@@ -82,7 +86,7 @@ call.cnas.with.matched.normals <- function(
 				)[, 4];
 			}		
 
-		chip.info <- phenodata[c(tmr.ind, ref.ind), c("SampleID", "cartridge")];
+		chip.info <- phenodata[c(tmr.ind, ref.ind), c("SampleID", "Cartridge")];
 		
 		if (call.method <= 1) {
 			### NanoString recommended thresholds
