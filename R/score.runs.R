@@ -11,22 +11,22 @@ score.runs <- function(replicates, normalized, cnas, sample.annot, normals = NUL
 	# evaluate batches: make the correlation matrix using all samples and, again, for tumours only
 	scores$ari.chip <- NanoStringNormCNV::get.ari(
 		data = log10(normalized[, -c(1:3)] + 1),
-		feature = sample.annot$cartridge
+		feature = sample.annot$Cartridge
 		);
 
-	replicates$norm.counts <- replicates$norm.counts[, replicates$count.pheno$SampleID[which(replicates$count.pheno$type == 'Tumour')]];
+	replicates$norm.counts <- replicates$norm.counts[, replicates$count.pheno$SampleID[which(replicates$count.pheno$Type == 'Tumour')]];
 	colnames(replicates$norm.counts) <- sample.annot[match(colnames(replicates$norm.counts), sample.annot$SampleID),]$Patient;
 	
 	scores$ari.pts.normcor <- NanoStringNormCNV::get.ari(
 		data = log10(replicates$norm.counts + 1),
-		feature = replicates$count.pheno$Patient[replicates$count.pheno$type == 'Tumour']
+		feature = replicates$count.pheno$Patient[replicates$count.pheno$Type == 'Tumour']
 		);
 
-	# type, use all patients
-	if (any(sample.annot$type == 'Reference')) {
+	# tissue type, use all patients
+	if (any(sample.annot$Type == 'Reference')) {
 		scores$ari.type <- NanoStringNormCNV::get.ari(
 			data = log10(normalized[, -c(1:3)] + 1),
-			feature = sample.annot$type
+			feature = sample.annot$Type
 			);
 		}
 

@@ -23,10 +23,10 @@ make.cna.heatmap <- function(nano.cnas, fname.stem = NULL, covs.rows = NULL, cov
 	col.cov.obj <- NULL;
 
 	if (!is.null(c.col) | !is.null(c.row)) {
-		# remove 'type' if all samples are either 'Tumour' or 'Reference'
-		if ("type" %in% colnames(c.row)) {
-			if (nlevels(as.factor(c.row$type)) == 1) {
-				c.row <- c.row[, !colnames(c.row) %in% "type", drop = FALSE];
+		# remove 'Type' if all samples are either 'Tumour' or 'Reference'
+		if ("Type" %in% colnames(c.row)) {
+			if (nlevels(as.factor(c.row$Type)) == 1) {
+				c.row <- c.row[, !colnames(c.row) %in% "Type", drop = FALSE];
 				}
 			}
 

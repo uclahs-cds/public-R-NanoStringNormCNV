@@ -4,7 +4,7 @@
 \description{Subtract the reference signal from the test sample}
 \usage{
 call.copy.number.state(
-  input, reference, sex.info, per.chip = FALSE, chip.info = NULL,
+  input, reference, per.chip = FALSE, chip.info = NULL,
   thresh.method = 'round', multi.factor = 2, kd.vals = c(0.85, 0.95),
   adjust = FALSE, cna.thresh = c(0.4, 1.5, 2.5, 3.5)
   )
@@ -12,7 +12,6 @@ call.copy.number.state(
 \arguments{
   \item{input}{The NanoString normalized counts for both test and control samples. First three columns must be "CodeClass", "Name", "Accession". Sex chromosome probe names must include "chrX" and "chrY" labels, as appropriate. }
   \item{reference}{The name(s) of reference sample(s) to be used. Must match the column header of input}
-  \item{sex.info}{Data frame containing columns 'SampleID' and 'sex' for each sample in input}
   \item{per.chip}{Use the reference specific to each chip only. Defaults to FALSE.}
   \item{chip.info}{Annotations for the chips, must include the fields Chip and SampleID. Defaults to NULL}
   \item{thresh.method}{How to assign CNA states- default is the NS recommended method using their thresholds ('round'), see cna.thresh for control. Can also specify 'KD' for kernel density, see kd.vals for control. Otherwise specify 'none'}

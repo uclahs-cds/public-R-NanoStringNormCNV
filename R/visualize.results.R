@@ -4,7 +4,7 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 
 	if (!exclude.covs) {
 		if (! is.null(phenodata)) {
-			sample.covs <- phenodata[, colnames(phenodata) %in% c('SampleID', 'type', 'cartridge'), drop = FALSE];
+			sample.covs <- phenodata[, colnames(phenodata) %in% c('SampleID', 'Type', 'Cartridge'), drop = FALSE];
 			if (! any(colnames(sample.covs) %in% 'SampleID')) {
 				stop("Must include sample IDs in phenodata!");
 				}
@@ -29,7 +29,7 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 	if (!is.null(cna.raw)) { cna.raw[cna.raw > max.cn] <- max.cn; }
 
 	reps$count.pheno$Patient <- factor(reps$count.pheno$Patient);
-	reps$count.pheno$type    <- factor(reps$count.pheno$type);
+	reps$count.pheno$Type    <- factor(reps$count.pheno$Type);
 	if (any(names(reps$count.pheno) == 'outlier')) {
 		reps$count.pheno$outlier <- factor(reps$count.pheno$outlier, levels = c(0,1));
 		}
@@ -180,7 +180,7 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 		# normalized count correlations (tumour only)
 		flog.info("Plotting normalized count correlations heatmap for replicates (tumour only)..");
 		NanoStringNormCNV::make.sample.correlations.heatmap(
-			nano.counts = log10(reps$norm.counts[, which(reps$count.pheno$type == 'Tumour')] + 1),
+			nano.counts = log10(reps$norm.counts[, which(reps$count.pheno$Type == 'Tumour')] + 1),
 			fname.stem = 'replicate_tumour-only_norm-count',
 			covs = sample.covs
 			);

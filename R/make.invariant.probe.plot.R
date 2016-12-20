@@ -1,7 +1,7 @@
 # plot the counts for the invariant probes. It is BAD to have counts < 100 for these probes as it signifies
 # low DNA input, leading to unreliable CNA calls. Especially if the low counts are in the reference samples!!
 
-make.invariant.probe.plot <- function(inv.probe.counts, sample.type = NULL) {
+make.invariant.probe.plot <- function(inv.probe.counts, tissue.type = NULL) {
 	mean.counts <- apply(inv.probe.counts, 1, mean);
 
 	splot.df <- melt(
@@ -64,14 +64,14 @@ make.invariant.probe.plot <- function(inv.probe.counts, sample.type = NULL) {
 
 		bar.cols   <- 'black';
 		bar.legend <- NULL;
-		if (!is.null(sample.type)) {
-			colnames(sample.type) <- c("SampleID", "type");
+		if (!is.null(tissue.type)) {
+			colnames(tissue.type) <- c("SampleID", "Type");
 
-			if (all(bplot.df$samples %in% sample.type$SampleID)) {
-				sample.type <- sample.type[sample.type$SampleID %in% bplot.df$samples,];
+			if (all(bplot.df$samples %in% tissue.type$SampleID)) {
+				tissue.type <- tissue.type[tissue.type$SampleID %in% bplot.df$samples,];
 
-				if (all(tolower(unique(as.character(sample.type$type))) %in% c('reference', 'tumour'))) {
-					bar.cols <- as.character(sample.type$type);
+				if (all(tolower(unique(as.character(tissue.type$Type))) %in% c('reference', 'tumour'))) {
+					bar.cols <- as.character(tissue.type$Type);
 					bar.cols[tolower(bar.cols) == 'tumour'] <- 'black';
 					bar.cols[tolower(bar.cols) == 'reference'] <- 'red';
 
@@ -88,7 +88,7 @@ make.invariant.probe.plot <- function(inv.probe.counts, sample.type = NULL) {
 						);
 					}
 			} else {
-				flog.warn("Type data sample IDs do not match invariant probe data sample IDs!")
+				flog.warn("Tissue type data sample IDs do not match invariant probe data sample IDs!")
 				} 
 			}
 			

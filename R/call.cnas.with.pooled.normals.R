@@ -13,11 +13,15 @@ call.cnas.with.pooled.normals <- function(
 	# ensure sample order matches
 	phenodata <- phenodata[match(colnames(normalized.data)[-(1:3)], phenodata$SampleID),];
 
-	is.tmr <- which(phenodata$type == 'Tumour');
-	is.ref <- which(phenodata$type == 'Reference');
+	is.tmr <- which(phenodata$Type == 'Tumour');
+	is.ref <- which(phenodata$Type == 'Reference');
 
 	sex.probes <- NULL;
 	if (use.sex.info) {
+		if (! 'Sex' %in% colnames(phenodata)) {
+			stop("Sex information must be provided in phenodata if use.sex.info = TRUE!");
+			}
+
 		# identify and process XY probes separately
 		xy.processed.data <- process.xy.probes(
 			ns.data = normalized.data,
@@ -29,7 +33,7 @@ call.cnas.with.pooled.normals <- function(
 			normalized.data    <- xy.processed.data$ns.data.without.maleXY;
 			normalized.data.XY <- xy.processed.data$ns.data.maleXY.only;
 			
-			is.ref.XY <- which(phenodata[phenodata$sex %in% 'M',]$type == 'Reference');
+			is.ref.XY <- which(phenodata[phenodata$sex %in% 'M',]$Type == 'Reference');
 
 			use.genes.XY <- which(normalized.data.XY$CodeClass %in% use.codeclass);
 			}

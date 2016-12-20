@@ -6,7 +6,7 @@
 generate.plot.legend(cov.info)
 }
 \arguments{
-  \item{cov.info}{A list where each item is a vector containing covariate information. Currently accepts only the following covariates: 'type', 'cartridge', 'CodeClass'}
+  \item{cov.info}{A list where each item is a vector containing covariate information. Currently accepts only the following covariates: 'Type', 'Cartridge', 'CodeClass'}
 }
 \details{Creates a list defining the covariate legend that can be passed onto a plot}
 \value{A list where each item contains colour, label and title information for a given covariate}

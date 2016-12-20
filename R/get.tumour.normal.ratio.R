@@ -18,7 +18,7 @@ get.tumour.normal.ratio <- function(ns.counts, ref, chips.info, per.chip = FALSE
 
 	# see if user asks for per.chip
 	if (per.chip) {
-		chips <- unique(chips.info$cartridge);
+		chips <- unique(chips.info$Cartridge);
 		if (length(chips) < 1) {
 			flog.warn("Cannot process data per chip: missing cartridge (chip) information!");
 			per.chip <- 0;
@@ -40,7 +40,7 @@ get.tumour.normal.ratio <- function(ns.counts, ref, chips.info, per.chip = FALSE
 		if (this.chip != 'combined') {
 
 			# get the tmp.ref for given chip
-			tmp.ref <- chips.info$SampleID[chips.info$cartridge %in% this.chip & chips.info$SampleID %in% ref];
+			tmp.ref <- chips.info$SampleID[chips.info$Cartridge %in% this.chip & chips.info$SampleID %in% ref];
 
 			# skip when per chip is requested but there are no ref samples on the chip
 			if (length(tmp.ref) < 1) { 
@@ -48,7 +48,7 @@ get.tumour.normal.ratio <- function(ns.counts, ref, chips.info, per.chip = FALSE
 				next;
 				}
 
-			samples.to.loop <- chips.info$SampleID[this.chip == chips.info$cartridge];
+			samples.to.loop <- chips.info$SampleID[this.chip == chips.info$Cartridge];
 			samples.to.loop <- c(samples.to.loop[!samples.to.loop %in% tmp.ref], tmp.ref);
 			}
 

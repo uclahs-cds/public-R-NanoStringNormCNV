@@ -1,6 +1,6 @@
 generate.plot.covariates <- function(plotting.data, sample.covariates = NULL, gene.covariates = NULL) {
 	# check input
-	available.samp.covs <- c('type', 'cartridge');
+	available.samp.covs <- c('Type', 'Cartridge');
 	available.gene.covs <- c('CodeClass');
 
 	if (!all(names(sample.covariates) %in% c(available.samp.covs, 'SampleID'))) {
@@ -54,9 +54,9 @@ generate.plot.covariates <- function(plotting.data, sample.covariates = NULL, ge
 	for (i in names(samp.covs)) {
 		samp.covs[,i] <- as.factor(samp.covs[, i]);
 
-		if (i == 'type') {
+		if (i == 'Type') {
 			samp.cols[[i]] <- colours()[c(507, 532)[1:nlevels(samp.covs[[i]])]];
-		} else if (i == 'cartridge') {
+		} else if (i == 'Cartridge') {
 			samp.cols[[i]] <- BoutrosLab.plotting.general::colour.gradient('purple', nlevels(samp.covs[[i]]));
 			} 
 		}
