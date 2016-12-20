@@ -509,12 +509,12 @@
 			call.method = opts$cnas,
 			kd.values = kd.vals
 			);
-normalized.data = norm.data
-phenodata = phenodata
-per.chip = opts$perchip
-call.method = opts$cnas
-kd.values = kd.vals
-use.sex.info=TRUE
+# normalized.data = norm.data
+# phenodata = phenodata
+# per.chip = opts$perchip
+# call.method = opts$cnas
+# kd.values = kd.vals
+# use.sex.info=TRUE
 
 		cna.raw <- cna.all$raw;
 		cna.rounded <- cna.all$rounded;
@@ -530,13 +530,13 @@ use.sex.info=TRUE
 			call.method = opts$cnas,
 			kd.values = kd.vals
 			);
-# original.phenodata = phenodata
-normalized.data = norm.data
-phenodata = original.phenodata
-per.chip = opts$perchip
-call.method = opts$cnas
-kd.values = kd.vals
-use.sex.info = TRUE
+# # original.phenodata = phenodata
+# normalized.data = norm.data
+# phenodata = original.phenodata
+# per.chip = opts$perchip
+# call.method = opts$cnas
+# kd.values = kd.vals
+# use.sex.info = TRUE
 
 		cna.rounded <- cna.all$rounded;
 		cna.raw <- cna.all$raw;

@@ -25,7 +25,7 @@ call.cnas.with.pooled.normals <- function(
 		# identify and process XY probes separately
 		xy.processed.data <- process.xy.probes(
 			ns.data = normalized.data,
-			sex.info = phenodata[, c("SampleID", "sex")]
+			sex.info = phenodata[, c("SampleID", "Sex")]
 			);
 
 		sex.probes <- xy.processed.data$sex.probes;
@@ -33,7 +33,7 @@ call.cnas.with.pooled.normals <- function(
 			normalized.data    <- xy.processed.data$ns.data.without.maleXY;
 			normalized.data.XY <- xy.processed.data$ns.data.maleXY.only;
 			
-			is.ref.XY <- which(phenodata[phenodata$sex %in% 'M',]$Type == 'Reference');
+			is.ref.XY <- which(phenodata[phenodata$Sex %in% 'M',]$Type == 'Reference');
 
 			use.genes.XY <- which(normalized.data.XY$CodeClass %in% use.codeclass);
 			}
@@ -56,7 +56,7 @@ call.cnas.with.pooled.normals <- function(
 	if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0) {
 		cna.raw.XY <- NanoStringNormCNV::call.copy.number.state(
 			input = normalized.data.XY[use.genes.XY,],
-			reference = phenodata[phenodata$sex %in% 'M',]$SampleID[is.ref.XY],
+			reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
 			per.chip = per.chip,
 			chip.info = phenodata,
 			thresh.method = 'none',
@@ -117,7 +117,7 @@ call.cnas.with.pooled.normals <- function(
 		if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0) {
 			cna.rounded.XY <- NanoStringNormCNV::call.copy.number.state(
 				input = normalized.data.XY[use.genes.XY,],
-				reference = phenodata[phenodata$sex %in% 'M',]$SampleID[is.ref.XY],
+				reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
 				per.chip = per.chip,
 				chip.info = phenodata,
 				multi.factor = 1,
@@ -159,7 +159,7 @@ call.cnas.with.pooled.normals <- function(
 		if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0) {
 			cna.rounded.XY <- NanoStringNormCNV::call.copy.number.state(
 				input = normalized.data.XY[use.genes.XY,],
-				reference = phenodata[phenodata$sex %in% 'M',]$SampleID[is.ref.XY],
+				reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
 				per.chip = per.chip,
 				chip.info = phenodata,
 				multi.factor = 1,
@@ -179,9 +179,9 @@ call.cnas.with.pooled.normals <- function(
 	if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0) {
 		cna.normals.unadj.XY <- NanoStringNormCNV::call.copy.number.state(
 			input = normalized.data.XY[, c(1:3, (is.ref.XY + 3))],
-			reference = phenodata[phenodata$sex %in% 'M',]$SampleID[is.ref.XY],
+			reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
 			per.chip = FALSE,
-			chip.info = phenodata[phenodata$sex %in% 'M',][is.ref.XY,],
+			chip.info = phenodata[phenodata$Sex %in% 'M',][is.ref.XY,],
 			thresh.method = 'none',
 			multi.factor = 1,
 			adjust = TRUE
