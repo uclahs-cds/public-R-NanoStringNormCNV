@@ -1,71 +1,84 @@
-score.runs <- function(replicates, normalized, cnas, sample.annot, normals = NULL) {
+score.runs <- function(replicate.eval, normalized.data, cna.rounded, phenodata, cna.normals = NULL) {
+	# initialize output variable
 	scores <- list();
 
 	# remove unnecessary probes
-	normalized <- normalized[normalized$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"),];
+	normalized.data <- normalized.data[normalized.data$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"),];
 
 	# order annotation
-	sample.annot <- sample.annot[match(colnames(normalized[, -(1:3)]), sample.annot$SampleID),];
+	phenodata <- phenodata[match(colnames(normalized.data[, -(1:3)]), phenodata$SampleID),];
 
-	### Check the adjusted rand index (ARI) of multiple parameters
-	# evaluate batches: make the correlation matrix using all samples and, again, for tumours only
+	#--- Check the adjusted rand index (ARI) of multiple parameters ----------------------------------#
+	# evaluate using cartridge information (all patients)
 	scores$ari.chip <- NanoStringNormCNV::get.ari(
-		data = log10(normalized[, -c(1:3)] + 1),
-		feature = sample.annot$Cartridge
+		data.to.cluster = log10(normalized.data[, -c(1:3)] + 1),
+		feature = phenodata$Cartridge,
+		is.discrete = FALSE
 		);
 
-	replicates$norm.counts <- replicates$norm.counts[, replicates$count.pheno$SampleID[which(replicates$count.pheno$Type == 'Tumour')]];
-	colnames(replicates$norm.counts) <- sample.annot[match(colnames(replicates$norm.counts), sample.annot$SampleID),]$Patient;
+	# evaluate tumour replicates (normalized NanoString counts)
+	replicate.eval$norm.counts <- replicate.eval$norm.counts[, replicate.eval$count.pheno$SampleID[which(replicate.eval$count.pheno$Type == 'Tumour')]];
+	colnames(replicate.eval$norm.counts) <- phenodata[match(colnames(replicate.eval$norm.counts), phenodata$SampleID),]$Patient;
 	
 	scores$ari.pts.normcor <- NanoStringNormCNV::get.ari(
-		data = log10(replicates$norm.counts + 1),
-		feature = replicates$count.pheno$Patient[replicates$count.pheno$Type == 'Tumour']
+		data.to.cluster = log10(replicate.eval$norm.counts + 1),
+		feature = replicate.eval$count.pheno$Patient[replicate.eval$count.pheno$Type == 'Tumour'],
+		is.discrete = FALSE
 		);
 
-	# tissue type, use all patients
-	if (any(sample.annot$Type == 'Reference')) {
+	# evaluate using tissue type information (all patients)
+	if (any(phenodata$Type == 'Reference')) {
 		scores$ari.type <- NanoStringNormCNV::get.ari(
-			data = log10(normalized[, -c(1:3)] + 1),
-			feature = sample.annot$Type
+			data.to.cluster = log10(normalized.data[, -c(1:3)] + 1),
+			feature = phenodata$Type,
+			is.discrete = FALSE
 			);
 		}
 
-	# must remove CNA call probes that contain any NAs
-	na.probes <- as.vector(which(is.na(rowSums(replicates$cna.calls))));
+	# must remove probes with NA values from CN calls
+	na.probes <- as.vector(which(is.na(rowSums(replicate.eval$cna.calls))));
 	if (length(na.probes) > 0) {
 		flog.warn(paste0(
 			"Removing the following from 'ari.pts' calculation due to NA values in one or more samples:\n",
-			paste("\t", rownames(replicates$cna.calls)[na.probes], collapse = "\n")
+			paste("\t", rownames(replicate.eval$cna.calls)[na.probes], collapse = "\n")
 			));
-		replicates$cna.calls <- replicates$cna.calls[-na.probes,];
+		replicate.eval$cna.calls <- replicate.eval$cna.calls[-na.probes,];
 		}
 
-	# replicates using CNA data
+	# evaluate tumour replicates (CN calls)
 	scores$ari.pts <- NanoStringNormCNV::get.ari(
-		data = replicates$cna.calls,
-		feature = sample.annot[match(colnames(replicates$cna.calls), sample.annot$SampleID),]$Patient
+		data.to.cluster = replicate.eval$cna.calls,
+		feature = phenodata[match(colnames(replicate.eval$cna.calls), phenodata$SampleID),]$Patient
 		);
 
-	### SD for control genes
-	scores$sd.inv 		 <- mean(apply(normalized[normalized$CodeClass == 'Invariant', -c(1:3)], 1, sd));
-	scores$sd.hk  		 <- mean(apply(normalized[normalized$CodeClass == 'Housekeeping', -c(1:3)], 1, sd));
-	scores$sd.inv.and.hk <- mean(apply(normalized[normalized$CodeClass == 'Housekeeping' | normalized$CodeClass == 'Invariant', -c(1:3)], 1, sd));
+	#--- Calculate standard deviation for control genes ----------------------------------------------#
+	scores$sd.inv 		 <- mean(apply(normalized.data[normalized.data$CodeClass == 'Invariant', 	  -c(1:3)], 1, sd));
+	scores$sd.hk  		 <- mean(apply(normalized.data[normalized.data$CodeClass == 'Housekeeping', -c(1:3)], 1, sd));
+	scores$sd.inv.and.hk <- mean(apply(normalized.data[normalized.data$CodeClass %in% c('Housekeeping', 'Invariant'), -c(1:3)], 1, sd));
 
-	### Replicate concordance
-	scores$replicates.conc <- mean(replicates$conc.summary);
-	scores$prop.disc.genes <- sum(as.vector(apply(replicates$concordance, 1, function(f) ifelse(any(f == 0), 1, 0))))/nrow(replicates$concordance);
+	#--- Summarize replicate concordance -------------------------------------------------------------#
+	scores$replicates.conc <- mean(replicate.eval$conc.summary);
+	scores$prop.disc.genes <- sum(
+		as.vector(apply(
+			X = replicate.eval$concordance, 
+			MARGIN = 1, 
+			FUN = function(f) ifelse(any(f == 0), 1, 0)
+			))
+		)/nrow(replicate.eval$concordance);
 
-	# check how many CNAs were called in the normal samples
-	if (!is.null(normals)) {
-		scores$normals.w.cnas <- length(which(apply(normals, 2, function(f) any(f != 2))));
-		scores$normal.cnas 	  <- sum(apply(normals, 1, function(f)  sum(f != 2, na.rm = TRUE)), na.rm = TRUE);
+	#--- Summarize CNA counts ------------------------------------------------------------------------#
+	if (!is.null(cna.normals)) {
+		# number of normal samples where at least one CNA was called
+		scores$normals.w.cnas <- length(which(apply(cna.normals, 2, function(f) any(f != 2))));
+		# total number of CNAs called across all normal samples
+		scores$normal.cnas 	  <- sum(apply(cna.normals, 1, function(f)  sum(f != 2, na.rm = TRUE)), na.rm = TRUE);
 	} else {
 		scores$normals.w.cnas <- NA;
 		scores$normal.cnas <- NA;
 		}
 
-	# check how many CNAs were called in the tumour samples
-	scores$total.cnas <- sum(apply(cnas, 2, function(f) sum(f != 2, na.rm = TRUE)), na.rm = TRUE);
+	# total number of CNAs called across all tumour samples
+	scores$total.cnas <- sum(apply(cna.rounded, 2, function(f) sum(f != 2, na.rm = TRUE)), na.rm = TRUE);
 
 	return(scores);
 	}
