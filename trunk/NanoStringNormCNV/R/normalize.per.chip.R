@@ -1,7 +1,7 @@
 normalize.per.chip <- function(pheno, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, transform.data = TRUE, plot.types = 'all'){
 	# modify header to NanoStringNorm standard
-	colnames(phenodata)[colnames(phenodata) == 'Cartridge'] <- 'cartridge';
-	colnames(phenodata)[colnames(phenodata) == 'Type'] 		<- 'type';
+	colnames(pheno)[colnames(pheno) == 'Cartridge'] <- 'cartridge';
+	colnames(pheno)[colnames(pheno) == 'Type'] 		<- 'type';
 
 	nano.parts <- list();
 	cartridges <- unique(pheno$cartridge);
