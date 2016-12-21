@@ -2,6 +2,7 @@ exportPattern("^[[:alpha:]]+")
 import(
 	"testthat",
 	"lattice",
+	"BoutrosLab.dist.overload",
 	"BoutrosLab.plotting.general", 
 	"NanoStringNorm",
 	"futile.logger",
@@ -21,7 +22,6 @@ importFrom(
 	"cor",
 	"cutree",
 	"density",
-        "dist",
 	"hclust",
 	"median",
 	"sd",
