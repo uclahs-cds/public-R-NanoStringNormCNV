@@ -1,4 +1,4 @@
-load.phenodata <- function(fname){
+load.phenodata <- function(fname) {
 	# read data
 	phenodata <- read.csv(fname, stringsAsFactors = FALSE);
 
@@ -47,14 +47,14 @@ load.phenodata <- function(fname){
 
 	if (any(!(ref.tumour[ref.tumour != 'missing'] %in% phenodata$SampleID))) {
 		stop(paste0(
-			"Column 'ReferenceID' must contain Sample IDs of matched normal samples. ",
+			"Column 'ReferenceID' must contain sample IDs of matched normal samples. ",
 			"For tumour sample without matched normals, put 'missing'."
 			));
 		}
 
 	if (any(!is.na(ref.normal))) {
 		stop(paste0(
-			"Column 'ReferenceID' must contain Sample IDs of matched normal samples. ",
+			"Column 'ReferenceID' must contain sample IDs of matched normal samples. ",
 			"For normal samples, put NA."
 			));
 		}
@@ -64,7 +64,7 @@ load.phenodata <- function(fname){
 		stop(paste0(
 			"Column 'HasReplicate' must contain only the following values:",
 			"\n\t1 for sample with replicate",
-			"\n\t0 for sample without replicates"
+			"\n\t0 for sample without replicate"
 			));
 		}
 
@@ -87,7 +87,7 @@ load.phenodata <- function(fname){
 			}
 
 	} else {
-		flog.warn("Column 'Sex' not provided: Will not call CNAs for sex probes!");
+		flog.warn("Column 'Sex' not provided: unable to call CNAs downstream!");
 		phenodata$Sex <- NA;
 		}
 
