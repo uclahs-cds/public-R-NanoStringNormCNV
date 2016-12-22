@@ -84,7 +84,7 @@ call.cnas.with.pooled.normals <- function(
 	# call CNAs in tumours
 	if (call.method <= 1) {
 		if (call.method == 0) {
-			### NanoString recommended thresholds
+			### Naive thresholds
 			thresh <- c(0.4, 1.5, 2.5, 3.5);
 		} else {
 			### Thresholds from normal sample max/min values (excluding male sex chrom probes)

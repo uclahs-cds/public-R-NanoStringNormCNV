@@ -14,7 +14,6 @@ invariant.probe.norm <- function(nano.df, pheno = NULL){
 		pheno <- NULL;
 		}
 
-	#--- invariant probe normalization ---------------------------------------------------------------#
 	# step 1
 	# get average values for all the invariant probes 
 	inv.avg <- apply(
@@ -36,7 +35,7 @@ invariant.probe.norm <- function(nano.df, pheno = NULL){
 		);
 
 	# step 3
-	# calculate normalization factor by mean.inv.avg / inv.avg
+	# calculate normalization factor
 	norm.factor <- mean.inv.avg / inv.avg;
 
 	# create a new object for nano.norm

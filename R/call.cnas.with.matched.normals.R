@@ -89,7 +89,7 @@ call.cnas.with.matched.normals <- function(
 		chip.info <- phenodata[c(tmr.ind, ref.ind), c("SampleID", "Cartridge")];
 		
 		if (call.method <= 1) {
-			### NanoString recommended thresholds
+			### Naive thresholds
 			thresh <- c(0.4, 1.5, 2.5, 3.5);
 
 			# call CNAs in tumours (for autosome and female sex chrom probes)
