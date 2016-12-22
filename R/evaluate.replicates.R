@@ -40,7 +40,7 @@ evaluate.replicates <- function(phenodata, normalized.data = NULL, cna.rounded =
 	# calculate count variance
 	if (!is.null(count.reps)) {
 		var.matrix <- NanoStringNormCNV::calculate.replicate.variance(
-			norm.data.reps = count.reps,
+			normalized.data.reps = count.reps,
 			phenodata.reps = pheno.reps.count
 			);
 		}
@@ -48,7 +48,7 @@ evaluate.replicates <- function(phenodata, normalized.data = NULL, cna.rounded =
 	# calculate CNA concordance
 	if (!is.null(cna.reps)) {
 		conc.matrix <- NanoStringNormCNV::calculate.replicate.concordance(
-			cnas.reps = cna.reps,
+			cna.rounded.reps = cna.reps,
 			phenodata.reps = pheno.reps.cna
 			);
 		conc.summary <- apply(conc.matrix, 2, sum)/nrow(conc.matrix);
