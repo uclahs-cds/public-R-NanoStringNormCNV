@@ -2,6 +2,16 @@
 make.sample.correlations.heatmap <- function(nano.counts, cor.method = 'pearson', fname.stem = NULL, covs = NULL) {
 	# set up legend
 	if (!is.null(covs)) {
+		# get required samples
+		covs <- covs[covs$SampleID %in% names(nano.counts),];
+
+		# remove 'Type' if all samples are either 'Tumour' or 'Reference'
+		if ("Type" %in% colnames(covs)) {
+			if (nlevels(as.factor(covs$Type)) == 1) {
+				covs <- covs[, !colnames(covs) %in% "Type", drop = FALSE];
+				}
+			}
+
 		# covariates
 		cov.objs <- NanoStringNormCNV::generate.plot.covariates(
 			plotting.data = nano.counts,
@@ -10,7 +20,7 @@ make.sample.correlations.heatmap <- function(nano.counts, cor.method = 'pearson'
 		cov.obj <- cov.objs[['sample']];
 
 		# legend
-		covs <- covs[, names(covs) != 'SampleID'];
+		covs <- covs[, names(covs) != 'SampleID', drop = FALSE];
 		covs.legend <- NanoStringNormCNV::generate.plot.legend(cov.info = as.list(covs));
 	} else {
 		covs.legend <- NULL;
