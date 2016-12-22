@@ -1,7 +1,8 @@
-visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rounded = NULL, cna.raw = NULL, max.cn = 5, replicate.eval = NULL, exclude.covs = FALSE) {
+visualize.results <- function(raw.data, normalized.data, phenodata = NULL, cna.rounded = NULL, cna.raw = NULL, max.cn = 5, replicate.eval = NULL, exclude.covs = FALSE) {
 	# set up covariates
 	sample.covs <- gene.covs.pre.norm <- gene.covs.post.norm <- NULL;
 
+	# process covariate information
 	if (!exclude.covs) {
 		if (! is.null(phenodata)) {
 			sample.covs <- phenodata[, colnames(phenodata) %in% c('SampleID', 'Type', 'Cartridge'), drop = FALSE];
@@ -13,29 +14,29 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 				flog.warn("Excluding sample covariates due to missing information!");
 				}
 			}
-		gene.covs.pre.norm  <- raw.counts[, c('Name', 'CodeClass')];
-		gene.covs.post.norm <- norm.counts[, c('Name', 'CodeClass')];
+		gene.covs.pre.norm  <- raw.data[, c('Name', 'CodeClass')];
+		gene.covs.post.norm <- normalized.data[, c('Name', 'CodeClass')];
 		}
 
 	# re-format plotting data
 	cols.to.remove <- c('CodeClass', 'Name', 'Accession');
 	
-	raw.counts.reformatted  <- raw.counts[,  !(colnames(raw.counts)  %in% cols.to.remove)];
-	norm.counts.reformatted <- norm.counts[, !(colnames(norm.counts) %in% cols.to.remove)];
+	raw.data.reformatted  <- raw.data[,  !(colnames(raw.data)  %in% cols.to.remove)];
+	normalized.data.reformatted <- normalized.data[, !(colnames(normalized.data) %in% cols.to.remove)];
 	
-	row.names(raw.counts.reformatted)  <- raw.counts$Name;
-	row.names(norm.counts.reformatted) <- norm.counts$Name;
+	row.names(raw.data.reformatted)  <- raw.data$Name;
+	row.names(normalized.data.reformatted) <- normalized.data$Name;
 
 	if (!is.null(cna.raw)) { cna.raw[cna.raw > max.cn] <- max.cn; }
 
-	reps$count.pheno$Patient <- factor(reps$count.pheno$Patient);
-	reps$count.pheno$Type    <- factor(reps$count.pheno$Type);
-	if (any(names(reps$count.pheno) == 'outlier')) {
-		reps$count.pheno$outlier <- factor(reps$count.pheno$outlier, levels = c(0,1));
+	replicate.eval$count.pheno$Patient <- factor(replicate.eval$count.pheno$Patient);
+	replicate.eval$count.pheno$Type    <- factor(replicate.eval$count.pheno$Type);
+	if (any(names(replicate.eval$count.pheno) == 'outlier')) {
+		replicate.eval$count.pheno$outlier <- factor(replicate.eval$count.pheno$outlier, levels = c(0,1));
 		}
 
-	reps$raw.counts <- raw.counts[, reps$count.pheno$SampleID];
-	rownames(reps$raw.counts) <- raw.counts$Name;
+	replicate.eval$raw.counts <- raw.data[, replicate.eval$count.pheno$SampleID];
+	rownames(replicate.eval$raw.counts) <- raw.data$Name;
 
 	##############################
 	### Heatmaps (all samples) ###
@@ -44,7 +45,7 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 	# raw NanoString counts
 	flog.info("Plotting raw counts heatmap..");
 	NanoStringNormCNV::make.counts.heatmap(
-		nano.counts = raw.counts.reformatted,
+		nano.counts = raw.data.reformatted,
 		fname.stem = 'raw',
 		covs.rows = sample.covs,
 		covs.cols = gene.covs.pre.norm
@@ -53,7 +54,7 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 	# normalized NanoString counts
 	flog.info("Plotting normalized counts heatmap..");
 	NanoStringNormCNV::make.counts.heatmap(
-		nano.counts = norm.counts.reformatted,
+		nano.counts = normalized.data.reformatted,
 		fname.stem = 'normalized',
 		covs.rows = sample.covs,
 		covs.cols = gene.covs.post.norm
@@ -62,7 +63,7 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 	# raw count correlations
 	flog.info("Plotting raw count correlations heatmap..");
 	NanoStringNormCNV::make.sample.correlations.heatmap(
-		nano.counts = log10(raw.counts.reformatted + 1),
+		nano.counts = log10(raw.data.reformatted + 1),
 		fname.stem = 'raw-count',
 		covs = sample.covs
 		);
@@ -70,7 +71,7 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 	# normalized count correlations
 	flog.info("Plotting normalized count correlations heatmap..");
 	NanoStringNormCNV::make.sample.correlations.heatmap(
-		nano.counts = log10(norm.counts.reformatted + 1),
+		nano.counts = log10(normalized.data.reformatted + 1),
 		fname.stem = 'norm-count',
 		covs = sample.covs
 		);
@@ -133,7 +134,7 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 		# raw NanoString counts
 		flog.info("Plotting raw counts heatmap for replicates..");
 		NanoStringNormCNV::make.counts.heatmap(
-			nano.counts = reps$raw.counts,
+			nano.counts = replicate.eval$raw.counts,
 			fname.stem = 'replicate_raw',
 			covs.rows = sample.covs,
 			covs.cols = gene.covs.pre.norm,
@@ -142,7 +143,7 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 		# normalized NanoString counts
 		flog.info("Plotting normalized counts heatmap for replicates..");
 		NanoStringNormCNV::make.counts.heatmap(
-			nano.counts = reps$norm.counts,
+			nano.counts = replicate.eval$norm.counts,
 			fname.stem = 'replicate_norm',
 			covs.cols = gene.covs.post.norm,
 			covs.rows = sample.covs
@@ -151,7 +152,7 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 		# CNA calls
 		flog.info("Plotting CNA calls heatmap for replicates..");
 		NanoStringNormCNV::make.cna.heatmap(
-			nano.cnas = reps$cna.calls,
+			nano.cnas = replicate.eval$cna.calls,
 			fname.stem = 'replicate_cna-calls',
 			rounded = TRUE,
 			covs.cols = gene.covs.post.norm,
@@ -162,7 +163,7 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 		# replicate CNA call concordance
 		flog.info("Plotting replicate CNA call concordance heatmap..");
 		NanoStringNormCNV::make.counts.heatmap(
-			nano.counts = reps$concordance,
+			nano.counts = replicate.eval$concordance,
 			fname.stem = 'replicate_cna-concordance',
 			covs.cols = gene.covs.post.norm,
 			print.ylab = TRUE
@@ -171,7 +172,7 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 		# normalized count correlations
 		flog.info("Plotting normalized count correlations heatmap for replicates..");
 		NanoStringNormCNV::make.sample.correlations.heatmap(
-			nano.counts = log10(reps$norm.counts + 1),
+			nano.counts = log10(replicate.eval$norm.counts + 1),
 			fname.stem = 'replicate_norm-count',
 			covs = sample.covs
 			);
@@ -180,7 +181,7 @@ visualize.results <- function(raw.counts, norm.counts, phenodata = NULL, cna.rou
 		# normalized count correlations (tumour only)
 		flog.info("Plotting normalized count correlations heatmap for replicates (tumour only)..");
 		NanoStringNormCNV::make.sample.correlations.heatmap(
-			nano.counts = log10(reps$norm.counts[, which(reps$count.pheno$Type == 'Tumour')] + 1),
+			nano.counts = log10(replicate.eval$norm.counts[, which(replicate.eval$count.pheno$Type == 'Tumour')] + 1),
 			fname.stem = 'replicate_tumour-only_norm-count',
 			covs = sample.covs
 			);
