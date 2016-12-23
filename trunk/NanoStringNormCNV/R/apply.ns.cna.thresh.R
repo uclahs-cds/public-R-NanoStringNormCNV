@@ -6,24 +6,22 @@ apply.ns.cna.thresh <- function(ratio.data, cna.thresh = c(0.4, 1.5, 2.5, 3.5)) 
 	which.cna <- colnames(ratio.data)[!colnames(ratio.data) %in% headers];
 	which.n   <- which(colnames(ratio.data) %in% which.cna);
 
-	# pull below into a separate object
+	# need to exclude columns with all NAs:
+	# occurs when perchip = T and there are no reference samples on that chip!
 	na.counts <- apply(
 		X = ratio.data[, which.n, drop = FALSE],
 		MARGIN = 2,
 		FUN = function(f) { all(is.na(f)) }
 		);
 
-	# need to exclude columns with all NAs:
-	# occurs when perchip = T and there are no reference samples on that chip!
 	if (any(na.counts)) {
 		all.na <- which(na.counts);
-		print(paste("dropping:", all.na));
 		which.n <- which.n[-all.na];
 		which.cna <- which.cna[which.n];
 		}
 	cna.output <- ratio.data[, which.cna, drop = FALSE];
 
-	# apply thresholds
+	# apply thresholds to get copy numbers (neutral CN = 2)
 	tmp.out <- ratio.data[ , which.cna, drop = FALSE];
 	cna.output[tmp.out <= cna.thresh[1]] <- 0;
 	cna.output[tmp.out > cna.thresh[1] & tmp.out <= cna.thresh[2]] <- 1;
