@@ -18,9 +18,9 @@ process.xy.probes <- function(normalized.data, sex.info) {
 		flog.warn("Identified no sex chromosome probes!");
 		}
 
-	# extract male sex probe info and remove from 'normalized.data' for separate processing
+	# extract male sex probe info and remove from main table for separate processing
 	normalized.data.XY <- cbind(
-		normalized.data[c(x.genes, y.genes), 1:3, drop = FALSE],
+		normalized.data[c(x.genes, y.genes), 1:3],
 		normalized.data[
 			c(x.genes, y.genes),
 			colnames(normalized.data) %in% sex.info$SampleID[sex.info$Sex %in% 'M', drop = FALSE]
@@ -38,7 +38,7 @@ process.xy.probes <- function(normalized.data, sex.info) {
 		normalized.data[y.genes, i] <- NA;
 		}
 	
-	# remove chrX and chrY probes where sex is not provided
+	# remove chrX and chrY probes from samples where sex is not provided
 	if (any(is.na(sex.info$Sex)) & ! is.null(sex.probes)) {
 		flog.info("Removing XY probes where sample's sex is not available:");
 		for (i in sex.info[is.na(sex.info$Sex),]$SampleID) {
