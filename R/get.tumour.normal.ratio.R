@@ -15,11 +15,11 @@ get.tumour.normal.ratio <- function(normalized.data, reference, chip.info, per.c
 	output <- output[, cols.to.keep, drop = FALSE];
 	output[, cols.to.keep] <- NA;
 
-	# see if user asks for per.chip
+	# see if user asks to use only chip-specific references
 	if (per.chip) {
 		chips <- unique(chip.info$Cartridge);
 		if (length(chips) < 1) {
-			flog.warn("Cannot process data per chip: missing cartridge (chip) information!");
+			flog.warn("Cannot get tumour/normal ratios per chip: missing cartridge (chip) information!");
 			per.chip <- 0;
 			}
 		}
@@ -33,17 +33,22 @@ get.tumour.normal.ratio <- function(normalized.data, reference, chip.info, per.c
 	# loop over chips
 	for (this.chip in chips) {
 
-		# define a tmp.ref every time before the start of a new iteration
+		# define a temporary reference variable before the start of a new iteration
 		tmp.ref <- reference;
 
 		if (this.chip != 'combined') {
 
-			# get the tmp.ref for given chip
+			# get the reference(s) for the given chip
 			tmp.ref <- chip.info$SampleID[chip.info$Cartridge %in% this.chip & chip.info$SampleID %in% reference];
 
-			# skip when per chip is requested but there are no reference samples on the chip
+			# skip when per.chip is requested but there are no reference samples on the chip
 			if (length(tmp.ref) < 1) { 
-				flog.warn(paste0("No reference samples on cartridge ", this.chip, ". Try calling CNAs with per.chip = FALSE"));
+				flog.warn(paste0(
+					"No reference samples on cartridge ", this.chip, ".",
+					" Try calling CNAs with 'per.chip = FALSE'.",
+					" Ratios unavailable for samples:\n\t* ",
+					paste(chip.info$SampleID[this.chip == chip.info$Cartridge], collapse = "\n\t* ")
+					));
 				next;
 				}
 
@@ -51,20 +56,21 @@ get.tumour.normal.ratio <- function(normalized.data, reference, chip.info, per.c
 			samples.to.loop <- c(samples.to.loop[!samples.to.loop %in% tmp.ref], tmp.ref);
 			}
 
-		# if length of tmp.ref is greater than 1, take the average of the tmp.ref
+		# if number of reference samples is greater than 1, average the values
 		if (length(tmp.ref) > 1) {
-
-			# take the average and create a new column in normalized.data as avg.ref
-			normalized.data$avg.ref <- apply(X = normalized.data[,tmp.ref], MARGIN = 1, FUN = mean, na.rm = TRUE);
-
-			# and change tmp.ref to 'avg.ref'
+			normalized.data$avg.ref <- apply(
+				X = normalized.data[,tmp.ref],
+				MARGIN = 1,
+				FUN = mean,
+				na.rm = TRUE
+				);
 			tmp.ref <- 'avg.ref';
 			}   
 
-		# avoid divisions by 0 by adding a pseudo-count, if needed
+		# avoid divisions by 0 by adding a pseudo-count where necessary
 		if (any(na.omit(0 == normalized.data[,tmp.ref]))) { normalized.data[,tmp.ref][0 == normalized.data[,tmp.ref]] <- 1; }
 
-		# divide each test sample probe value by corresponding probes in the reference samples
+		# divide each tumour sample probe value by corresponding reference probe values
 		output[,samples.to.loop] <- normalized.data[,samples.to.loop] / normalized.data[,tmp.ref];
 		}
 
