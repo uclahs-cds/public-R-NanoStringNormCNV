@@ -1,22 +1,21 @@
-
-collapse.duplicate.samples <- function(nano.df, annot) {
+collapse.duplicate.samples <- function(normalized.data, annotation) {
 	# for each sample that is duplicated, merge the counts so you get a single count
-	nano.df.aggr <- nano.df[, c('CodeClass', 'Name', 'Accession')];
+	normalized.data.aggr <- normalized.data[, c('CodeClass', 'Name', 'Accession')];
 
 	# loop over each sample
-	for (sample.name in unique(annot$Name)) {
+	for (sample.name in unique(annotation$Name)) {
 
 		# get the colnames equivalent of sample.name
-		sample.id <- annot$SampleID[sample.name == annot$Name];
+		sample.id <- annotation$SampleID[sample.name == annotation$Name];
 
 		# aggregate this by median value
-		nano.df.aggr[, sample.name] <- apply(
-			X = nano.df[, sample.id, drop = FALSE],
+		normalized.data.aggr[, sample.name] <- apply(
+			X = normalized.data[, sample.id, drop = FALSE],
 			MARGIN = 1,
 			FUN = median
 			);
 		}
 
-	return(nano.df.aggr);
+	return(normalized.data.aggr);
 	}
 

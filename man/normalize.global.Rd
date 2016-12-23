@@ -5,7 +5,7 @@
 \usage{
 normalize.global(
   raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs,
-  transform.data = TRUE, plot.types = 'all', pheno = NULL
+  transform.data = TRUE, plot.types = 'all', phenodata = NULL
   )
 }
 \arguments{
@@ -19,7 +19,7 @@ normalize.global(
   \item{covs}{A data-frame with covariates for which to assess batch effects in NanoStringNorm}
   \item{transform.data}{Whether to transform data so output does not contain negative values. Defaults to TRUE}
   \item{plot.types}{Which NSN plots to generate, if any, after normalization. Passed directly to NanoStringNorm::Plot.NanoStringNorm. Defaults to 'all'}
-  \item{pheno}{Data frame with fields 'SampleID' and 'type' (specifying whether Tumour or Reference). Defaults to NULL}
+  \item{phenodata}{Data frame with fields 'SampleID' and 'type' (specifying whether Tumour or Reference). Defaults to NULL}
 }
 \details{Normalize all data in study at once using NanoStringNorm and/or invariant probe normalizaiton. See individual normalization functions for more details}
 \value{A data-frame with normalized data}

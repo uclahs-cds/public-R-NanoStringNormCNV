@@ -1,5 +1,14 @@
-
-call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.info = NULL, thresh.method = 'round', multi.factor = 2, kd.vals = c(0.85, 0.95), adjust = FALSE, cna.thresh = c(0.4, 1.5, 2.5, 3.5)) {
+call.copy.number.state <- function (
+	normalized.data,
+	reference,
+	per.chip = FALSE,
+	chip.info = NULL,
+	thresh.method = 'round',
+	multi.factor = 2,
+	kd.vals = c(0.85, 0.95),
+	adjust = FALSE,
+	cna.thresh = c(0.4, 1.5, 2.5, 3.5)
+	) {
 
 	# Check input
 	if (! thresh.method %in% (unlist(strsplit("round KD kd none","\\s")))) {
@@ -19,12 +28,11 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 		stop("Invalid KD thresholds -- the order should be hom deletion, het deletion, het gain, hom gain.");
 		}
 
-	### Analysis
 	# get tumour ratios
 	out.cna <- NanoStringNormCNV::get.tumour.normal.ratio(
-		ns.counts = input,
-		ref = reference,
-		chips.info = chip.info,
+		normalized.data = normalized.data,
+		reference = reference,
+		chip.info = chip.info,
 		per.chip = per.chip
 		);
 
@@ -42,16 +50,16 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 
 		# segment using set thresholds
 		out.cna.final <- NanoStringNormCNV::apply.ns.cna.thresh(
-			tmr2ref = out.cna,
-			thresh = cna.thresh
+			ratio.data = out.cna,
+			cna.thresh = cna.thresh
 			);
 
 	} else if (thresh.method == 'KD') {
 
 		# segment using kernel density
 		out.cna.final <- NanoStringNormCNV::apply.kd.cna.thresh(
-			tmr2ref = out.cna,
-			kd.thresh = kd.vals
+			ratio.data = out.cna,
+			kd.values = kd.vals
 			);
 
 	} else {
@@ -63,9 +71,9 @@ call.copy.number.state <- function (input, reference, per.chip = FALSE, chip.inf
 
 	# add the probe information back to out.cna.round
 	header.names <- c('Code.Class', 'CodeClass', 'Name', 'Accession');
-	rownames(input) <- input[, colnames(input) == 'Name'];
+	rownames(normalized.data) <- normalized.data[, colnames(normalized.data) == 'Name'];
 	out.cna.final <- cbind(
-		input[,colnames(input)[colnames(input) %in% header.names], drop = FALSE],
+		normalized.data[,colnames(normalized.data)[colnames(normalized.data) %in% header.names], drop = FALSE],
 		out.cna.final
 		);
 

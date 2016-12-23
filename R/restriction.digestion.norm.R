@@ -1,9 +1,6 @@
-
-### Step 2: Restriction fragmentation normalization
-restriction.fragmentation.norm <- function(nano.df){
-	#--- restriction fragmentation controls ----------------------------------------------------------#
+restriction.fragmentation.norm <- function(raw.data){
 	# restriction controls evaluation
-	nano.restr <- nano.df[nano.df$CodeClass == 'RestrictionSite',];
+	nano.restr <- raw.data[raw.data$CodeClass == 'RestrictionSite',];
 	nano.restr <- nano.restr[with(nano.restr, order(Name)),];
 
 	# remove CodeClass, Name, Accession from colnames

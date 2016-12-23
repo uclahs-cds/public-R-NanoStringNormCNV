@@ -1,16 +1,15 @@
-
-get.tumour.normal.ratio <- function(ns.counts, ref, chips.info, per.chip = FALSE){
+get.tumour.normal.ratio <- function(normalized.data, reference, chip.info, per.chip = FALSE){
 	# create empty data-frame to store data
-	output <- ns.counts;
+	output <- normalized.data;
 
-	cols.to.keep   <- colnames(ns.counts);
+	cols.to.keep   <- colnames(normalized.data);
 	cols.to.remove <- c('Code.Class', 'CodeClass', 'Name', 'Accession');
 
 	if (any(cols.to.remove %in% cols.to.keep)) {
 		cols.to.keep <- cols.to.keep[!cols.to.keep %in% cols.to.remove];
 		}
-	if (! any(chips.info$SampleID %in% colnames(ns.counts))) {
-		chips.info <- chips.info[match(colnames(ns.counts), chips.info$SampleID),];
+	if (! any(chip.info$SampleID %in% colnames(normalized.data))) {
+		chip.info <- chip.info[match(colnames(normalized.data), chip.info$SampleID),];
 		}
 
 	output <- output[, cols.to.keep, drop = FALSE];
@@ -18,7 +17,7 @@ get.tumour.normal.ratio <- function(ns.counts, ref, chips.info, per.chip = FALSE
 
 	# see if user asks for per.chip
 	if (per.chip) {
-		chips <- unique(chips.info$Cartridge);
+		chips <- unique(chip.info$Cartridge);
 		if (length(chips) < 1) {
 			flog.warn("Cannot process data per chip: missing cartridge (chip) information!");
 			per.chip <- 0;
@@ -29,48 +28,48 @@ get.tumour.normal.ratio <- function(ns.counts, ref, chips.info, per.chip = FALSE
 		}
 
 	# define sample order here so the reference sample is placed at the end
-	samples.to.loop <- c(colnames(output)[!colnames(output) %in% ref], ref);
+	samples.to.loop <- c(colnames(output)[!colnames(output) %in% reference], reference);
 
 	# loop over chips
 	for (this.chip in chips) {
 
 		# define a tmp.ref every time before the start of a new iteration
-		tmp.ref <- ref;
+		tmp.ref <- reference;
 
 		if (this.chip != 'combined') {
 
 			# get the tmp.ref for given chip
-			tmp.ref <- chips.info$SampleID[chips.info$Cartridge %in% this.chip & chips.info$SampleID %in% ref];
+			tmp.ref <- chip.info$SampleID[chip.info$Cartridge %in% this.chip & chip.info$SampleID %in% reference];
 
-			# skip when per chip is requested but there are no ref samples on the chip
+			# skip when per chip is requested but there are no reference samples on the chip
 			if (length(tmp.ref) < 1) { 
 				flog.warn(paste0("No reference samples on cartridge ", this.chip, ". Try calling CNAs with per.chip = FALSE"));
 				next;
 				}
 
-			samples.to.loop <- chips.info$SampleID[this.chip == chips.info$Cartridge];
+			samples.to.loop <- chip.info$SampleID[this.chip == chip.info$Cartridge];
 			samples.to.loop <- c(samples.to.loop[!samples.to.loop %in% tmp.ref], tmp.ref);
 			}
 
 		# if length of tmp.ref is greater than 1, take the average of the tmp.ref
 		if (length(tmp.ref) > 1) {
 
-			# take the average and create a new column in ns.counts as avg.ref
-			ns.counts$avg.ref <- apply(X = ns.counts[,tmp.ref], MARGIN = 1, FUN = mean, na.rm = TRUE);
+			# take the average and create a new column in normalized.data as avg.ref
+			normalized.data$avg.ref <- apply(X = normalized.data[,tmp.ref], MARGIN = 1, FUN = mean, na.rm = TRUE);
 
 			# and change tmp.ref to 'avg.ref'
 			tmp.ref <- 'avg.ref';
 			}   
 
 		# avoid divisions by 0 by adding a pseudo-count, if needed
-		if (any(na.omit(0 == ns.counts[,tmp.ref]))) { ns.counts[,tmp.ref][0 == ns.counts[,tmp.ref]] <- 1; }
+		if (any(na.omit(0 == normalized.data[,tmp.ref]))) { normalized.data[,tmp.ref][0 == normalized.data[,tmp.ref]] <- 1; }
 
-		# divide each test sample probe value by corresponding probes in the ref samples
-		output[,samples.to.loop] <- ns.counts[,samples.to.loop] / ns.counts[,tmp.ref];
+		# divide each test sample probe value by corresponding probes in the reference samples
+		output[,samples.to.loop] <- normalized.data[,samples.to.loop] / normalized.data[,tmp.ref];
 		}
 
 	# ensure row names are probe names
-	rownames(output) <- ns.counts$Name;
+	rownames(output) <- normalized.data$Name;
 
 	return(output);
 	}
