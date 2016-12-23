@@ -21,14 +21,14 @@ call.cnas.with.matched.normals <- function(
 
 		# identify and process XY probes separately
 		xy.processed.data <- process.xy.probes(
-			ns.data = normalized.data,
+			normalized.data = normalized.data,
 			sex.info = phenodata[, c("SampleID", "Sex")]
 			);
 
 		sex.probes <- xy.processed.data$sex.probes;
 		if (! is.null(sex.probes)) {
-			normalized.data    <- xy.processed.data$ns.data.without.maleXY;
-			normalized.data.XY <- xy.processed.data$ns.data.maleXY.only;
+			normalized.data    <- xy.processed.data$normalized.data.without.maleXY;
+			normalized.data.XY <- xy.processed.data$normalized.data.maleXY.only;
 
 			# if there are few chrXY probes, inform user
 			if (!is.null(normalized.data.XY) && nrow(normalized.data.XY) < 40) {
@@ -69,32 +69,37 @@ call.cnas.with.matched.normals <- function(
 				}
 			}
 
+		chip.info <- phenodata[
+			phenodata$SampleID %in% c(tmr, ref),
+			c("SampleID", "Cartridge")
+			];
+
 		cna.raw[, tmr] <- NanoStringNormCNV::call.copy.number.state(
-			input = input.data,
+			normalized.data = input.data,
 			reference = ref,
 			thresh.method = 'none',
+			chip.info = chip.info,
 			multi.factor = 2
 			)[, 4];
 
-		# calculate tumour-normal ratios (for male sex chrom probes, if any)
+		# calculate tumour/normal ratios (for male sex chrom probes, if any)
 		if (!is.null(sex.probes) && tmr %in% has.ref.XY && length(use.genes.XY) > 0) {
 			cna.raw[sex.probes, tmr] <- NanoStringNormCNV::call.copy.number.state(
-				input = input.data.XY,
+				normalized.data = input.data.XY,
 				reference = ref,
 				thresh.method = 'none',
+				chip.info = chip.info,
 				multi.factor = 1
 				)[, 4];
 			}		
 
-		chip.info <- phenodata[c(tmr.ind, ref.ind), c("SampleID", "Cartridge")];
-		
 		if (call.method <= 1) {
 			### Naive thresholds
 			thresh <- c(0.4, 1.5, 2.5, 3.5);
 
 			# call CNAs in tumours (for autosome and female sex chrom probes)
 			cna.rounded[, tmr] <- NanoStringNormCNV::call.copy.number.state(
-				input = input.data,
+				normalized.data = input.data,
 				reference = ref,
 				per.chip = per.chip,
 				chip.info = chip.info,
@@ -105,7 +110,7 @@ call.cnas.with.matched.normals <- function(
 			# call CNAs in tumours (for male sex chrom probes)
 			if (!is.null(sex.probes) && tmr %in% has.ref.XY && length(use.genes.XY) > 0) {
 				cna.rounded[sex.probes, tmr] <- NanoStringNormCNV::call.copy.number.state(
-					input = input.data.XY,
+					normalized.data = input.data.XY,
 					reference = ref,
 					per.chip = per.chip,
 					chip.info = chip.info,
@@ -128,7 +133,7 @@ call.cnas.with.matched.normals <- function(
 
 			# call CNAs in tumours (for autosome and female sex chrom probes)
 			cna.rounded[,tmr] <- NanoStringNormCNV::call.copy.number.state(
-				input = input.data,
+				normalized.data = input.data,
 				reference = ref,
 				per.chip = per.chip,
 				chip.info = chip.info,
@@ -140,7 +145,7 @@ call.cnas.with.matched.normals <- function(
 			# call CNAs in tumours (for male sex chrom probes)
 			if (!is.null(sex.probes) && tmr %in% has.ref.XY && length(use.genes.XY) > 0) {
 				cna.rounded[sex.probes, tmr] <- NanoStringNormCNV::call.copy.number.state(
-					input = input.data.XY,
+					normalized.data = input.data.XY,
 					reference = ref,
 					per.chip = per.chip,
 					chip.info = chip.info,
