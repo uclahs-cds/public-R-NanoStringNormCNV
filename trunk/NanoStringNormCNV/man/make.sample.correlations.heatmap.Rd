@@ -8,10 +8,10 @@ make.sample.correlations.heatmap(
   )
 }
 \arguments{
-  \item{nano.counts}{A gene by sample matrix or data-frame with NanoString count info, where row names are probe names and column names are sample IDs. Counts can be normalized or raw.}
+  \item{nano.counts}{A gene by sample matrix or data-frame of NanoString counts, where row names are probe names and column names are sample IDs. Counts can be normalized or raw.}
   \item{cor.method}{Which distance method to use for clustering. Accepts 'pearson' (default), 'kendall', or 'spearman'}
   \item{fname.stem}{To use in filename, description of data is suggested. Defaults to NULL}
-  \item{covs}{A sample by covariate data-frame. Currently only accepts sample covariates 'type' and 'cartridge'. A 'SampleID' column is mandatory to match to 'nano.counts' sample IDs. Defaults to NULL}
+  \item{covs}{A sample by covariate data-frame. Currently only accepts sample covariates 'Type' and 'Cartridge'. A 'SampleID' column is mandatory to match to 'nano.counts' sample IDs. Defaults to NULL}
 }
 \details{Make a clustered heatmap for all samples based on code count data}
 \value{None}

@@ -4,12 +4,12 @@
 \description{Wrapper function to call all normalization function requested, processing one cartridge at a time}
 \usage{
 normalize.per.chip(
-	pheno, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs,
+	phenodata, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs,
   transform.data = TRUE, plot.types = 'all'
 	)
 }
 \arguments{
-  \item{pheno}{A data-frame with the annotations for each sample, which must include a 'Cartridge' field. May include a 'Type' field (specifying whether Tumour or Reference).}
+  \item{phenodata}{A data-frame with the annotations for each sample, which must include a 'Cartridge' field. May include a 'Type' field (specifying whether Tumour or Reference).}
   \item{raw.data}{A gene by sample data-frame of raw NanoString counts for all samples in experiment. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs}
   \item{cc}{Requested CodeCount NSN normalization. Can be 'none', 'sum', and 'geo.mean'.}
   \item{bc}{Requested Background NSN normalization. Can be 'none', 'mean', 'mean.2sd' and 'max'.}

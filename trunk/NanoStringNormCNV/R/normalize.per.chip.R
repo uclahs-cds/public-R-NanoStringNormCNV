@@ -1,15 +1,15 @@
-normalize.per.chip <- function(pheno, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, transform.data = TRUE, plot.types = 'all'){
+normalize.per.chip <- function(phenodata, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, transform.data = TRUE, plot.types = 'all'){
 	# modify header to NanoStringNorm standard
-	colnames(pheno)[colnames(pheno) == 'Cartridge'] <- 'cartridge';
-	colnames(pheno)[colnames(pheno) == 'Type'] 		<- 'type';
+	colnames(phenodata)[colnames(phenodata) == 'Cartridge'] <- 'cartridge';
+	colnames(phenodata)[colnames(phenodata) == 'Type'] 		<- 'type';
 
 	nano.parts <- list();
-	cartridges <- unique(pheno$cartridge);
+	cartridges <- unique(phenodata$cartridge);
 
 	rownames(raw.data) <- raw.data$Name;
 
 	for (chip in 1:length(cartridges)) {
-		cur.samples <- which(pheno$cartridge == cartridges[chip]);
+		cur.samples <- which(phenodata$cartridge == cartridges[chip]);
 
 		if (length(unique(covs[cur.samples, 'type'])) > 1) {
 			use.covs <- covs[cur.samples, 'type', drop = FALSE];
@@ -46,12 +46,12 @@ normalize.per.chip <- function(pheno, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.
 
 		# invariant probe normalization
 		if (do.rcc.inv) {
-			if (all(c('SampleID', 'type') %in% colnames(pheno))) {
-				pheno.inv <- pheno[,c('SampleID', 'type')];
+			if (all(c('SampleID', 'type') %in% colnames(phenodata))) {
+				phenodata.inv <- phenodata[,c('SampleID', 'type')];
 			} else {
-				pheno.inv <- NULL;
+				phenodata.inv <- NULL;
 				}
-			nano.parts[[chip]] <- NanoStringNormCNV::invariant.probe.norm(nano.parts[[chip]], pheno.inv);
+			nano.parts[[chip]] <- NanoStringNormCNV::invariant.probe.norm(nano.parts[[chip]], phenodata.inv);
 			}
 
 		# perform 'other' normalization last

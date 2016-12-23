@@ -9,11 +9,9 @@
 	library(NanoStringNorm);
 	library(BoutrosLab.plotting.general);
 	library(futile.logger);
-	library(vsn);
 	library(reshape2);
 	library(devtools)
 	library(getopt);
-	# source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/call_signature_pga.R")
 	load_all("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV");
 
 	# specifically samples with low restriction frag ratios
@@ -132,13 +130,13 @@
 	{
 		if (interactive()) {
 			opts <- list();
-			opts$perchip <- 0;
+			opts$perchip <- 1;
 			opts$ccn  	 <- 1;
 			opts$bc 	 <- 1;
 			opts$scc 	 <- 1;
 			opts$inv 	 <- 1;
 			opts$oth 	 <- 0;
-			opts$matched <- 0;
+			opts$matched <- 1;
 			opts$cnas 	 <- 1;
 			opts$col 	 <- 0;
 		} else {
@@ -170,11 +168,7 @@
 		if(is.null(opts$matched)) { cat(usage()); q(status = 1) }
 
 		home.dir <- make_dir_name(opts);
-
-		# list directories
-		raw.dir 	 <- '/.mounts/labs/cpcgene/private/NanoString/nanostring_cancer_panel/nanostring_data/raw_data';
 		root.dir     <- '/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV';
-		training.dir <- '~/svn/Training/Dorota\ Sendorek/NanoStringNormCNV/';
 
 		setwd(root.dir);
 		data.dir <- paste0(root.dir, '/test_data/');
@@ -509,12 +503,12 @@
 			call.method = opts$cnas,
 			kd.values = kd.vals
 			);
-normalized.data = norm.data
-phenodata = phenodata
-per.chip = opts$perchip
-call.method = opts$cnas
-kd.values = kd.vals
-use.sex.info=TRUE
+		# normalized.data = norm.data
+		# phenodata = phenodata
+		# per.chip = opts$perchip
+		# call.method = opts$cnas
+		# kd.values = kd.vals
+		# use.sex.info=TRUE
 
 		cna.raw <- cna.all$raw;
 		cna.rounded <- cna.all$rounded;
@@ -530,13 +524,13 @@ use.sex.info=TRUE
 			call.method = opts$cnas,
 			kd.values = kd.vals
 			);
-# original.phenodata = phenodata
-normalized.data = norm.data
-phenodata = original.phenodata
-per.chip = opts$perchip
-call.method = opts$cnas
-kd.values = kd.vals
-use.sex.info = TRUE
+		# # original.phenodata = phenodata
+		# normalized.data = norm.data
+		# phenodata = original.phenodata
+		# per.chip = opts$perchip
+		# call.method = opts$cnas
+		# kd.values = kd.vals
+		# use.sex.info = TRUE
 
 		cna.rounded <- cna.all$rounded;
 		cna.raw <- cna.all$raw;
@@ -663,13 +657,13 @@ use.sex.info = TRUE
 		# kd.vals[[3]] <- length(which(tumour.for.plot < intersection.point[3])) / length(tumour.for.plot);
 		# kd.vals[[4]] <- length(which(tumour.for.plot < intersection.point[4])) / length(tumour.for.plot);
 	}
-	
+{	
 	### Evaluate replicates ############################################################################
 	use.genes <- which(norm.data$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"));
 	reps <- evaluate.replicates(
 		normalized.data = norm.data[use.genes,],
 		phenodata = phenodata,
-		cnas = cna.rounded
+		cna.rounded = cna.rounded
 		);
 
 	### OUTPUT #########################################################################################
@@ -719,61 +713,61 @@ use.sex.info = TRUE
 	setwd(plot.dir);
 
 	visualize.results(
-		raw.counts = nano.raw,
-		norm.counts = norm.data,
+		raw.data = nano.raw,
+		normalized.data = norm.data,
 		phenodata = phenodata,
 		cna.rounded = cna.rounded,
 		cna.raw = cna.raw,
 		replicate.eval = reps,
 		max.cn = 10
 		);
+
+	### Save items to compare runs ####################################################################
+	summary.data <- list();
+
+	### save options
+	summary.data$bc 	 <- opts$bc;
+	summary.data$ccn  	 <- opts$ccn;
+	summary.data$scc 	 <- opts$scc;
+	summary.data$oth 	 <- opts$oth;
+	summary.data$matched <- opts$matched;
+	summary.data$perchip <- opts$perchip;
+	summary.data$cnas 	 <- opts$cnas;
+	summary.data$col 	 <- opts$col;
+
+	# sanity check
+	if(! check.sample.order(reps$count.pheno$SampleID, colnames(reps$norm.counts))){
+		stop("Sorry, sample order doesn't match prior to ARI analysis, see above.");
+		}
+
+	if (opts$matched == 0) {
+		score.run.normals <- cna.normals;
+	} else {
+		score.run.normals <- NULL;
+		}
+
+	summary.scores <- score.runs(
+		replicate.eval = reps,
+		normalized.data = norm.data,
+		cna.rounded = cna.rounded,
+		phenodata = phenodata,
+		cna.normals = score.run.normals
+		);
+
+	summary.data <- c(summary.data, summary.scores);
+	print(melt(summary.data));
+
+	### print to file
+	setwd(out.dir);
+	write.table(
+		melt(summary.data),
+		generate.filename('summary', 'statistics', 'txt'),
+		sep = "\t",
+		quote = FALSE,
+		col.names = FALSE,
+		row.names = FALSE
+		);
 }
-
-### Save items to compare runs ####################################################################
-summary.data <- list();
-
-### save options
-summary.data$bc 	 <- opts$bc;
-summary.data$ccn  	 <- opts$ccn;
-summary.data$scc 	 <- opts$scc;
-summary.data$oth 	 <- opts$oth;
-summary.data$matched <- opts$matched;
-summary.data$perchip <- opts$perchip;
-summary.data$cnas 	 <- opts$cnas;
-summary.data$col 	 <- opts$col;
-
-# sanity check
-if(! check.sample.order(reps$count.pheno$SampleID, colnames(reps$norm.counts))){
-	stop("Sorry, sample order doesn't match prior to ARI analysis, see above.");
-	}
-
-if (opts$matched == 0) {
-	score.run.normals <- cna.normals;
-} else {
-	score.run.normals <- NULL;
-	}
-
-summary.scores <- score.runs(
-	replicates = reps,
-	normalized = norm.data,
-	cnas = cna.rounded,
-	sample.annot = phenodata,
-	normals = score.run.normals
-	);
-
-summary.data <- c(summary.data, summary.scores);
-print(melt(summary.data));
-
-### print to file
-setwd(out.dir);
-write.table(
-	melt(summary.data),
-	generate.filename('summary', 'statistics', 'txt'),
-	sep = "\t",
-	quote = FALSE,
-	col.names = FALSE,
-	row.names = FALSE
-	);
 
 ### SESSION_INFO ##################################################################################
 save.session.profile(generate.filename('NS_norm_eval', 'Session_Info','txt'), FALSE);

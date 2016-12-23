@@ -1,4 +1,4 @@
-normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, transform.data = TRUE, plot.types = 'all', pheno = NULL){
+normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, transform.data = TRUE, plot.types = 'all', phenodata = NULL){
 	# modify header to NanoStringNorm standard
 	colnames(phenodata)[colnames(phenodata) == 'Cartridge'] <- 'cartridge';
 	colnames(phenodata)[colnames(phenodata) == 'Type'] 		<- 'type';
@@ -31,7 +31,7 @@ normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs
 
 	# invariant probe normalization
 	if (do.rcc.inv) {
-		normalized.data <- NanoStringNormCNV::invariant.probe.norm(normalized.data, pheno);
+		normalized.data <- NanoStringNormCNV::invariant.probe.norm(normalized.data, phenodata);
 		}
 
 	# perform 'other' normalization last

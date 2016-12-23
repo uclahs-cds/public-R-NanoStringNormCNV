@@ -1,4 +1,3 @@
-
 make.sample.correlations.heatmap <- function(nano.counts, cor.method = 'pearson', fname.stem = NULL, covs = NULL) {
 	# set up legend
 	if (!is.null(covs)) {
