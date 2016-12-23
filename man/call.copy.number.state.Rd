@@ -5,8 +5,8 @@
 \usage{
 call.copy.number.state(
   normalized.data, reference, per.chip = FALSE, chip.info = NULL,
-  thresh.method = 'round', multi.factor = 2, kd.vals = c(0.85, 0.95),
-  adjust = FALSE, cna.thresh = c(0.4, 1.5, 2.5, 3.5)
+  thresh.method = 'round', cna.thresh = c(0.4, 1.5, 2.5, 3.5), kd.values = c(0.85, 0.95),
+  multi.factor = 2, adjust = FALSE 
   )
 }
 \arguments{
@@ -14,11 +14,11 @@ call.copy.number.state(
   \item{reference}{The name(s) of reference sample(s) to be used. Must match the column header of 'normalized.data'}
   \item{per.chip}{Use the reference specific to each chip only. Defaults to FALSE.}
   \item{chip.info}{Annotations for the chips, must include the fields Chip and SampleID. Defaults to NULL}
-  \item{thresh.method}{How to assign CNA states- default is the NS recommended method using their thresholds ('round'), see 'cna.thresh' for control. Can also specify 'KD' for kernel density, see kd.vals for control. Otherwise specify 'none'}
-  \item{multi.factor}{A number to multiply the test/ref ratio by (does not apply to chrX and chrY probes in male samples). NanoString recommends 2 (default), otherwise use 1 for no amplification/boosting}
-  \item{kd.vals}{A 2- or 4-element vector containing the KD thresholds to be used for (hom, het) deletions and (het, hom) amplifications. Defaults to 0.85, 0.95}
-  \item{adjust}{Whether or not to center the data at 2 prior to calling CNAs, default is FALSE}
+  \item{thresh.method}{How to assign CNA states- default is the NS recommended method using their thresholds ('round'), see 'cna.thresh' for control. Can also specify 'KD' for kernel density, see kd.values for control. Otherwise specify 'none'}
   \item{cna.thresh}{A 4-element vector with the tumour-normal thresholds to call homoz deletions, het deletion, single copy gain, multi-copy gain. The defaults are the recommended values by NanoString: 0.4, 1.5, 2.5, 3.5}
+  \item{kd.values}{A 2- or 4-element vector containing the KD thresholds to be used for (hom, het) deletions and (het, hom) amplifications. Defaults to 0.85, 0.95}
+  \item{multi.factor}{A number to multiply the tumour/normal ratio by. Also, the expected neutral copy number used to calculate actual copy numbers given some copy number state (-2, -1, 0, 1, 2) that was generated using the kernel density approach. NanoString recommends 2 (default), otherwise use 1 for no amplification/boosting (i.e. with chrX and chrY probes in male samples)}
+  \item{adjust}{Whether or not to center the data at 2 prior to calling CNAs, default is FALSE}
 }
 \details{Determine the copy number state for each gene in each sample based on counts in the test and reference set.}
 \value{A data-frame with copy number states}
