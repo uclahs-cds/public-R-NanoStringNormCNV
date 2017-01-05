@@ -1,6 +1,6 @@
 get.sample.specific.cna.thresholds <- function(ratios, percent = 0.8) {
 	# perform data check
-	if(length(ratios) < 2){
+	if (length(ratios) < 2) {
 		stop("You must specify a data vector of length > 1");
 		} 
 

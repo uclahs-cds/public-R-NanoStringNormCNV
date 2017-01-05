@@ -7,7 +7,7 @@
   \item{ratios}{A vector of tumour/normal ratios.}
   \item{percent}{The percent of density you would like to have between the threshold bounds (0.1 - 0.99). Default is 0.8}
 }
-\details{This script will return the ratio thresholds that should be used to call CNA states in a given sample. Thresholds are based on the standard deviations of the central 50\% of probes. Copy neutral is 2. Kernel type is gaussian.}
+\details{This script will return the ratio thresholds that should be used to call CNA states in a given sample. Thresholds are based on the standard deviations of the central 50\% of probes. Kernel type is gaussian.}
 \value{A data-frame with 2 thresholds.}
 \author{Emilie Lalonde and Veronica Sabelnykova}
 \examples{
