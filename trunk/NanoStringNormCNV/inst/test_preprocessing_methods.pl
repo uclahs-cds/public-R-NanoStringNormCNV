@@ -32,6 +32,11 @@ for (my $perchip = 0; $perchip <= 1; ++$perchip) {
 						for(my $oth = 0; $oth <= 3; ++$oth){
 							for(my $cnas = 0; $cnas <= 3; ++$cnas){
 								for(my $col = 0; $col <= 1; ++$col){
+									# skipping because this is the same as 'cnas' set to 1
+									if ($matched == 1 && $cnas == 0) {
+										next;
+										}
+									
 									my $job_name = "perchip${perchip}_ccn${ccn}_bc${bc}_scc${scc}_inv${inv}_oth${oth}_matched${matched}_cnas${cnas}_col${col}";
 									print $job_name . "\n";
 									$sge->stage(
