@@ -46,7 +46,7 @@ call.cnas.with.pooled.normals <- function(
 		normalized.data = normalized.data[use.genes,],
 		reference = phenodata$SampleID[is.ref],
 		per.chip = per.chip,
-		chip.info = phenodata,
+		chip.info = phenodata[, c('SampleID', 'Cartridge')],
 		thresh.method = 'none',
 		multi.factor = 2,
 		adjust = TRUE
@@ -58,7 +58,7 @@ call.cnas.with.pooled.normals <- function(
 			normalized.data = normalized.data.XY[use.genes.XY,],
 			reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
 			per.chip = per.chip,
-			chip.info = phenodata,
+			chip.info = phenodata[, c('SampleID', 'Cartridge')],
 			thresh.method = 'none',
 			multi.factor = 1,
 			adjust = TRUE
@@ -75,7 +75,7 @@ call.cnas.with.pooled.normals <- function(
 		normalized.data = normalized.data[, c(1:3, (is.ref + 3))],
 		reference = phenodata$SampleID[is.ref],
 		per.chip = FALSE,
-		chip.info = phenodata[is.ref,],
+		chip.info = phenodata[, c('SampleID', 'Cartridge')],
 		thresh.method = 'none',
 		multi.factor = 2,
 		adjust = TRUE
@@ -107,7 +107,7 @@ call.cnas.with.pooled.normals <- function(
 			normalized.data = normalized.data[use.genes,],
 			reference = phenodata$SampleID[is.ref],
 			per.chip = per.chip,
-			chip.info = phenodata,
+			chip.info = phenodata[, c('SampleID', 'Cartridge')],
 			multi.factor = 2,
 			adjust = TRUE,
 			cna.thresh = thresh
@@ -119,7 +119,7 @@ call.cnas.with.pooled.normals <- function(
 				normalized.data = normalized.data.XY[use.genes.XY,],
 				reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
 				per.chip = per.chip,
-				chip.info = phenodata,
+				chip.info = phenodata[, c('SampleID', 'Cartridge')],
 				multi.factor = 1,
 				adjust = TRUE,
 				cna.thresh = thresh
@@ -148,10 +148,10 @@ call.cnas.with.pooled.normals <- function(
 			normalized.data = normalized.data[use.genes,],
 			reference = phenodata$SampleID[is.ref],
 			per.chip = per.chip,
-			chip.info = phenodata,
+			chip.info = phenodata[, c('SampleID', 'Cartridge')],
 			multi.factor = 2,
 			thresh.method = 'KD',
-			kd.vals = kd.values,
+			kd.values = kd.values,
 			adjust = TRUE
 			);
 
@@ -161,10 +161,10 @@ call.cnas.with.pooled.normals <- function(
 				normalized.data = normalized.data.XY[use.genes.XY,],
 				reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
 				per.chip = per.chip,
-				chip.info = phenodata,
+				chip.info = phenodata[, c('SampleID', 'Cartridge')],
 				multi.factor = 1,
 				thresh.method = 'KD',
-				kd.vals = kd.values,
+				kd.values = kd.values,
 				adjust = TRUE
 				)[, -(1:3)];
 
@@ -181,7 +181,7 @@ call.cnas.with.pooled.normals <- function(
 			normalized.data = normalized.data.XY[, c(1:3, (is.ref.XY + 3))],
 			reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
 			per.chip = FALSE,
-			chip.info = phenodata[phenodata$Sex %in% 'M',][is.ref.XY,],
+			chip.info = phenodata[, c('SampleID', 'Cartridge')],
 			thresh.method = 'none',
 			multi.factor = 1,
 			adjust = TRUE

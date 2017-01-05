@@ -16,7 +16,7 @@ call.cnas.with.matched.normals <- function(
 	sex.probes <- NULL;
 	if (use.sex.info) {
 		if (! 'Sex' %in% colnames(phenodata)) {
-			stop("Sex information not provided in phenodata!");
+			stop("Sex information must be provided in phenodata if use.sex.info = TRUE!");
 			}
 
 		# identify and process XY probes separately
@@ -44,14 +44,16 @@ call.cnas.with.matched.normals <- function(
 	has.ref   <- phenodata$SampleID[!(phenodata$ReferenceID %in% 'missing') & phenodata$Type == 'Tumour'];
 
 	# set up output variables
-	cna.raw 	<- matrix(nrow = length(use.genes), ncol = length(has.ref));
-	cna.rounded <- matrix(nrow = length(use.genes), ncol = length(has.ref));
-
-	colnames(cna.rounded) <- colnames(cna.raw) <- has.ref;
-	rownames(cna.rounded) <- rownames(cna.raw) <- normalized.data$Name[use.genes];
-
-	cna.raw 	<- as.data.frame(cna.raw);
-	cna.rounded <- as.data.frame(cna.rounded);
+	cna.raw	<- as.data.frame(matrix(
+		nrow = length(use.genes),
+		ncol = length(has.ref),
+		dimnames = list(normalized.data$Name[use.genes], has.ref)
+		));
+	cna.rounded <- as.data.frame(matrix(
+		nrow = length(use.genes),
+		ncol = length(has.ref),
+		dimnames = list(normalized.data$Name[use.genes], has.ref)
+		));
 
 	# iterate through each sample here
 	for (tmr in has.ref) {
@@ -138,7 +140,7 @@ call.cnas.with.matched.normals <- function(
 				per.chip = per.chip,
 				chip.info = chip.info,
 				thresh.method = 'KD',
-				kd.vals = kd.values,
+				kd.values = kd.values,
 				multi.factor = 2
 				)[, 4];
 
@@ -151,7 +153,7 @@ call.cnas.with.matched.normals <- function(
 					chip.info = chip.info,
 					multi.factor = 1,
 					thresh.method = 'KD',
-					kd.vals = kd.values
+					kd.values = kd.values
 					)[, 4];
 				}
 			}
