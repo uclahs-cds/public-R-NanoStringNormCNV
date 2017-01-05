@@ -1,7 +1,7 @@
-### assess_preprocessing_methods.R #################################################################
-# Emilie's analysis modified for new NanoString dataset.
+### assess_preprocessing_methods_2.0.R #############################################################
 
 ### NOTES ##########################################################################################
+# Emilie's analysis modified for new NanoString dataset.
 
 ### PREAMBLE #######################################################################################
 library(mclust);
