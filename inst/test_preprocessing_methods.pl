@@ -22,30 +22,32 @@ my $sge = HPCI->group(
 	cluster => 'SGE',
 	logdir => 'logs/',
 	name => 'parameterize_ns',
-	max_concurrent => 500
+	max_concurrent => 250
 	);
 #my $sge = BoutrosLab::Utilities::SGE::JobGroup->new(collect_job_stats => 1);
-
-my ($ccn, $bc, $scc, $inv, $matched, $oth, $cnas, $col) = (0, 0, 0, 0, 0, 0, 0, 0);
 
 my @modules = ('R-BL');
 my $num_jobs = 0;
 
+# my ($ccn, $bc, $scc, $inv, $matched, $oth, $cnas, $col) = (0, 0, 0, 0, 0, 0, 0, 0);
 # my $perchip = 0;
+
 for (my $perchip = 0; $perchip <= 1; ++$perchip) {
-	# for(my $ccn = 0; $ccn <= 2; ++$ccn){
-	# 	for(my $bc = 0; $bc <= 3; ++$bc){
-	# 		for(my $scc = 0; $scc <= 4; ++$scc){
-	# 			for(my $inv = 0; $inv <= 1; ++$inv){
-	# 				for(my $matched = 0; $matched <= 1; ++$matched){
-	# 					for(my $oth = 0; $oth <= 3; ++$oth){
-	# 						for(my $cnas = 0; $cnas <= 3; ++$cnas){
-	# 							for(my $col = 0; $col <= 1; ++$col){
+	for(my $ccn = 0; $ccn <= 2; ++$ccn){
+		for(my $bc = 0; $bc <= 3; ++$bc){
+			for(my $scc = 0; $scc <= 4; ++$scc){
+				for(my $inv = 0; $inv <= 1; ++$inv){
+					for(my $matched = 0; $matched <= 1; ++$matched){
+						for(my $oth = 0; $oth <= 3; ++$oth){
+							for(my $cnas = 0; $cnas <= 3; ++$cnas){
+								for(my $col = 0; $col <= 1; ++$col){
+
 									# skipping because this is the same as 'cnas' set to 1
 									if ($matched == 1 && $cnas == 0) {
 										next;
 										}
 									
+									# stage job
 									my $job_name = "perchip${perchip}_ccn${ccn}_bc${bc}_scc${scc}_inv${inv}_oth${oth}_matched${matched}_cnas${cnas}_col${col}";
 									print $job_name . "\n";
 									$sge->stage(
@@ -56,19 +58,22 @@ for (my $perchip = 0; $perchip <= 1; ++$perchip) {
 										resources_required => {h_vmem => '4G'}
 										);
 									++$num_jobs;
-					# 				}
-					# 			}
-					# 		}
-					# 	}
-					# }
-		# 		}
-		# 	}
-		# }
+
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
+# launch everything
 print "Loaded ${num_jobs} jobs\n";
 my %res = %{$sge->execute()};
 
+# check execution
 print("Should have finished executing\n");
 open(my $status_file, '>failed_jobs.txt');
 my $ret_val = 0;
@@ -80,9 +85,3 @@ foreach my $name (keys %res) {
 		$ret_val = 1;
 		}
 	}
-
-
-
-
-
-
