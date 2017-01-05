@@ -62,8 +62,11 @@ call.copy.number.state <- function (
 			kd.values = kd.values
 			);
 
-		# add CN state to neutral CN to get observed CN (where CN >= 0)
+		# sum CN state and neutral CN to get observed CN
 		out.cna.final <- multi.factor + out.cna.final;
+
+		# set any negative CN to zero
+		# this occurs when a male sex chromosome segment is identified as having a CN loss of > 1
 		out.cna.final[out.cna.final < 0 & !is.na(out.cna.final)] <- 0;
 
 	} else {
@@ -73,7 +76,7 @@ call.copy.number.state <- function (
 
 		}
 
-	# add the probe information back to out.cna.round
+	# add the probe information back to output
 	header.names <- c('Code.Class', 'CodeClass', 'Name', 'Accession');
 	rownames(normalized.data) <- normalized.data[, colnames(normalized.data) == 'Name'];
 	out.cna.final <- cbind(
