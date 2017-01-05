@@ -16,9 +16,9 @@ tumour.normal.ratio.to.cn.state <- function(ratios, thresholds) {
 			return(0);
 			}
 		}
+
 	# iterate through each segment
 	cn.state <- rep(0, length(ratios));
-
 	for (seg in 1:length(ratios)) {
 		cn.state[seg] <- call.5state(thresholds, ratios[seg]);
 		}

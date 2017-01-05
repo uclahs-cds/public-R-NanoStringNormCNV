@@ -503,10 +503,11 @@
 			call.method = opts$cnas,
 			kd.values = kd.vals
 			);
+		# # original.phenodata = phenodata;
 		# normalized.data = norm.data
-		# phenodata = phenodata
+		# phenodata = original.phenodata
 		# per.chip = opts$perchip
-		# call.method = opts$cnas
+		# call.method = 2#opts$cnas
 		# kd.values = kd.vals
 		# use.sex.info=TRUE
 
@@ -545,7 +546,7 @@
 		stop("Sorry, sample order doesn't match after normalization, see above.");
 		}
 
-	pheno.cna <- phenodata[has.ref , ];
+	pheno.cna <- phenodata[has.ref,];
 
 	### Density plots ##################################################################################
 	{

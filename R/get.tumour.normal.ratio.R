@@ -1,4 +1,4 @@
-get.tumour.normal.ratio <- function(normalized.data, reference, chip.info, per.chip = FALSE){
+get.tumour.normal.ratio <- function(normalized.data, reference, chip.info = NULL, per.chip = FALSE){
 	# create empty data-frame to store data
 	output <- normalized.data;
 
@@ -8,21 +8,28 @@ get.tumour.normal.ratio <- function(normalized.data, reference, chip.info, per.c
 	if (any(cols.to.remove %in% cols.to.keep)) {
 		cols.to.keep <- cols.to.keep[!cols.to.keep %in% cols.to.remove];
 		}
-	if (! any(chip.info$SampleID %in% colnames(normalized.data))) {
-		chip.info <- chip.info[match(colnames(normalized.data), chip.info$SampleID),];
-		}
 
 	output <- output[, cols.to.keep, drop = FALSE];
 	output[, cols.to.keep] <- NA;
 
 	# see if user asks to use only chip-specific references
 	if (per.chip) {
-		chips <- unique(chip.info$Cartridge);
-		if (length(chips) < 1) {
-			flog.warn("Cannot get tumour/normal ratios per chip: missing cartridge (chip) information!");
-			per.chip <- 0;
+		if (is.null(chip.info)) {
+			stop("Must provide cartridge information to process 'per.chip'!");			
+		} else if (! all(colnames(normalized.data)[-(1:3)] %in% chip.info$SampleID)) {
+			flog.warn("Incomplete sample cartridge information! Changing 'per.chip' to FALSE");
+			per.chip <- FALSE;
+		} else if (! all(c('SampleID', 'Cartridge') %in% colnames(chip.info))) {
+			flog.warn("Missing/incomplete sample cartridge information! Changing 'per.chip' to FALSE");
+			per.chip <- FALSE;
 			}
+
+		# get ordered chip information for current data samples
+		chip.info <- chip.info[match(colnames(normalized.data)[-(1:3)], chip.info$SampleID),];
+
+		chips <- unique(chip.info$Cartridge);
 		}
+
 	if (!per.chip) {
 		chips <- 'combined';
 		}
@@ -79,4 +86,3 @@ get.tumour.normal.ratio <- function(normalized.data, reference, chip.info, per.c
 
 	return(output);
 	}
-
