@@ -40,7 +40,7 @@ process.xy.probes <- function(normalized.data, sex.info) {
 	
 	# remove chrX and chrY probes from samples where sex is not provided
 	if (any(is.na(sex.info$Sex)) & ! is.null(sex.probes)) {
-		flog.info("Removing XY probes where sample's sex is not available:");
+		flog.info("Excluding XY probes where sample's sex is not available:");
 		for (i in sex.info[is.na(sex.info$Sex),]$SampleID) {
 			cat(paste(c("\t", i, "\n")));
 			normalized.data[c(x.genes, y.genes), i] <- NA;
