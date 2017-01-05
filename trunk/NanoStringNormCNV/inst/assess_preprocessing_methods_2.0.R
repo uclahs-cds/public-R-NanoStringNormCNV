@@ -124,7 +124,7 @@
 				return(FALSE);
 				}
 			}
-	}
+		}
 
 	### SET PARAMETERS #################################################################################
 	{
@@ -168,7 +168,7 @@
 		if(is.null(opts$matched)) { cat(usage()); q(status = 1) }
 
 		home.dir <- make_dir_name(opts);
-		root.dir     <- '/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV';
+		root.dir <- '/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV';
 
 		setwd(root.dir);
 		data.dir <- paste0(root.dir, '/test_data/');
@@ -188,7 +188,7 @@
 			}
 
 		plot.dir <- paste0(out.dir, '/plots/');
-	}
+		}
 
 	### READ DATA ######################################################################################
 	{
@@ -385,7 +385,7 @@
 		if (opts$cnas == 2) kd.vals <- NULL;						# 'KD'; "pkg defaults"   --ToDo
 		if (opts$cnas == 3) kd.vals <- c(0.998, 0.79, 0.88, 0.989); # 'KD'; "user-provided"  --ToDo
 		# if (opts$cnas == 3) kd.vals <- c(0.89, 0.69, 0.65, 0.87); # 'KD'; "user-provided"  --ToDo
-	}
+		}
 
 	### RUN NORMALIZATION ##############################################################################
 	{
@@ -485,7 +485,7 @@
 		if (! check.sample.order(phenodata$SampleID, colnames(norm.data)[-c(1:3)])) {
 			stop("Sorry, sample order doesn't match after normalization, see above.");
 			}
-	}
+		}
 
 	### Collapse genes per region if requested #########################################################
 	if (opts$col == 1) {
@@ -503,13 +503,6 @@
 			call.method = opts$cnas,
 			kd.values = kd.vals
 			);
-		# # original.phenodata = phenodata;
-		# normalized.data = norm.data
-		# phenodata = original.phenodata
-		# per.chip = opts$perchip
-		# call.method = 2#opts$cnas
-		# kd.values = kd.vals
-		# use.sex.info=TRUE
 
 		cna.raw <- cna.all$raw;
 		cna.rounded <- cna.all$rounded;
@@ -525,13 +518,6 @@
 			call.method = opts$cnas,
 			kd.values = kd.vals
 			);
-		# # original.phenodata = phenodata
-		# normalized.data = norm.data
-		# phenodata = original.phenodata
-		# per.chip = opts$perchip
-		# call.method = opts$cnas
-		# kd.values = kd.vals
-		# use.sex.info = TRUE
 
 		cna.rounded <- cna.all$rounded;
 		cna.raw <- cna.all$raw;
@@ -657,7 +643,8 @@
 		# kd.vals[[2]] <- 1 - length(which(tumour.for.plot < intersection.point[2])) / length(tumour.for.plot);
 		# kd.vals[[3]] <- length(which(tumour.for.plot < intersection.point[3])) / length(tumour.for.plot);
 		# kd.vals[[4]] <- length(which(tumour.for.plot < intersection.point[4])) / length(tumour.for.plot);
-	}
+		}
+
 {	
 	### Evaluate replicates ############################################################################
 	use.genes <- which(norm.data$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"));
