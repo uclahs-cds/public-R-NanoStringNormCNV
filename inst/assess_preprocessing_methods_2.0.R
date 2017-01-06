@@ -13,8 +13,10 @@ library(devtools)
 library(getopt);
 load_all("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV");
 
-# specifically samples with low restriction frag ratios
+# set options
 dropoutliers <- 0;
+writetables <- 0;
+plotnorm <- 0;
 
 set.seed(12345);
 
@@ -318,21 +320,6 @@ for (i in 1:nrow(original.hk)) {
 		}
 	}
 
-# collapsed <- nano.raw[nano.raw$CodeClass == 'Housekeeping',];
-# collapsed <- collapse.genes(collapsed);
-# combins <- combn(1:nrow(collapsed), 2);
-# for (i in 1:ncol(combins)) {
-# 	print(combins[,i]);
-# 	print(
-# 		cor(
-# 			unlist(collapsed[combins[1,i],-(1:3)]),
-# 			unlist(collapsed[combins[2,i],-(1:3)])
-# 			)
-# 		);
-# 	}
-# hk <- nano.raw[nano.raw$CodeClass == 'Housekeeping',];
-# hk <- hk[,-(1:3)];
-
 # fix gene names to prevent NSN crashing
 nano.raw$Name <- unlist(lapply(strsplit(x = nano.raw$Name, '\\|'), function(f) f[[1]][1]));
 nano.raw$Name <- gsub(x = nano.raw$Name, pattern = '\\.', '');
@@ -392,36 +379,31 @@ setwd(plot.dir);
 
 ### Positive control normalization + plots
 corrs <- positive.control.norm(nano.raw);
-make.positive.control.plot(
-	correlations = corrs,
-	covs = phenodata[, c('SampleID', 'Type', 'Cartridge')]
-	);
+if (plotnorm == 1) {
+	make.positive.control.plot(
+		correlations = corrs,
+		covs = phenodata[, c('SampleID', 'Type', 'Cartridge')]
+		);
+	}
 
 ### Restriction digestion normalization + plots
-restr.frag.norm.output <- restriction.fragmentation.norm(nano.raw);
+if (plotnorm == 1) {
+	restr.frag.norm.output <- restriction.fragmentation.norm(nano.raw);
 
-# write bad restr dig samples to file
-write.table(
-	restr.frag.norm.output,
-	file = paste0(root.dir, "/normalization_assessment/restr-frag-norm_output.txt"),
-	quote = FALSE,
-	sep = "\t"
-	);
-
-# if (dropoutliers == 0) {
-# 	write.table(
-# 		rownames(restr.frag.norm.output[restr.frag.norm.output$ratio < 10,]),
-# 		file = paste0(root.dir, "/normalization_assessment/restriction-fragmentation_low-ratio.txt"),
-# 		quote = FALSE,
-# 		sep = "\t",
-# 		row.names = FALSE,
-# 		col.names = FALSE
-# 		);
-# 	}
+	# write bad restr dig samples to file
+	write.table(
+		restr.frag.norm.output,
+		file = paste0(root.dir, "/normalization_assessment/restr-frag-norm_output.txt"),
+		quote = FALSE,
+		sep = "\t"
+		);
+	}
 
 ### Invariant probe normalization (this is actually in the main norm fcns)
-inv.probe.norm.output <- invariant.probe.norm(nano.raw, phenodata);
-inv.probe.norm.output <- inv.probe.norm.output[inv.probe.norm.output$CodeClass == 'Invariant',];
+if (plotnorm == 1) {
+	inv.probe.norm.output <- invariant.probe.norm(nano.raw, phenodata);
+	inv.probe.norm.output <- inv.probe.norm.output[inv.probe.norm.output$CodeClass == 'Invariant',];
+	}
 
 # check that there are no samples with mean invariant probe count < 100
 low.count.samples <- names(which(apply(
@@ -652,47 +634,49 @@ reps <- evaluate.replicates(
 	);
 
 ### OUTPUT #########################################################################################
-write.table(
-	cbind(norm.data[use.genes, 1:3], cna.raw),
-	generate.filename('tmr2ref', 'counts', 'txt'),
-	sep = "\t",
-	quote = FALSE
-	);
+if (writetables == 1) {
+	write.table(
+		cbind(norm.data[use.genes, 1:3], cna.raw),
+		generate.filename('tmr2ref', 'counts', 'txt'),
+		sep = "\t",
+		quote = FALSE
+		);
 
-write.table(
-	cbind(norm.data[use.genes, 1:3], cna.rounded),
-	generate.filename('tmr2ref', 'rounded_counts', 'txt'),
-	sep = "\t",
-	quote = FALSE
-	);
+	write.table(
+		cbind(norm.data[use.genes, 1:3], cna.rounded),
+		generate.filename('tmr2ref', 'rounded_counts', 'txt'),
+		sep = "\t",
+		quote = FALSE
+		);
 
-write.table(
-	norm.data,
-	generate.filename('normalized', 'counts', 'txt'),
-	sep = "\t",
-	quote = FALSE
-	);
+	write.table(
+		norm.data,
+		generate.filename('normalized', 'counts', 'txt'),
+		sep = "\t",
+		quote = FALSE
+		);
 
-write.table(
-	reps$variance,
-	generate.filename('replicate_CNAs', 'variance_matrix', 'txt'),
-	sep = "\t",
-	quote = FALSE
-	);
+	write.table(
+		reps$variance,
+		generate.filename('replicate_CNAs', 'variance_matrix', 'txt'),
+		sep = "\t",
+		quote = FALSE
+		);
 
-write.table(
-	reps$concordance,
-	generate.filename('replicate_CNAs', 'concordance_matrix', 'txt'),
-	sep = "\t",
-	quote = FALSE
-	);
+	write.table(
+		reps$concordance,
+		generate.filename('replicate_CNAs', 'concordance_matrix', 'txt'),
+		sep = "\t",
+		quote = FALSE
+		);
 
-write.table(
-	reps$conc.summary,
-	generate.filename('replicate_CNAs', 'concordance_summary', 'txt'),
-	sep = "\t",
-	quote = FALSE
-	);
+	write.table(
+		reps$conc.summary,
+		generate.filename('replicate_CNAs', 'concordance_summary', 'txt'),
+		sep = "\t",
+		quote = FALSE
+		);
+	}
 
 ## PLOTS ##################################################################
 if (opts$vis == 1) {
