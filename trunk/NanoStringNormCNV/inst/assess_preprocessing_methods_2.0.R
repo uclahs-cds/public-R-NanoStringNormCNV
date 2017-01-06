@@ -82,6 +82,10 @@ make_dir_name <- function(params) {
 		name <- paste(name, 'collapsed_by_gene', sep = '_');
 		}
 
+	if (params$vis == 1) {
+		name <- paste(name, 'visualized', sep = '_');
+		}
+
 	return(name);
 	}
 
@@ -135,6 +139,7 @@ if (interactive()) {
 	opts$matched <- 1;
 	opts$cnas 	 <- 1;
 	opts$col 	 <- 0;
+	opts$vis 	 <- 0;
 } else {
 	params <- matrix(
 		c(
@@ -146,7 +151,8 @@ if (interactive()) {
 			'oth',     'h', 1, 'numeric',
 			'matched', 'r', 1, 'numeric',
 			'cnas',    'k', 1, 'numeric',
-			'col',     'o', 1, 'numeric'
+			'col',     'o', 1, 'numeric',
+			'vis',	   'v', 1, 'numeric'
 			),
 		  ncol = 4,
 		  byrow = TRUE
@@ -162,6 +168,7 @@ if(is.null(opts$scc)) 	  { cat(usage()); q(status = 1) }
 if(is.null(opts$inv))	  { cat(usage()); q(status = 1) }
 if(is.null(opts$oth)) 	  { cat(usage()); q(status = 1) }
 if(is.null(opts$matched)) { cat(usage()); q(status = 1) }
+if(is.null(opts$vis))	  { cat(usage()); q(status = 1) }
 
 home.dir <- make_dir_name(opts);
 root.dir <- '/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV';
@@ -480,7 +487,7 @@ if (! check.sample.order(phenodata$SampleID, colnames(norm.data)[-c(1:3)])) {
 
 ### Collapse genes per region if requested #########################################################
 if (opts$col == 1) {
-	norm.data <- collapse.genes(nano.df = norm.data);
+	norm.data <- collapse.genes(normalized.data = norm.data);
 	}
 
 ### Call CNAs ######################################################################################
@@ -688,17 +695,19 @@ write.table(
 	);
 
 ## PLOTS ##################################################################
-setwd(plot.dir);
+if (opts$vis == 1) {
+	setwd(plot.dir);
 
-visualize.results(
-	raw.data = nano.raw,
-	normalized.data = norm.data,
-	phenodata = phenodata,
-	cna.rounded = cna.rounded,
-	cna.raw = cna.raw,
-	replicate.eval = reps,
-	max.cn = 10
-	);
+	visualize.results(
+		raw.data = nano.raw,
+		normalized.data = norm.data,
+		phenodata = phenodata,
+		cna.rounded = cna.rounded,
+		cna.raw = cna.raw,
+		replicate.eval = reps,
+		max.cn = 10
+		);
+	}
 
 ### Save items to compare runs ####################################################################
 summary.data <- list();

@@ -31,6 +31,7 @@ my $num_jobs = 0;
 
 # my ($ccn, $bc, $scc, $inv, $matched, $oth, $cnas, $col) = (0, 0, 0, 0, 0, 0, 0, 0);
 # my $perchip = 0;
+my $vis = 0;
 
 for (my $perchip = 0; $perchip <= 1; ++$perchip) {
 	for(my $ccn = 0; $ccn <= 2; ++$ccn){
@@ -48,10 +49,10 @@ for (my $perchip = 0; $perchip <= 1; ++$perchip) {
 										}
 									
 									# stage job
-									my $job_name = "perchip${perchip}_ccn${ccn}_bc${bc}_scc${scc}_inv${inv}_oth${oth}_matched${matched}_cnas${cnas}_col${col}";
+									my $job_name = "perchip${perchip}_ccn${ccn}_bc${bc}_scc${scc}_inv${inv}_oth${oth}_matched${matched}_cnas${cnas}_col${col}_vis${vis}";
 									print $job_name . "\n";
 									$sge->stage(
-										command => "Rscript assess_preprocessing_methods_2.0.R --perchip $perchip --ccn $ccn --bc $bc --scc $scc --inv $inv --oth $oth --matched $matched --cnas $cnas --col $col",
+										command => "Rscript assess_preprocessing_methods_2.0.R --perchip $perchip --ccn $ccn --bc $bc --scc $scc --inv $inv --oth $oth --matched $matched --cnas $cnas --col $col --vis $vis",
 										name => $job_name,
 										modules_to_load => \@modules,
 										should_save_script => 0,
