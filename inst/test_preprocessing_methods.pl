@@ -18,10 +18,11 @@ use File::ShareDir;
 use FindBin;
 #use File::ShareDir
 
-# get args
-my $group_name = $ARGV[0];
-my $matched = $ARGV[1];
-my $cnas = $ARGV[2];
+# # get args
+my $group_name = "run_all";
+# my $group_name = $ARGV[0];
+# my $matched = $ARGV[1];
+# my $cnas = $ARGV[2];
 
 my $log_dir = "/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV/logs/";
 my $script_dir = "/u/dsendorek/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV/inst/";
@@ -40,19 +41,18 @@ my $num_jobs = 0;
 
 my $vis = 0;
 
-# my ($perchip, $ccn, $bc, $scc, $inv, $oth, $col) = (0,0,0,0,0,0,0);
 for (my $perchip = 0; $perchip <= 1; ++$perchip) {
 	for(my $ccn = 0; $ccn <= 2; ++$ccn){
 		for(my $bc = 0; $bc <= 3; ++$bc){
 			for(my $scc = 0; $scc <= 4; ++$scc){
 				for(my $inv = 0; $inv <= 1; ++$inv){
-					# for(my $matched = 0; $matched <= 1; ++$matched){
+					for(my $matched = 0; $matched <= 1; ++$matched){
 						for(my $oth = 0; $oth <= 3; ++$oth){
-							# for(my $cnas = 0; $cnas <= 3; ++$cnas){
+							for(my $cnas = 0; $cnas <= 3; ++$cnas){
 								for(my $col = 0; $col <= 1; ++$col){
 
-									# skipping because this is the same as 'cnas' set to 1
-									if ($matched == 1 && $cnas == 0) {
+									# skipping because this is the same as 'cnas' set to 0
+									if ($matched == 1 && $cnas == 1) {
 										next;
 										}
 									
@@ -64,14 +64,15 @@ for (my $perchip = 0; $perchip <= 1; ++$perchip) {
 										name => $job_name,
 										modules_to_load => \@modules,
 										should_save_script => 0,
-										resources_required => {h_vmem => '4G'}
+										resources_required => {h_vmem => '2G'}
+										# resources_required => {h_vmem => '4G'}
 										);
 									++$num_jobs;
 
 									}
 								}
-						# 	}
-						# }
+							}
+						}
 					}
 				}
 			}
