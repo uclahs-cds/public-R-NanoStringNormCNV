@@ -634,17 +634,19 @@ reps <- evaluate.replicates(
 	);
 
 ### OUTPUT #########################################################################################
+# table required for downstream comparison
+write.table(
+	cbind(norm.data[use.genes, 1:3], cna.rounded),
+	generate.filename('tmr2ref', 'rounded_counts', 'txt'),
+	sep = "\t",
+	quote = FALSE
+	);
+
+# optional tables
 if (writetables == 1) {
 	write.table(
 		cbind(norm.data[use.genes, 1:3], cna.raw),
 		generate.filename('tmr2ref', 'counts', 'txt'),
-		sep = "\t",
-		quote = FALSE
-		);
-
-	write.table(
-		cbind(norm.data[use.genes, 1:3], cna.rounded),
-		generate.filename('tmr2ref', 'rounded_counts', 'txt'),
 		sep = "\t",
 		quote = FALSE
 		);
@@ -726,7 +728,6 @@ summary.scores <- score.runs(
 	);
 
 summary.data <- c(summary.data, summary.scores);
-# print(melt(summary.data));
 
 ### print to file
 setwd(out.dir);
