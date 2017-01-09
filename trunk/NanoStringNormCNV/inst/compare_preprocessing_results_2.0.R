@@ -22,15 +22,15 @@ source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/acces
 # set colours
 colour.list <- list();
 none.colour <- 'grey80';
-colour.list[['bc']] 	  <- c(none.colour, rev(default.colours(3, palette.type = "spiral.sunrise")));
+colour.list[['bc']]   	  <- c(none.colour, rev(default.colours(3, palette.type = "spiral.sunrise")));
 colour.list[['ccn']]  	  <- c(none.colour, rev(default.colours(2, palette.type = "spiral.afternoon")));
 colour.list[['scc']] 	  <- c(none.colour, rev(default.colours(4, palette.type = "div")));
 colour.list[['matched']] <- c('#ABD9E9', '#2C7BB6');
 colour.list[['oth']] 	  <- c(none.colour, rev(default.colours(3, palette.type = "spiral.dusk")));
 colour.list[['cnas']] 	  <- c(default.colours(5, palette.type = "spiral.dawn")[5:2]);
 colour.list[['col']] 	  <- c(none.colour, 'chartreuse4');
-# colour.list[['perchip.cols']] <- c(none.colour, 'black');
-# colour.list[['inv.cols']] 	  <- c(none.colour, 'darkorchid4');
+# colour.list[['perchip']] <- c(none.colour, 'black');
+# colour.list[['inv']] 	<- c(none.colour, 'darkorchid4');
 
 ### FUNCTIONS #################################################################################
 # Why are the following not included: perchip, inv?
@@ -38,13 +38,14 @@ colour.list[['col']] 	  <- c(none.colour, 'chartreuse4');
 ### Load data
 # modified from ~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R
 # not sure 'ensemble' applies to current dataset
-load.data  <- function(dir.name, patterns = c('global_*', 'perchip_*'), dates, total.runs, n.scores = 15, load.ensemble = FALSE) {
-	{
-		# if (load.ensemble) {
-		# 	total.runs <- total.runs + 1;
-		# 	}
-	}
-	
+load.data  <- function(
+	dir.name,
+	dates,
+	total.runs,
+	patterns = c('global_*', 'perchip_*'),
+	n.scores = 15
+	){
+
 	if (total.runs < 2) { stop("Need at least two samples or results will be wonky!"); }
 
 	results <- matrix(nrow = total.runs, ncol = (n.scores - 8));
@@ -72,29 +73,14 @@ load.data  <- function(dir.name, patterns = c('global_*', 'perchip_*'), dates, t
 				genes[[file.n]]   <- read.delim(
 					paste0(result.patterns[run], '/', dates, '_tmr2ref_rounded_counts.txt')
 					);
-
-				file.n <- file.n + 1;
 			} else {
 				print(paste("Missing file for", patterns[p], result.patterns[run]));
 				}
+			file.n <- file.n + 1;				
 			}
 		}
 
 	last.results <- cur.results;
-
-	{
-		# # DIRECTORY NO LONGER EXISTS: normalization_assessment_outliers_removed_global_pooled_nobc
-		# # read ensemble if requested
-		# if (load.ensemble) {
-		# 	cur.results <- read.delim("~/isilon/private/Collaborators/RobBristow/cna_biomarkers/validation/4_Nanostring/data/normalization_assessment_outliers_removed_global_pooled_nobc/ensemble/2015-01-15_summary_statistics.txt", header = F);
-		# 	#cur.results <- read.delim("~/isilon/private/Collaborators/RobBristow/cna_biomarkers/validation/4_Nanostring/data/normalization_assessment_outliers_removed_global_pooled/ensemble_global_pooled/2015-01-09_summary_statistics.txt", header = F);
-		# 	results[file.n, ] <- as.numeric(t(cur.results[8:n.scores, 1]));
-		# 	params[file.n , ] <- t(cur.results[1:7, 1]);
-		# 	genes[[file.n]] <- read.delim("~/isilon/private/Collaborators/RobBristow/cna_biomarkers/validation/4_Nanostring/data/normalization_assessment_outliers_removed_global_pooled_nobc/ensemble/2015-01-15_NS_ensemble_gene_matrix.txt");
-		# 	#genes[[file.n]] <- read.delim("~/isilon/private/Collaborators/RobBristow/cna_biomarkers/validation/4_Nanostring/data/normalization_assessment_outliers_removed_global_pooled/ensemble_global_pooled/2015-01-09_NS_ensemble_gene_matrix.txt");
-		# 	genes[[file.n]][, -c(1:3)] <- genes[[file.n]][, -c(1:3)]+2;	# convert to 2-neutral space
-		# 	}
-	}
 	
 	colnames(params)  <- last.results[1:8, 2];
 	colnames(results) <- last.results[9:n.scores, 2];
@@ -104,7 +90,11 @@ load.data  <- function(dir.name, patterns = c('global_*', 'perchip_*'), dates, t
 
 	results <- results[, -which(colnames(results) %in% cols.to.remove)];
 
-	return(list(params = as.data.frame(params), scores = as.data.frame(results), genes = genes));
+	return(list(
+		params = as.data.frame(params),
+		scores = as.data.frame(results),
+		genes = genes
+		));
 	}
 
 ### Set up covariates for plotting
@@ -357,22 +347,16 @@ setwd(data.path);
 # load.data will read in the score files from each directory ** probably very specific to my data **
 results <- load.data(
 	dir.name = data.path,
-	dates = '2016-11-18',
-	total.runs = 6,
-	n.scores = 20,
-	load.ensemble = FALSE
+	dates = '2017-01-06',
+	total.runs = 13440,
+	n.scores = 20
 	);
-
-## TEMP ##
-names(results$params)[names(results$params) == "cc"] <- "ccn";
-results$scores$ari.pts[1] <- 0;
-## TEMP ##
 
 # order param results by colour list names
 results$params <- results$params[, match(names(colour.list), names(results$params))];
 
 # colnames(results$params)[8] <- 'collapsed';
-print(results$scores[, grep(x = colnames(results$scores), pattern = 'validation')]);
+# print(results$scores[, grep(x = colnames(results$scores), pattern = 'validation')]);
 
 {
 	# ### Run k-means on params with many ties *** can decide to re-introduce if needed ***
@@ -417,7 +401,16 @@ for (criteria in 1:ncol(results$scores)) {
 				y = as.vector(t(results$scores[criteria])),
 				x = as.vector(t(results$params[param]))
 				);
-			tryCatch(kw.out[criteria, param] <- kruskal.test(y ~ x, data = temp.df)$p.value); 
+			tryCatch(
+				{ kw.out[criteria, param] <- kruskal.test(y ~ x, data = temp.df)$p.value },
+				error = function(e) {
+					print(paste0(
+						"Error at criteria: ", names(results$scores)[criteria], 
+						" and param: ", names(results$params)[param]
+						));
+					kw.out[criteria, param] <- NA;
+					}
+				); 
 			aov.temp <- aov(y ~ x, data = temp.df);
 			aov.out[criteria, param] <- summary(aov.temp)[[1]][1, "Pr(>F)"];
 		} else {
