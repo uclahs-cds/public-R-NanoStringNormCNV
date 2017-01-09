@@ -707,6 +707,7 @@ summary.data$matched <- opts$matched;
 summary.data$perchip <- opts$perchip;
 summary.data$cnas 	 <- opts$cnas;
 summary.data$col 	 <- opts$col;
+summary.data$inv 	 <- opts$inv;
 
 # sanity check
 if(! check.sample.order(reps$count.pheno$SampleID, colnames(reps$norm.counts))){
