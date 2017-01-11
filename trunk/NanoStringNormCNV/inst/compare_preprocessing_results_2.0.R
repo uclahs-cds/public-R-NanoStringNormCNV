@@ -19,18 +19,23 @@ source("~/svn/Resources/code/R/ParameterEval/R/generate.covariates.R")
 source("~/svn/Resources/code/R/BoutrosLab.statistics.general/R/get.pve.R")
 source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
 
+# set up directories
+main.dir <- ("/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV/");
+data.dir <- paste0(main.dir, "normalization_assessment/");
+plot.dir <- paste0(main.dir, "plots/");
+
 # set colours
 colour.list <- list();
 none.colour <- 'grey80';
-colour.list[['bc']]   	  <- c(none.colour, rev(default.colours(3, palette.type = "spiral.sunrise")));
-colour.list[['ccn']]  	  <- c(none.colour, rev(default.colours(2, palette.type = "spiral.afternoon")));
-colour.list[['scc']] 	  <- c(none.colour, rev(default.colours(4, palette.type = "div")));
+colour.list[['bc']]   	 <- c(none.colour, rev(default.colours(3, palette.type = "spiral.sunrise")));
+colour.list[['ccn']]  	 <- c(none.colour, rev(default.colours(2, palette.type = "spiral.afternoon")));
+colour.list[['scc']] 	 <- c(none.colour, rev(default.colours(4, palette.type = "div")));
+colour.list[['oth']] 	 <- c(none.colour, rev(default.colours(3, palette.type = "spiral.dusk")));
 colour.list[['matched']] <- c('#ABD9E9', '#2C7BB6');
-colour.list[['oth']] 	  <- c(none.colour, rev(default.colours(3, palette.type = "spiral.dusk")));
-colour.list[['cnas']] 	  <- c(default.colours(5, palette.type = "spiral.dawn")[5:2]);
-colour.list[['col']] 	  <- c(none.colour, 'chartreuse4');
-# colour.list[['perchip']] <- c(none.colour, 'black');
-# colour.list[['inv']] 	<- c(none.colour, 'darkorchid4');
+colour.list[['perchip']] <- c(none.colour, 'black');
+colour.list[['cnas']] 	 <- c(default.colours(5, palette.type = "spiral.dawn")[5:2]);
+colour.list[['col']] 	 <- c(none.colour, 'chartreuse4');
+colour.list[['inv']] 	 <- c(none.colour, 'darkorchid4');
 
 ### FUNCTIONS #################################################################################
 # Why are the following not included: perchip, inv?
@@ -43,13 +48,14 @@ load.data  <- function(
 	dates,
 	total.runs,
 	patterns = c('global_*', 'perchip_*'),
-	n.scores = 15
+	n.scores = 15,
+	n.params = 9
 	){
 
 	if (total.runs < 2) { stop("Need at least two samples or results will be wonky!"); }
 
-	results <- matrix(nrow = total.runs, ncol = (n.scores - 8));
-	params 	<- matrix(nrow = total.runs, ncol = 8);
+	results <- matrix(nrow = total.runs, ncol = (n.scores - n.params));
+	params 	<- matrix(nrow = total.runs, ncol = n.params);
 	genes	<- list(length = total.runs);
 	file.n 	<- 1;
 
@@ -68,8 +74,8 @@ load.data  <- function(
 					header = FALSE
 					);
 
-				results[file.n, ] <- as.numeric(t(cur.results[9:n.scores, 1]));
-				params[file.n, ]  <- t(cur.results[1:8, 1]);
+				results[file.n, ] <- as.numeric(t(cur.results[(n.params + 1):n.scores, 1]));
+				params[file.n, ]  <- t(cur.results[1:n.params, 1]);
 				genes[[file.n]]   <- read.delim(
 					paste0(result.patterns[run], '/', dates, '_tmr2ref_rounded_counts.txt')
 					);
@@ -82,8 +88,8 @@ load.data  <- function(
 
 	last.results <- cur.results;
 	
-	colnames(params)  <- last.results[1:8, 2];
-	colnames(results) <- last.results[9:n.scores, 2];
+	colnames(params)  <- last.results[1:n.params, 2];
+	colnames(results) <- last.results[(n.params + 1):n.scores, 2];
 
 	cols.to.remove <- qw("sd.inv sd.hk cand.gene.cor prop.disc.genes lmyc.validation normals.w.cnas");
 	# cols.to.remove <- qw("sd.inv sd.hk ari.type ari.pts.normcor cand.gene.cor prop.disc.genes lmyc.validation");
@@ -98,21 +104,11 @@ load.data  <- function(
 	}
 
 ### Set up covariates for plotting
-#	run.covs <- function (parameters) {
-#		x = data.frame(
-#		 	perchip = factor(parameters[, "perchip"], levels = c(0, 1)),
-# 			inv 	= factor(parameters[, "inv"], 	  levels = c(0, 1)),
-#			...
-#			),
-#		colour.list = list(
-#	 		perchip = c('white', 'black'),
-# 			inv 	= c('white', 'red'),
-#			...
-#			)
-# 		}
 make.covs <- function(parameters) {
 	run.covs <- generate.covariates(
 		x = data.frame(
+		 	perchip = factor(parameters[, "perchip"], levels = c(0, 1)),
+			inv 	= factor(parameters[, "inv"], 	  levels = c(0, 1)),
 			ccn 	= factor(parameters[, "ccn"], 	  levels = c(0, 1, 2)),
 			bc 		= factor(parameters[, "bc"], 	  levels = c(0, 1, 2, 3)),
 			scc 	= factor(parameters[, "scc"], 	  levels = c(0, 1, 2, 3, 4)),
@@ -122,6 +118,8 @@ make.covs <- function(parameters) {
 			col 	= factor(parameters[, 'col'], 	  levels = c(0, 1))
 			),
 		colour.list = list(
+	 		perchip = colour.list[['perchip.cols']],
+			inv 	= colour.list[['inv.cols']],
 			ccn 	= colour.list[['ccn.cols']],
 			bc 		= colour.list[['bc.cols']],
 			scc 	= colour.list[['scc.cols']],
@@ -278,9 +276,9 @@ run.glm <- function(glm.data, stem.name) {
 	
 	make.pve.barplot(
 		pve,
-		generate.filename(stem.name, 'glm_bwelim_pve_barplot', 'png')
+		paste0(plot.dir, generate.filename(stem.name, 'glm_bwelim_pve_barplot', 'png'))
 		);
-	pdf(file = generate.filename(stem.name, 'glm_plots', 'pdf'));
+	pdf(file = paste0(plot.dir, generate.filename(stem.name, 'glm_plots', 'pdf')));
 	plot(glm.reduced);
 	dev.off();
 
@@ -292,7 +290,7 @@ run.glm <- function(glm.data, stem.name) {
 	create.scatterplot(
 		resids ~ fitted.vals,
 		data = plot.df,
-		filename = generate.filename(stem.name, 'glm_bwelim_resid_vs_fitted', 'png'),
+		filename = paste0(plot.dir, generate.filename(stem.name, 'glm_bwelim_resid_vs_fitted', 'png')),
 		xlab.label = 'fitted values',
 		ylab.label = 'Standardized residuals',
 		xlab.cex = 2,
@@ -310,13 +308,15 @@ run.rf <- function(glm.data, stem.name) {
 
 	if (stem.name == 'parameters') {
 		rf.params <- randomForest(
-			formula = log10(rank.prod) ~ bc + ccn + scc + matched + oth + cnas + col,
+			formula = log10(rank.prod) ~ bc + ccn + scc + oth + matched + perchip + cnas + col + inv,
+			# formula = log10(rank.prod) ~ bc + ccn + scc + matched + oth + cnas + col,
 			data = glm.data,
 			keep.forest = TRUE
 			);
 	} else {
 		rf.params <- randomForest(
-			formula = log10(rank.prod) ~ ari.chip + ari.pts + sd.inv.and.hk + replicates.conc,
+			formula = log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + sd.inv.and.hk + replicates.conc,
+			# formula = log10(rank.prod) ~ ari.chip + ari.pts + sd.inv.and.hk + replicates.conc,
 			data = glm.data,
 			keep.forest = TRUE
 			);	# *** add any other metrics here! ***
@@ -332,7 +332,7 @@ run.rf <- function(glm.data, stem.name) {
 
 	make.pve.barplot(
 		param.importance,
-		generate.filename(stem.name, 'rf_importance_barplot', 'png'),
+		paste0(plot.dir, generate.filename(stem.name, 'rf_importance_barplot', 'png')),
 		var.type = 'Increase Node Purity'
 		);
 
@@ -341,24 +341,23 @@ run.rf <- function(glm.data, stem.name) {
 
 ### MAIN ########################################################################################
 # collect results data
-data.path <- ("/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV/normalization_assessment/");
-setwd(data.path);
+setwd(data.dir);
 
 # load.data will read in the score files from each directory ** probably very specific to my data **
 results <- load.data(
-	dir.name = data.path,
-	dates = '2017-01-06',
+	dir.name = data.dir,
+	dates = '2017-01-09',
 	total.runs = 13440,
-	n.scores = 20
+	n.scores = 21
 	);
 
 # order param results by colour list names
 results$params <- results$params[, match(names(colour.list), names(results$params))];
 
-# colnames(results$params)[8] <- 'collapsed';
-# print(results$scores[, grep(x = colnames(results$scores), pattern = 'validation')]);
-
 {
+	# colnames(results$params)[8] <- 'collapsed';
+	# print(results$scores[, grep(x = colnames(results$scores), pattern = 'validation')]);
+
 	# ### Run k-means on params with many ties *** can decide to re-introduce if needed ***
 	# sd.clusters <- cluster.param(
 	# 	results$scores$sd.inv.and.hk,
@@ -429,17 +428,20 @@ rownames(aov.out) <- colnames(results$scores);
 colnames(aov.out) <- colnames(results$params);
 
 # Make a heatmap of results
+setwd(plot.dir);
 make.p.heatmap(aov.out, generate.filename('criteria_x_params', 'aov_p_heatmap', 'png'));
 make.p.heatmap(kw.out,  generate.filename('criteria_x_params', 'kw_p_heatmap',  'png'));
 
 ### Rank data according to each metric
 # determine ranks for each variable
+setwd(data.dir);
 # ranks <- results$scores[, -ncol(results$scores)];
 ranks <- results$scores[, !(colnames(results$scores) %in% c('normal.cnas', 'total.cnas'))];# this modification may be incorrect
 print(colnames(ranks));
 
-sort.decr <- c(TRUE, TRUE, FALSE, TRUE, TRUE, FALSE);
-print(sort.decr)
+# sort.decr <- c(TRUE, TRUE, FALSE, TRUE, TRUE, FALSE);#EL
+sort.decr <- c(FALSE, TRUE, TRUE, TRUE, FALSE, TRUE);#DS --see svn/Collaborators/RobBristow/nanostring_validation/normalization/compare_preprocessing_results.R r35400
+print(cbind(metric = names(ranks), decreasing = sort.decr));
 
 for (r in 1:ncol(ranks)) {
 	if (sort.decr[r]) {
@@ -451,18 +453,13 @@ for (r in 1:ncol(ranks)) {
 
 ### Specify 'important' criteria
 # imp.vars <- c('replicates.conc', 'ari.pts.normcor.clusters');
-imp.vars <- c('replicates.conc');
+imp.vars <- c('replicates.conc', 'ari.pts');
 
 overall.rank <- apply(
 	X = ranks[, imp.vars, drop = FALSE],
 	MARGIN = 1,
 	FUN = function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); }
 	);
-
-# overall.rank <- vector(length = nrow(ranks));
-# for (i in 1:nrow(ranks)) {
-# 	overall.rank[i] <- prod(na.omit(ranks[i,imp.vars])) ^ (1 / length(na.omit(ranks[i,imp.vars])));
-# 	}
 
 ranks$overall <- rank(overall.rank);
 run.orders    <- order(ranks$overall);
