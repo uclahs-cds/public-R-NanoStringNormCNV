@@ -11,12 +11,18 @@ library(reshape2);
 library(devtools);
 library(getopt);
 library(randomForest);
-load_all("~/blab_svn/BoutrosLab/Resources/code/R/prostate.acgh.biomarkers");
-load_all("~/blab_svn/BoutrosLab/Resources/code/R/NanoStringNormCNV/");
-source("~/blab_svn/BoutrosLab/Training/elalonde/OncoScan_reprocess/cna.plotting.functions.R");
-source("~/blab_svn/BoutrosLab/Resources/code/R/ParameterEval/R/generate.covariates.R")
-source("~/blab_svn/BoutrosLab/Resources/code/R/BoutrosLab.statistics.general/R/get.pve.R")
-source("~/svn/BoutrosLab/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
+# load_all("~/blab_svn/BoutrosLab/Resources/code/R/prostate.acgh.biomarkers");
+# load_all("~/blab_svn/BoutrosLab/Resources/code/R/NanoStringNormCNV/");
+load_all("~/svn/Resources/code/R/prostate.acgh.biomarkers");
+load_all("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV");
+# source("~/blab_svn/BoutrosLab/Training/elalonde/OncoScan_reprocess/cna.plotting.functions.R");
+# source("~/blab_svn/BoutrosLab/Resources/code/R/ParameterEval/R/generate.covariates.R")
+# source("~/blab_svn/BoutrosLab/Resources/code/R/BoutrosLab.statistics.general/R/get.pve.R")
+# source("~/svn/BoutrosLab/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
+source("~/svn/Training/elalonde/OncoScan_reprocess/cna.plotting.functions.R");
+source("~/svn/Resources/code/R/ParameterEval/R/generate.covariates.R")
+source("~/svn/Resources/code/R/BoutrosLab.statistics.general/R/get.pve.R")
+source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
 
 
 ### FUNCTIONS #################################################################################
@@ -28,7 +34,7 @@ make.covs <- function(parameters){
 			scc = factor(parameters[, "scc"], levels = c(1,2,3,4)),
 			ref = factor(parameters[, 'matched'], levels = c(0, 1)),
 			other = factor(parameters[, 'other'], levels = c(0,1,2,3)),
-			cnas = factor(parameters[, 'cnas'], levels = c(0,1,2,3,4))
+			cnas = factor(parameters[, 'cnas'], levels = c(0,1,2,3,4)),
 			collapsed = factor(parameters[, 'collapsed'], levels = c(0,1))
 			),
 		colour.list = list(
@@ -37,7 +43,7 @@ make.covs <- function(parameters){
 			scc = c('yellow', 'orange', 'red', 'darkmagenta'),
 			ref = c('white', 'pink'),
 			other = brewer.pal(4, 'Set1'),
-			cnas = c('white', 'violet','purple', 'darkorchid4', 'slateblue4')
+			cnas = c('white', 'violet','purple', 'darkorchid4', 'slateblue4'),
 			collapsed = c('white', 'indianred3')
 			)
 #		col.set = 'white'
@@ -242,7 +248,8 @@ for(r in 1:ncol(ranks)){
 	}
 
 ### Specify 'important' criteria
-imp.vars <- c('replicates.conc', 'ari.pts.normcor.clusters'); 
+imp.vars <- c('replicates.conc', 'ari.pts.normcor'); 
+# imp.vars <- c('replicates.conc', 'ari.pts.normcor.clusters'); 
 overall.rank <- apply(ranks[,imp.vars], 1, function(f) prod(na.omit(f))^(1/length(na.omit(f))));
 ranks$overall <- rank(overall.rank);
 run.orders <- order(ranks$overall);
