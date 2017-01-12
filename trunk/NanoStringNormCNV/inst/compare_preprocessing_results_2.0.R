@@ -118,15 +118,15 @@ make.covs <- function(parameters) {
 			col 	= factor(parameters[, 'col'], 	  levels = c(0, 1))
 			),
 		colour.list = list(
-	 		perchip = colour.list[['perchip.cols']],
-			inv 	= colour.list[['inv.cols']],
-			ccn 	= colour.list[['ccn.cols']],
-			bc 		= colour.list[['bc.cols']],
-			scc 	= colour.list[['scc.cols']],
-			matched = colour.list[['matched.cols']],
-			oth 	= colour.list[['oth.cols']],
-			cnas 	= colour.list[['cnas.cols']],
-			col 	= colour.list[['col.cols']]
+	 		perchip = colour.list[['perchip']],
+			inv 	= colour.list[['inv']],
+			ccn 	= colour.list[['ccn']],
+			bc 		= colour.list[['bc']],
+			scc 	= colour.list[['scc']],
+			matched = colour.list[['matched']],
+			oth 	= colour.list[['oth']],
+			cnas 	= colour.list[['cnas']],
+			col 	= colour.list[['col']]
 			),
 		col.set = 'black'
 		);
@@ -198,61 +198,24 @@ make.p.heatmap <- function(pvals, fname) {
 ### Linear model analysis for which params are relevant to run ranking-- evaluate which pipeline parameters are most important
 run.glm <- function(glm.data, stem.name) {
 	### Generalized linear modelling
-	# exclude the other param
-	if (length(unique(glm.data$oth)) == 1) {	# *** these if statements check if multiple options were specified for certain parameters (oth, matched)- if not, don't include in linear model
-		if (length(unique(glm.data$matched)) == 1) {
-			if (length(unique(na.omit(glm.data$col))) == 1) {
-				glm.full <- glm(
-					log10(rank.prod) ~ ccn + scc + cnas + bc + 
-						ccn*scc + ccn*cnas + ccn*bc + 
-						scc*cnas + scc*bc + 
-						cnas*bc,
-					data = glm.data
-					);
-			} else {
-				glm.full <- glm(
-					log10(rank.prod) ~ bc + ccn + scc + cnas + col +
-						bc*ccn + bc*scc + bc*cnas + bc*col + 
-						ccn*scc + ccn*cnas + ccn*col + 
-						scc*cnas + scc*col + 
-						cnas*col,
-					data = glm.data
-					);
-				}
-		} else {
-			glm.full <- glm(
-				log10(rank.prod) ~ bc + ccn + scc + matched + cnas + col +
-					bc*cc + bc*scc + bc*matched + bc*cnas + bc*col +
-					ccn*scc + ccn*matched + ccn*cnas + ccn*col +
-					scc*matched + scc*cnas + scc*col +
-					matched*cnas + matched*col +
-					cnas*col,
-				data = glm.data
-				);
-			}
+	if (stem.name == 'parameters') {
+		glm.full <- glm(
+			log10(rank.prod) ~ perchip + bc + ccn + scc + matched + oth + cnas + col + inv +
+				perchip*bc + perchip*ccn + perchip*scc + perchip*matched + perchip*oth + perchip*cnas + perchip*col + perchip*inv +
+				bc*ccn + bc*scc + bc*matched + bc*oth + bc*cnas + bc*col + bc*inv +
+				ccn*scc + ccn*matched + ccn*oth + ccn*cnas + ccn*col + ccn*inv +
+				scc*matched + scc*oth + scc*cnas + scc*col + scc*inv +
+				matched*oth + matched*cnas + matched*col + matched*inv +
+				oth*cnas + oth*col + oth*inv +
+				cnas*col + cnas*inv +
+				col*inv,
+			data = glm.data
+			);
 	} else {
-		if(length(unique(glm.data$matched)) == 1){
-			glm.full <- glm(
-				log10(rank.prod) ~ bc + ccn + scc + oth + cnas + col +
-					bc*ccn + bc*scc + bc*oth + bc*cnas + bc*col +
-					ccn*scc + ccn*oth + ccn*cnas + ccn*col +
-					scc*oth + scc*cnas + scc*col +
-					oth*cnas + oth*col +
-					cnas*col,
-				data = glm.data
-				);
-		} else {
-			glm.full <- glm(
-				log10(rank.prod) ~ bc + ccn + scc + matched + oth + cnas + col +
-					bc*ccn + bc*scc + bc*matched + bc*oth + bc*cnas + bc*col +
-					ccn*scc + ccn*matched + ccn*oth + ccn*cnas + ccn*col +
-					scc*matched + scc*oth + scc*cnas + scc*col +
-					matched*oth + matched*cnas + matched*col +
-					oth*cnas + oth*col +
-					cnas*col,
-				data = glm.data
-				);
-			}
+		glm.full <- glm(
+			log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + sd.inv.and.hk + replicates.conc,
+			data = glm.data
+			);
 		}
 
 	### Get the percent of variance explained by each parameter
@@ -260,14 +223,11 @@ run.glm <- function(glm.data, stem.name) {
 	pve.full$pve <- pve.full$pve * 100;
 	pve.full$ind <- seq(1:nrow(pve.full));
 	
-	make.pve.barplot(
-		pve.full,
-		generate.filename(stem.name, 'glm_full_pve_barplot', 'png')
-		);
+	make.pve.barplot(pve.full, generate.filename(stem.name, 'glm_full_pve_barplot', 'png'));
 	
-	### Model selection  by AIC (Akaike information criterion)
+	### Model selection by AIC (Akaike information criterion)
 	# According to Wikipedia, AIC "is a measure of relative quality of statistical models for a
-	# given set of data."  It does so by estimating the amount of information lost when a given
+	# given set of data". It does so by estimating the amount of information lost when a given
 	# model is used.
 	glm.reduced <- step(glm.full, direction = 'backward');
 	pve 		<- get.pve(glm.reduced);
@@ -482,11 +442,7 @@ for (r in 1:ncol(reduced.ranks)) {
 final.rank 		<- apply(reduced.ranks, 1, function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); } );
 n.top.ranks 	<- apply(ranks, 		1, function(f) { length(which(f == 1)); } );
 n.top5.ranks 	<- apply(ranks, 		1, function(f) { length(which(f <= 5)); } );
-n.top5imp.ranks <- apply(ranks[, imp.vars, drop = FALSE], 1, function(f) { length(which(f <= 5)); } );
-# n.top5imp.ranks <- vector(length = nrow(ranks));
-# for (i in 1:nrow(ranks)) {
-# 	n.top5imp.ranks[i] <- length(which(ranks[i, ] <= 5));
-# 	}
+n.top5imp.ranks <- apply(ranks[, imp.vars, drop = FALSE], 1, function(f) { length(which(f <= 5)); } );# this doesn't get accessed anywhere
 
 # add the rank prod to the matrix
 reduced.ranks$rank.prod <- final.rank;
@@ -495,13 +451,14 @@ reduced.ranks$rank.prod <- final.rank;
 ordering.scores.df <- data.frame(
 	top  = n.top.ranks * -1,	# need -1 for rand prod below
 	top5 = n.top5.ranks * -1,
-	imp.rank.prod = apply(ranks[, imp.vars, drop = FALSE], 1, function(f) { prod(f) ^ (1 / length(f)); } ),
+	imp.rank.prod = apply(ranks[, imp.vars, drop = FALSE], 1, function(f) { prod(f) ^ (1 / length(f)); } ),# same as overall.rank
 	all.rank.prod = apply(ranks, 1, function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); } ),
 	reduced.ranks.score = final.rank
 	);
 
 reduced.ranks$all.rank.prod <- ordering.scores.df$all.rank.prod;
 reduced.ranks$imp.rank.prod <- ordering.scores.df$imp.rank.prod;
+
 ordering.scores.df$summary.rank.prod <- apply(
 	X = apply(ordering.scores.df, 2, rank),
 	MARGIN = 1,
@@ -516,11 +473,14 @@ run.orders2 <- order(
 	ordering.scores.df$top5
 	);
 
-reduced.ranks 		   <- reduced.ranks[run.orders2,];
-reduced.ranks$overall  <- seq(1:nrow(reduced.ranks));
+reduced.ranks 		  <- reduced.ranks[run.orders2,];
+reduced.ranks$overall <- seq(1:nrow(reduced.ranks));
 
 ordering.scores.df 	   <- ordering.scores.df[run.orders2,];
 ordering.scores.df$run <- seq(1:nrow(ordering.scores.df));
+
+reduced.ranks$my.rank <- rank(apply(reduced.ranks[, -ncol(reduced.ranks)], 1, sum), ties = 'average');
+ordering.scores.df$my.rank <- rank(apply(ordering.scores.df[, -ncol(ordering.scores.df)], 1, sum), ties = 'average');
 
 # put variables back to positive space
 ordering.scores.df$top  <- ordering.scores.df$top  * -1;
@@ -531,7 +491,8 @@ write.table(
 	cbind(results$params[run.orders2,], ordering.scores.df, ranks[run.orders2,]),
 	generate.filename('params_x_scores', 'ranked_output', 'txt'),
 	sep= "\t",
-	quote = FALSE
+	quote = FALSE,
+	row.names = FALSE
 	);
 
 ### Fit some linear models to evaluate statistically which variables are important for the rank product
@@ -546,9 +507,11 @@ rf.params 		 <- run.rf(glm.df, stem.name ='parameters');
 glm.df.criteria 		  <- results$scores;
 glm.df.criteria$rank.prod <- overall.rank;
 # glm.reduced.criteria 	  <- run.glm(glm.df.criteria, stem.name = 'criteria');
-rf.criteria 	  <- run.rf(glm.df.criteria, stem.name = 'criteria');
+rf.criteria 	 		  <- run.rf(glm.df.criteria, stem.name = 'criteria');
 
 ### Plotting ################################################################
+setwd(plot.dir);
+
 # make a plot of run scores showing params as covariates
 # order matrix according to scores
 scores.plotting <- as.data.frame(results$scores[run.orders, ]);
@@ -558,20 +521,20 @@ run.covs <- make.covs(results$params[run.orders,]);
 
 border.col <- 'black';
 run.legend <- list(
-	# legend = list(
-	# 	colours = rev(colour.list[['perchip.cols']]),
-	# 	title = 'Per Chip',
-	# 	border = border.col,
-	# 	labels.cex = 1,
-	# 	labels = c('yes', 'no')
-	# 	),
-	# legend = list(
-	# 	colours = rev(colour.list[['inv.cols']]),
-	# 	title = 'Invariant Probe',
-	# 	border = border.col,
-	# 	labels.cex = 1,
-	# 	labels = c('yes', 'no')
-	# 	),
+	legend = list(
+		colours = rev(colour.list[['perchip.cols']]),
+		title = 'Per Chip',
+		border = border.col,
+		labels.cex = 1,
+		labels = c('yes', 'no')
+		),
+	legend = list(
+		colours = rev(colour.list[['inv.cols']]),
+		title = 'Invariant Probe',
+		border = border.col,
+		labels.cex = 1,
+		labels = c('yes', 'no')
+		),
 	legend = list(
 		colours = rev(colour.list[['bc.cols']]),
 		title = 'Background',
