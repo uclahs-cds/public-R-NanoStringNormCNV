@@ -371,7 +371,8 @@ do.nsn.norm <- TRUE;
 if (opts$cnas == 0) kd.vals <- NULL; # 'round'; using NS-provided thresholds
 if (opts$cnas == 1) kd.vals <- NULL; # 'round'; using min/max seen in normals
 if (opts$cnas == 2) kd.vals <- NULL;						# 'KD'; "pkg defaults"   --ToDo
-if (opts$cnas == 3) kd.vals <- c(0.998, 0.79, 0.88, 0.989); # 'KD'; "user-provided"  --ToDo
+# if (opts$cnas == 3) kd.vals <- c(0.998, 0.79, 0.88, 0.989); # 'KD'; "user-provided"  --ToDo
+if (opts$cnas == 3) kd.vals <- c(0.98, 0.84, 0.92, 0.97); # 'KD'; "user-provided"  --ToDo
 # if (opts$cnas == 3) kd.vals <- c(0.89, 0.69, 0.65, 0.87); # 'KD'; "user-provided"  --ToDo
 
 ### RUN NORMALIZATION ##############################################################################
