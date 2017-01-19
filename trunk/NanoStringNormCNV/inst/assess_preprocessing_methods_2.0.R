@@ -50,10 +50,8 @@ make_dir_name <- function(params) {
 		name <- paste(name, 'scc-top-gm', sep = '_');
 	} else if (params$scc == 4) {
 		name <- paste(name, 'scc-low-gm', sep = '_');
-		}
-
-	if (params$inv == 1) {
-		name <- paste(name, 'inv', sep = '_');
+	} else if (params$scc == 5) {
+		name <- paste(name, 'scc-inv', sep = '_');
 		}
 
 	if (params$oth == 1) {
@@ -78,6 +76,10 @@ make_dir_name <- function(params) {
 		name <- paste(name, 'cnas-kdDefault', sep = '_');
 	} else if (params$cnas == 3) {
 		name <- paste(name, 'cnas-kdUser', sep = '_');
+	} else if (params$cnas == 4) {
+		name <- paste(name, 'cnas-4', sep = '_');
+	} else if (params$cnas == 5) {
+		name <- paste(name, 'cnas-5', sep = '_');
 		}
 
 	if (params$col == 1) {
@@ -135,8 +137,7 @@ if (interactive()) {
 	opts$perchip <- 1;
 	opts$ccn  	 <- 1;
 	opts$bc 	 <- 1;
-	opts$scc 	 <- 1;
-	opts$inv 	 <- 1;
+	opts$scc 	 <- 5;
 	opts$oth 	 <- 0;
 	opts$matched <- 1;
 	opts$cnas 	 <- 1;
@@ -149,7 +150,6 @@ if (interactive()) {
 			'ccn', 	   'n', 1, 'numeric',
 			'bc', 	   'b', 1, 'numeric',
 			'scc', 	   's', 1, 'numeric',
-			'inv',	   'i', 1, 'numeric',
 			'oth',     'h', 1, 'numeric',
 			'matched', 'r', 1, 'numeric',
 			'cnas',    'k', 1, 'numeric',
@@ -167,7 +167,6 @@ if(is.null(opts$perchip)) { cat(usage()); q(status = 1) }
 if(is.null(opts$ccn)) 	  { cat(usage()); q(status = 1) }
 if(is.null(opts$bc)) 	  { cat(usage()); q(status = 1) }
 if(is.null(opts$scc)) 	  { cat(usage()); q(status = 1) }
-if(is.null(opts$inv))	  { cat(usage()); q(status = 1) }
 if(is.null(opts$oth)) 	  { cat(usage()); q(status = 1) }
 if(is.null(opts$matched)) { cat(usage()); q(status = 1) }
 if(is.null(opts$vis))	  { cat(usage()); q(status = 1) }
@@ -349,14 +348,17 @@ if (opts$bc == 2) bc.val <- 'mean.2sd';
 if (opts$bc == 3) bc.val <- 'max';
 # bc.val <- ifelse(opts$bc == 1, 'mean.2sd', 'none');
 
-if (opts$inv == 0) do.rcc.inv.norm <- FALSE;
-if (opts$inv == 1) do.rcc.inv.norm <- TRUE;
-
 if (opts$scc == 0) sc.val <- 'none';
 if (opts$scc == 1) sc.val <- 'housekeeping.geo.mean';
 if (opts$scc == 2) sc.val <- 'total.sum';
 if (opts$scc == 3) sc.val <- 'top.geo.mean';
 if (opts$scc == 4) sc.val <- 'low.cv.geo.mean';
+if (opts$scc == 5) {
+	sc.val <- 'none';
+	do.rcc.inv.norm <- TRUE;
+} else {
+	do.rcc.inv.norm <- FALSE;
+	}
 
 if (opts$oth == 0) oth.val <- 'none';
 if (opts$oth == 1) oth.val <- 'vsn';
@@ -367,13 +369,12 @@ if (opts$oth == 3) oth.val <- 'quantile';
 do.nsn.norm <- TRUE;
 
 # set up kd values if required
-# if (opts$kd > 0) { thresh.method <- 'KD'; }# this variable doesn't actually exist anywhere
 if (opts$cnas == 0) kd.vals <- NULL; # 'round'; using NS-provided thresholds
 if (opts$cnas == 1) kd.vals <- NULL; # 'round'; using min/max seen in normals
 if (opts$cnas == 2) kd.vals <- NULL;						# 'KD'; "pkg defaults"   --ToDo
-# if (opts$cnas == 3) kd.vals <- c(0.998, 0.79, 0.88, 0.989); # 'KD'; "user-provided"  --ToDo
-if (opts$cnas == 3) kd.vals <- c(0.98, 0.84, 0.92, 0.97); # 'KD'; "user-provided"  --ToDo
-# if (opts$cnas == 3) kd.vals <- c(0.89, 0.69, 0.65, 0.87); # 'KD'; "user-provided"  --ToDo
+if (opts$cnas == 3) kd.vals <- c(0.998, 0.79, 0.88, 0.989); # 'KD'; "user-provided"  --ToDo
+if (opts$cnas == 4) kd.vals <- c(0.980, 0.84, 0.92, 0.970); # 'KD'; "user-provided"  --ToDo
+if (opts$cnas == 5) kd.vals <- c(0.89, 0.69, 0.65, 0.87); 	# 'KD'; "user-provided"  --ToDo
 
 ### RUN NORMALIZATION ##############################################################################
 setwd(plot.dir);
@@ -708,7 +709,6 @@ summary.data$matched <- opts$matched;
 summary.data$perchip <- opts$perchip;
 summary.data$cnas 	 <- opts$cnas;
 summary.data$col 	 <- opts$col;
-summary.data$inv 	 <- opts$inv;
 
 # sanity check
 if(! check.sample.order(reps$count.pheno$SampleID, colnames(reps$norm.counts))){
