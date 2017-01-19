@@ -29,16 +29,16 @@ colour.list <- list();
 none.colour <- 'grey80';
 colour.list[['bc']]   	 <- c(none.colour, rev(default.colours(3, palette.type = "spiral.sunrise")));
 colour.list[['ccn']]  	 <- c(none.colour, rev(default.colours(2, palette.type = "spiral.afternoon")));
-colour.list[['scc']] 	 <- c(none.colour, rev(default.colours(4, palette.type = "div")));
+colour.list[['scc']] 	 <- c(none.colour, rev(default.colours(5, palette.type = "div")));
 colour.list[['oth']] 	 <- c(none.colour, rev(default.colours(3, palette.type = "spiral.dusk")));
 colour.list[['matched']] <- c('#ABD9E9', '#2C7BB6');
 colour.list[['perchip']] <- c(none.colour, 'black');
-colour.list[['cnas']] 	 <- c(default.colours(5, palette.type = "spiral.dawn")[5:2]);
+colour.list[['cnas']] 	 <- c("#f1eef6", "#d4b9da", "#c994c7", "#df65b0", "#dd1c77", "#980043");
+# colour.list[['cnas']] 	 <- c(default.colours(5, palette.type = "spiral.dawn")[5:2]);
 colour.list[['col']] 	 <- c(none.colour, 'chartreuse4');
-colour.list[['inv']] 	 <- c(none.colour, 'darkorchid4');
 
 ### FUNCTIONS #################################################################################
-# Why are the following not included: perchip, inv?
+# added parameters 'perchip'
 
 ### Load data
 # modified from ~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R
@@ -76,9 +76,7 @@ load.data  <- function(
 
 				results[file.n, ] <- as.numeric(t(cur.results[(n.params + 1):n.scores, 1]));
 				params[file.n, ]  <- t(cur.results[1:n.params, 1]);
-				genes[[file.n]]   <- read.delim(
-					paste0(result.patterns[run], '/', dates, '_tmr2ref_rounded_counts.txt')
-					);
+				genes[[file.n]]   <- read.delim(paste0(result.patterns[run], '/', dates, '_tmr2ref_rounded_counts.txt'));
 			} else {
 				print(paste("Missing file for", patterns[p], result.patterns[run]));
 				}
@@ -108,27 +106,25 @@ make.covs <- function(parameters) {
 	run.covs <- generate.covariates(
 		x = data.frame(
 		 	perchip = factor(parameters[, "perchip"], levels = c(0, 1)),
-			inv 	= factor(parameters[, "inv"], 	  levels = c(0, 1)),
 			ccn 	= factor(parameters[, "ccn"], 	  levels = c(0, 1, 2)),
 			bc 		= factor(parameters[, "bc"], 	  levels = c(0, 1, 2, 3)),
-			scc 	= factor(parameters[, "scc"], 	  levels = c(0, 1, 2, 3, 4)),
+			scc 	= factor(parameters[, "scc"], 	  levels = c(0, 1, 2, 3, 4, 5)),
 			matched = factor(parameters[, 'matched'], levels = c(0, 1)),
 			oth 	= factor(parameters[, 'oth'], 	  levels = c(0, 1, 2, 3)),
-			cnas 	= factor(parameters[, 'cnas'], 	  levels = c(0, 1, 2, 3)),
+			cnas 	= factor(parameters[, 'cnas'], 	  levels = as.numeric(levels(as.factor(parameters$cnas)))),
 			col 	= factor(parameters[, 'col'], 	  levels = c(0, 1))
 			),
 		colour.list = list(
 	 		perchip = colour.list[['perchip']],
-			inv 	= colour.list[['inv']],
 			ccn 	= colour.list[['ccn']],
 			bc 		= colour.list[['bc']],
 			scc 	= colour.list[['scc']],
 			matched = colour.list[['matched']],
 			oth 	= colour.list[['oth']],
-			cnas 	= colour.list[['cnas']],
+			cnas 	= colour.list[['cnas']][1:nlevels(as.factor(results$params$cnas))],
 			col 	= colour.list[['col']]
-			),
-		col.set = 'black'
+			)#,
+		# col.set = 'black'
 		);
 
 	return(run.covs);
@@ -200,15 +196,14 @@ run.glm <- function(glm.data, stem.name) {
 	### Generalized linear modelling
 	if (stem.name == 'parameters') {
 		glm.full <- glm(
-			log10(rank.prod) ~ perchip + bc + ccn + scc + matched + oth + cnas + col + inv +
-				perchip*bc + perchip*ccn + perchip*scc + perchip*matched + perchip*oth + perchip*cnas + perchip*col + perchip*inv +
-				bc*ccn + bc*scc + bc*matched + bc*oth + bc*cnas + bc*col + bc*inv +
-				ccn*scc + ccn*matched + ccn*oth + ccn*cnas + ccn*col + ccn*inv +
-				scc*matched + scc*oth + scc*cnas + scc*col + scc*inv +
-				matched*oth + matched*cnas + matched*col + matched*inv +
-				oth*cnas + oth*col + oth*inv +
-				cnas*col + cnas*inv +
-				col*inv,
+			log10(rank.prod) ~ perchip + bc + ccn + scc + matched + oth + cnas + col + 
+				perchip*bc + perchip*ccn + perchip*scc + perchip*matched + perchip*oth + perchip*cnas + perchip*col +
+				bc*ccn + bc*scc + bc*matched + bc*oth + bc*cnas + bc*col + 
+				ccn*scc + ccn*matched + ccn*oth + ccn*cnas + ccn*col + 
+				scc*matched + scc*oth + scc*cnas + scc*col + 
+				matched*oth + matched*cnas + matched*col + 
+				oth*cnas + oth*col + 
+				cnas*col,
 			data = glm.data
 			);
 	} else {
@@ -262,13 +257,9 @@ run.glm <- function(glm.data, stem.name) {
 
 ### Random forest analysis in regression mode-- evaluate which scores are most important
 run.rf <- function(glm.data, stem.name) {
-	## NOTE: commented out because I don't think we are using ensemble at all..
-	# # remove ensemble data since there are many missing values
-	# glm.data <- glm.data[-nrow(glm.data), ];
-
 	if (stem.name == 'parameters') {
 		rf.params <- randomForest(
-			formula = log10(rank.prod) ~ bc + ccn + scc + oth + matched + perchip + cnas + col + inv,
+			formula = log10(rank.prod) ~ bc + ccn + scc + oth + matched + perchip + cnas + col,
 			# formula = log10(rank.prod) ~ bc + ccn + scc + matched + oth + cnas + col,
 			data = glm.data,
 			keep.forest = TRUE
@@ -306,9 +297,10 @@ setwd(data.dir);
 # load.data will read in the score files from each directory ** probably very specific to my data **
 results <- load.data(
 	dir.name = data.dir,
-	dates = '2017-01-09',
-	total.runs = 13440,
-	n.scores = 21
+	dates = '2017-01-18',
+	total.runs = 12672,
+	n.scores = 20,
+	n.params = 8
 	);
 
 # order param results by colour list names
@@ -364,7 +356,7 @@ for (criteria in 1:ncol(results$scores)) {
 				{ kw.out[criteria, param] <- kruskal.test(y ~ x, data = temp.df)$p.value },
 				error = function(e) {
 					print(paste0(
-						"Error at criteria: ", names(results$scores)[criteria], 
+						"Cannot test at criteria: ", names(results$scores)[criteria], 
 						" and param: ", names(results$params)[param]
 						));
 					kw.out[criteria, param] <- NA;
@@ -397,7 +389,6 @@ make.p.heatmap(kw.out,  generate.filename('criteria_x_params', 'kw_p_heatmap',  
 setwd(data.dir);
 # ranks <- results$scores[, -ncol(results$scores)];
 ranks <- results$scores[, !(colnames(results$scores) %in% c('normal.cnas', 'total.cnas'))];# this modification may be incorrect
-print(colnames(ranks));
 
 # sort.decr <- c(TRUE, TRUE, FALSE, TRUE, TRUE, FALSE);#EL
 sort.decr <- c(FALSE, TRUE, TRUE, TRUE, FALSE, TRUE);#DS --see svn/Collaborators/RobBristow/nanostring_validation/normalization/compare_preprocessing_results.R r35400
@@ -414,6 +405,7 @@ for (r in 1:ncol(ranks)) {
 ### Specify 'important' criteria
 # imp.vars <- c('replicates.conc', 'ari.pts.normcor.clusters');
 imp.vars <- c('replicates.conc', 'ari.pts');
+# imp.vars <- c('ari.chip', 'ari.pts.normcor', 'ari.type', 'sd.inv.and.hk', 'replicates.conc', 'ari.pts');
 
 overall.rank <- apply(
 	X = ranks[, imp.vars, drop = FALSE],
@@ -496,18 +488,17 @@ write.table(
 	);
 
 ### Fit some linear models to evaluate statistically which variables are important for the rank product
-### UH OH --run.glm cannot be run on criteria.. should run.rf and run.glm be swapped??
-
 # for parameters
 glm.df 			 <- data.frame(lapply(results$params, factor));
 glm.df$rank.prod <- final.rank;
-rf.params 		 <- run.rf(glm.df, stem.name ='parameters');
+glm.params 		 <- run.glm(glm.df, stem.name = 'parameters');
+rf.params 		 <- run.rf(glm.df,  stem.name = 'parameters');
 
 # for ranking criteria
 glm.df.criteria 		  <- results$scores;
 glm.df.criteria$rank.prod <- overall.rank;
-# glm.reduced.criteria 	  <- run.glm(glm.df.criteria, stem.name = 'criteria');
-rf.criteria 	 		  <- run.rf(glm.df.criteria, stem.name = 'criteria');
+glm.criteria 	  		  <- run.glm(glm.df.criteria, stem.name = 'criteria');
+rf.criteria 	 		  <- run.rf(glm.df.criteria,  stem.name = 'criteria');
 
 ### Plotting ################################################################
 setwd(plot.dir);
@@ -522,72 +513,65 @@ run.covs <- make.covs(results$params[run.orders,]);
 border.col <- 'black';
 run.legend <- list(
 	legend = list(
-		colours = rev(colour.list[['perchip.cols']]),
-		title = 'Per Chip',
-		border = border.col,
-		labels.cex = 1,
-		labels = c('yes', 'no')
-		),
-	legend = list(
-		colours = rev(colour.list[['inv.cols']]),
-		title = 'Invariant Probe',
-		border = border.col,
-		labels.cex = 1,
-		labels = c('yes', 'no')
-		),
-	legend = list(
-		colours = rev(colour.list[['bc.cols']]),
-		title = 'Background',
-		border = border.col,
-		labels.cex = 1,
-		labels = c('max', 'mean.2sd', 'mean', 'none')
-		),
-	legend = list(
-		colours = rev(colour.list[['ccn.cols']]),
-		title = 'Code Count',
-		border = border.col,
-		labels.cex = 0.75,
-		labels = c('geo.mean', 'sum', 'none')
-		),
-	legend = list(
-		colours = rev(colour.list[['scc.cols']]),
-		title = 'Sample Content',
+		colours = rev(colour.list[['col']]),
+		title = 'Collapsed Probeset',
 		border = border.col,
 		cex = 1,
-		labels = c('low.cv.geo.mean', 'top.geo.mean', 'total.sum', 'housekeeping.geo.mean', 'none')
+		labels = c('yes', 'no')
 		),
 	legend = list(
-		colours = rev(colour.list[['matched.cols']]),
+		colours = rev(colour.list[['cnas']]),
+		title = 'CNA Method',
+		border = border.col,
+		cex = 1,
+		labels = c('KD: 0.89, 0.69, 0.65, 0.87', 'KD: 0.98, 0.84, 0.92, 0.97', 'KD: 0.998, 0.79, 0.88, 0.989', 'KD (default): 0.85, 0.95', 'Normal Min/Max Thresholds', 'NS-inspired Thresholds')
+		),
+	legend = list(
+		colours = rev(colour.list[['oth']]),
+		title = 'Other Norm',
+		border = border.col,
+		cex = 1,
+		labels = c('quantile', 'rank.normal', 'vsn', 'none')
+		),
+	legend = list(
+		colours = rev(colour.list[['matched']]),
 		title = 'Reference',
 		border = border.col,
 		cex = 1,
 		labels = c('matched', 'pooled')
 		),
 	legend = list(
-		colours = rev(colour.list[['oth.cols']]),
-		title = 'Other',
+		colours = rev(colour.list[['scc']]),
+		title = 'Sample Content',
 		border = border.col,
 		cex = 1,
-		labels = c('quantile', 'rank.normal', 'vsn', 'none')
+		labels = c('invariant.norm', 'low.cv.geo.mean', 'top.geo.mean', 'total.sum', 'housekeeping.geo.mean', 'none')
 		),
 	legend = list(
-		colours = rev(colour.list[['cnas.cols']]),
-		title = 'CNA Method',
+		colours = rev(colour.list[['bc']]),
+		title = 'Background',
 		border = border.col,
-		cex = 1,
-		labels = c('KD: 0.998, 0.79, 0.88, 0.989', 'KD (default): 0.85, 0.95', 'Normal Min/Max Thresholds', 'NS-provided Thresholds')
+		labels.cex = 1,
+		labels = c('max', 'mean.2sd', 'mean', 'none')
 		),
 	legend = list(
-		colours = rev(colour.list[['col.cols']]),
-		title = 'Collapsed',
+		colours = rev(colour.list[['ccn']]),
+		title = 'Code Count',
 		border = border.col,
-		cex = 1,
+		labels.cex = 0.75,
+		labels = c('geo.mean', 'sum', 'none')
+		),
+	legend = list(
+		colours = rev(colour.list[['perchip']]),
+		title = 'Per Chip',
+		border = border.col,
+		labels.cex = 1,
 		labels = c('yes', 'no')
 		)
 	);
 
 create.heatmap(
-	x = scores.plotting,
+	x = scores.plotting[,! names(scores.plotting) %in% c('normal.cnas', 'total.cnas')],
 	generate.filename('runs_summary', 'heatmap', 'png'),
 	yaxis.lab = TRUE,
 	yaxis.cex = 1,
@@ -597,11 +581,13 @@ create.heatmap(
 	covariates.top = run.covs,
 	scale.data = TRUE,
 	covariate.legends = run.legend,
+	legend.title.cex = 0.85,
 	legend.cex = 0.75,
 	legend.side = 'right',
 	colour.scheme = c('purple', 'white', 'yellow'),
-	resolution = 600,
-	height = 8
+	resolution = 1000,
+	height = 9,
+	width = 10
 	);
 
 ### heatmap of ranks
@@ -615,11 +601,13 @@ create.heatmap(
 	fill.colour = none.colour,
 	covariates.top = run.covs,
 	covariate.legends = run.legend,
+	legend.title.cex = 0.75,
 	legend.cex = 0.75,
 	legend.side = 'right',
 	colour.scheme = c('white', 'purple'),
+	colourkey.cex = 1,
 	resolution = 600,
-	height = 8
+	height = 9
 	);
 
 ### For each criteria, plot the distribution in the cohort
@@ -638,113 +626,52 @@ for (x in 1:ncol(final.scores)) {
 		value = temp.scores[, x]
 		);
 
-	#temp.df <- data.frame(
-	#	ranks = final.scores$overall,
-	#	value = final.scores[,x]
-	#	);
-
-	## NOTE: currently create.barplots is not displaying rectangles (JIRA report already filed..)
-	# # display NAs
-	# add.rect 	 <- FALSE;
-	# xleft.rect 	 <- 0;
-	# xright.rect  <- 0;
-	# ybottom.rect <- 0;
-	# ytop.rect 	 <- 0;
-
-	# if (any(is.na(temp.df$value))) {
-	# 	add.rect <- TRUE;
-	# 	na.indices <- which(is.na(temp.df$value));
-		
-	# 	xleft.rect   <- na.indices - 0.5;
-	# 	xright.rect  <- na.indices + 0.5;
-	# 	ybottom.rect <- min(temp.df$value, na.rm = TRUE) - diff(range(temp.df$value, na.rm = TRUE));
-	# 	ytop.rect    <- max(temp.df$value, na.rm = TRUE) + diff(range(temp.df$value, na.rm = TRUE));
-	# 	}
-
-	# write 'NA' above missing bars (alternative to rectangles)
-	na.indices <- which(is.na(temp.df$value));
-	na.text <- list(
-		labels = NULL,
-		padding = NULL, 
-		bar.locations = NULL, 
-		rotation = 0
-		);
-	bar.colours <- rep('black', nrow(temp.df));
-
-	if (length(na.indices) > 0) {
-		na.text$labels <- rep('NA', length(na.indices));
-		na.text$padding <- 0.4;
-		na.text$bar.locations <- na.indices;
-
-		# create white (hidden) bars for NAs so text will display properly
-		for (i in na.indices) {
-			temp.df$value[i] <- min(temp.df$value, na.rm = TRUE);
-			bar.colours[i] <- 'white';
-			}
-		}
-
 	create.barplot(
 		formula = value ~ ranks,
-#		sample.order = 'decreasing',
 		data = temp.df,
 		filename = generate.filename(colnames(final.scores)[x], 'distribution', 'png'),
 		ylab.label = colnames(final.scores)[x],
 		ylab.cex = 2,
 		xaxis.tck = 0,
 		xaxis.lab = rep('', nrow(final.scores)),
-		# add.rectangle = add.rect,
-		# xleft.rectangle = xleft.rect,
-		# xright.rectangle = xright.rectangle,
-		# ybottom.rectangle = ybottom.rect,
-		# ytop.rectangle = ytop.rect,
-		# col.rectangle = none.colour,
-		text.above.bars = na.text,
-		col = bar.colours,
-		border.col = bar.colours,
+		col = 'black',# bar.colours,
+		border.col = 'black',#bar.colours,
 		legend = list(
 			bottom = list(
 				fun = covariates.grob(
-					covariates = temp.covs2,
+					covariates = rev(temp.covs2),
 					side = 'top',
-					size = 0.8,
+					size = 0.6,
 					ord = seq(1:nrow(temp.df))
 					)
 				),
-			# bottom = list(
-			# 	fun = covariates.grob(
-			# 		covariates = run.covs2,
-			# 		side = 'top',
-			# 		size = 0.8,
-			# 		ord = seq(1:nrow(temp.df))
-			# 		)
-			# 	),
 			right = list(
 				fun = legend.grob(
 					legends = run.legend,
-					title.just = 'left'
+					title.just = 'left',
+					# size = 1.5,
+					title.cex = .75,
+					label.cex = .75,
+					size = 2
 					)
 				)
 			),
 		key = list(
 			x = 1,
-			y = -0.015,
-		# 	text = list(
-		# 		lab = paste(
-		# 			c('Code Count', 'Background', 'Sample Content', 'Other', 'CNAs'),
-		# 			signif(kw.out[x, c('ccn', 'bc', 'scc', 'oth', 'cnas')], digits = 2)
-		# 			)
-		# 		),
+			y = -0.017,
 			text = list(
 				lab = paste(
-					c('Code Count', 'Background', 'Sample Content', 'Reference', 'Other', 'CNAs', 'Collapsed'),
-					signif(kw.out[x, c('ccn', 'bc', 'scc', 'matched', 'oth', 'cnas', 'col')], digits = 2)
-					)
+					c('Collapsed', 'CNAmeth', 'OthNorm', 'Reference', 'SmpCont', 'BkgdCor', 'CodeCnt', 'PerChip'),
+					signif(kw.out[x, c('col', 'cnas', 'oth', 'matched', 'scc', 'bc', 'ccn', 'perchip')], digits = 2),
+					sep = ": "
+					),
+				cex = 0.66
 				),
 			padding.text = 1
 			),
-		bottom.padding = 6,
-		resolution = 500,
-		height = 9,
+		bottom.padding = 7,
+		resolution = 600,
+		height = 8.5,
 		);
 	}
 
@@ -756,12 +683,14 @@ hmap <- create.heatmap(
 	yaxis.lab = TRUE,
 	xaxis.lab = rep('', nrow(reduced.ranks)),
 	cluster.dimensions = 'none',
-	covariates.top = run.covs2,
-	covariate.legends = run.legend,
-	legend.side = 'right',
+	# covariates.top = run.covs2,
+	# covariate.legends = run.legend,
+	# legend.side = 'right',
+	# legend.cex = 0.6,
 	colour.scheme = c('white', 'purple'),
-	resolution = 600,
-	height = 8
+	# colourkey.cex = 1,
+	# resolution = 1200,
+	# height = 9
 	);
 
 ### Get summary data to use in barplots
@@ -776,7 +705,8 @@ top.ranks.bplot <- create.barplot(
 	xlimits = c(0, nrow(reduced.ranks)),
 	xaxis.tck = 0,
 #	ylimits = c(0, 6),
-	yat = seq(0, 20, by = 3),
+	yat = pretty(c(0, max(ordering.scores.df$top, na.rm = TRUE))),
+	# yat = seq(0, 20, by = 3),
 	xat = rep('', nrow(ordering.scores.df))
 	);
 
@@ -788,7 +718,8 @@ top5.ranks.bplot <- create.barplot(
 	ylab.label = "# top 5 ranks",
 	main = "# top 5 ranks",
 #	ylimits = c(0, 12),
-	yat = seq(0, 20, by = 3),
+	yat = pretty(c(0, max(ordering.scores.df$top5, na.rm = TRUE))),
+	# yat = seq(0, 20, by = 3),
 	xlimits = c(0,nrow(reduced.ranks)),
 	#xlimits = c(0.5,nrow(reduced.ranks) + 0.5),
 	xaxis.tck = 0,
@@ -816,8 +747,9 @@ criteria.barplot <- create.barplot(
 	yaxis.lab = rep('', nrow(rank.dist.df)),
 	xlab.label = 'Euclidean distance',
 	main = 'Euclidean distance',
-	xaxis.lab = c('0', '20', "40\nEuclidean Distance  ", "60", '80', '100', '120', '140'),
-	xlimits = c(0, max(rank.dist.df$distance) + 5),
+	xaxis.lab = c('0', "3", "6\nEuclidean Distance (100 000s)", '9', '12'),
+	xat = seq(0, 1200000, 300000),
+	xlimits = c(0, max(rank.dist.df$distance)),
 	ylimits = c(0.5, nrow(rank.dist.df) + 0.5)
 	);
 
@@ -847,6 +779,8 @@ prop.out <- as.data.frame(prop.out);
 prop.out$log10p <- -log10(prop.out$p);
 prop.out$run <- seq(1:nrow(prop.out));
 
+prop.out$log10p[prop.out$log10p == Inf] <- max(prop.out$log10p[prop.out$log10p != Inf], na.rm = TRUE) * 1.1;
+
 params.barplot <- create.barplot(
 	run ~ log10p,
 	data = prop.out,
@@ -859,24 +793,25 @@ params.barplot <- create.barplot(
 	xlab.label = '-log10(p)',
 	main = '-log10(p)',
 	abline.v = -log10(0.05),
-	xlimits = c(0, max(prop.out$log10p) + 0.5),
-	xat = seq(0, 14,by = 2),
-	xaxis.lab = c('0', '2\n\t   -log10(p)', '4', '6', '8', '10', '12', '14'),
+	abline.col = 'red',
+	xlimits = c(0, max(prop.out$log10p)),
+	xat = seq(0, max(prop.out$log10p), by = 5),
+	xaxis.lab = c('0', '5', '10', '15\n\t   -log10(p)', '20', '25', '30', '35'),
 	xaxis.tck = 0.5,
-	ylimits = c(0.5, 6.5)
+	yaxis.tck = 0,
+	ylimits = c(0.5, nrow(prop.out) + 0.5)
 	);
 
 ### make a heatmap of run parameters
-# cov.colours <- qw("white black blue yellow orange red darkmagenta #E41A1C #377EB8 #4DAF4A #984EA3 violet purple darkorchid4 slateblue4");# indianred3");
 cov.colours <- unique(as.vector(unlist(colour.list)));
 
 run.params.matrix <- final.params;
-run.params.matrix$oth <- run.params.matrix$oth + 1;
-#run.params.matrix$perchip <- ifelse(run.params.matrix$perchip == 1, 0, 1); # reverse this to make colours work
-max.val <- 1;
+run.params.matrix$matched <- run.params.matrix$matched + 1;
+run.params.matrix$cnas <- run.params.matrix$cnas + 1;
+
+max.val <- max(run.params.matrix[, 1], na.rm = TRUE);
 for (param in 2:ncol(run.params.matrix)) {
 	cur.vals <- run.params.matrix[, param];
-	print(cur.vals);
 	cur.vals[which(cur.vals > 0)] <- cur.vals[which(cur.vals > 0)] + max.val;
 	max.val <- max(c(max.val, cur.vals), na.rm = TRUE);
 	run.params.matrix[, param] <- cur.vals;
@@ -896,36 +831,56 @@ covs.hmap <- create.heatmap(
 	grid.row = TRUE,
 	row.colour = 'gray', 
 	col.colour = 'gray',
+	force.grid.row = TRUE,
 	print.colour.key = FALSE,
-	resolution = 500
+	resolution = 1200
 	);
 
 ### Put all together
 create.multiplot(
 	plot.objects = list(top5.ranks.bplot, top.ranks.bplot, hmap, criteria.barplot, covs.hmap, params.barplot),
 	filename = generate.filename("reduced_ranks", "multiplot", "png"),
-	panel.heights = c(1,6,1,1),
+	panel.heights = c(2.3,6,1,1),
 	panel.widths = c(3,1),
 	plot.layout = c(2, 4),
-	xaxis.tck = 0.5,
+	xaxis.tck = c(0),
+	# xaxis.tck = c(0.5, 0,0,0,0,0),
 	yaxis.tck = 0.5,
 	y.spacing = c(-1,-1,0),
 	x.spacing = -0.5,
 	layout.skip = c(F,T,F,T,F,F,F,F),
 	retrieve.plot.labels = TRUE,
 	left.padding = 7,
-	xlimits = list(c(1,nrow(reduced.ranks)), c(1,nrow(reduced.ranks)), c(1,nrow(reduced.ranks)), c(0, 100), c(1,nrow(reduced.ranks)),c(0,nrow(ranks))),
-	xaxis.cex = 0.7,
-	xlab.label = c('', '-log10(p)', '', 'Euclidean distance', '', ''),
-	ylab.label = c("\t\t\t", "\t\t\t", "\t\t\t", 'Top 5 ranks   Top ranks   '),
+	xlimits = list(
+		c(1,nrow(reduced.ranks)),
+		c(1,nrow(reduced.ranks)),
+		c(1,nrow(reduced.ranks)),
+		c(0, 100),
+		c(1,nrow(reduced.ranks)),
+		c(0,nrow(ranks))
+		),
+	# ylimits = list(
+	# 	c(1.5, 4.5),
+	# 	NULL,
+	# 	c(0.5, ncol(reduced.ranks) + 0.5),
+	# 	NULL,
+	# 	c(0.5, 4.5),
+	# 	c(0.5, 4.5)
+	# 	),
+ylimits = list(NULL,NULL,NULL,NULL,NULL,c(.5, 9.5)),
+	y.relation = 'free',
+	xaxis.cex = 0.55,
+	# xlab.label = c('', '-log10(p)', '', '    Euclidean distance', '', ''),
+	ylab.label = c("\t\t\t", "\t\t\t", "\t\t\t", 'Top 5 ranks   Top ranks       '),
 	ylab.padding = 1,
-	ylab.cex = 0.7,
+	ylab.cex = 0.65,
 	bottom.padding = 1,
 	xlab.cex = 1,
 	yaxis.cex = 0.6,
 	x.relation = 'sliced',
 	legend = run.legend,
-	resolution = 500
+	resolution = 500,
+	width = 6.5
 	);
 
 ### Make a heatmap showing the ranks of the top methods
