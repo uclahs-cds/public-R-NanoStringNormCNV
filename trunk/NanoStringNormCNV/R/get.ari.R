@@ -1,5 +1,8 @@
 get.ari <- function(data.to.cluster, feature, is.discrete = TRUE){
-	if (is.discrete) {
+	if (length(unique(feature)) < 2) {
+		flog.warn("..Skipping calculation: number of feature levels must be 2 or more!");
+		ari <- NA;
+	} else if (is.discrete) {
 		# if data is discrete, use Jaccard and Ward
 		dist.matrix <- BoutrosLab.dist.overload::dist(x = t(data.to.cluster), method = 'jaccard');
 		corr.hc 	<- hclust(dist.matrix, method = 'ward.D');
