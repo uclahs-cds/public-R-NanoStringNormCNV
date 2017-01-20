@@ -29,12 +29,11 @@ colour.list <- list();
 none.colour <- 'grey80';
 colour.list[['bc']]   	 <- c(none.colour, rev(default.colours(3, palette.type = "spiral.sunrise")));
 colour.list[['ccn']]  	 <- c(none.colour, rev(default.colours(2, palette.type = "spiral.afternoon")));
-colour.list[['scc']] 	 <- c(none.colour, rev(default.colours(5, palette.type = "div")));
+colour.list[['scc']] 	 <- c(none.colour, rev(default.colours(4, palette.type = "div")), "firebrick4");
 colour.list[['oth']] 	 <- c(none.colour, rev(default.colours(3, palette.type = "spiral.dusk")));
 colour.list[['matched']] <- c('#ABD9E9', '#2C7BB6');
 colour.list[['perchip']] <- c(none.colour, 'black');
 colour.list[['cnas']] 	 <- c("#f1eef6", "#d4b9da", "#c994c7", "#df65b0", "#dd1c77", "#980043");
-# colour.list[['cnas']] 	 <- c(default.colours(5, palette.type = "spiral.dawn")[5:2]);
 colour.list[['col']] 	 <- c(none.colour, 'chartreuse4');
 
 ### FUNCTIONS #################################################################################
@@ -102,29 +101,38 @@ load.data  <- function(
 	}
 
 ### Set up covariates for plotting
-make.covs <- function(parameters) {
+make.covs <- function(parameters, border.col = NULL) {
+	perchip.levels <- as.numeric(levels(factor(parameters[, "perchip"])));
+	ccn.levels 	   <- as.numeric(levels(factor(parameters[, "ccn"])));
+	bc.levels 	   <- as.numeric(levels(factor(parameters[, "bc"])));
+	scc.levels 	   <- as.numeric(levels(factor(parameters[, "scc"])));
+	matched.levels <- as.numeric(levels(factor(parameters[, "matched"])));
+	oth.levels 	   <- as.numeric(levels(factor(parameters[, "oth"])));
+	cnas.levels	   <- as.numeric(levels(factor(parameters[, "cnas"])));
+	col.levels	   <- as.numeric(levels(factor(parameters[, "col"])));
+
 	run.covs <- generate.covariates(
 		x = data.frame(
-		 	perchip = factor(parameters[, "perchip"], levels = c(0, 1)),
-			ccn 	= factor(parameters[, "ccn"], 	  levels = c(0, 1, 2)),
-			bc 		= factor(parameters[, "bc"], 	  levels = c(0, 1, 2, 3)),
-			scc 	= factor(parameters[, "scc"], 	  levels = c(0, 1, 2, 3, 4, 5)),
-			matched = factor(parameters[, 'matched'], levels = c(0, 1)),
-			oth 	= factor(parameters[, 'oth'], 	  levels = c(0, 1, 2, 3)),
-			cnas 	= factor(parameters[, 'cnas'], 	  levels = as.numeric(levels(as.factor(parameters$cnas)))),
-			col 	= factor(parameters[, 'col'], 	  levels = c(0, 1))
+		 	perchip = factor(parameters[, "perchip"], levels = perchip.levels),
+			ccn 	= factor(parameters[, "ccn"], 	  levels = ccn.levels),
+			bc 		= factor(parameters[, "bc"], 	  levels = bc.levels),
+			scc 	= factor(parameters[, "scc"], 	  levels = scc.levels),
+			matched = factor(parameters[, 'matched'], levels = matched.levels),
+			oth 	= factor(parameters[, 'oth'], 	  levels = oth.levels),
+			cnas 	= factor(parameters[, 'cnas'], 	  levels = cnas.levels),
+			col 	= factor(parameters[, 'col'], 	  levels = col.levels)
 			),
 		colour.list = list(
-	 		perchip = colour.list[['perchip']],
-			ccn 	= colour.list[['ccn']],
-			bc 		= colour.list[['bc']],
-			scc 	= colour.list[['scc']],
-			matched = colour.list[['matched']],
-			oth 	= colour.list[['oth']],
-			cnas 	= colour.list[['cnas']][1:nlevels(as.factor(results$params$cnas))],
-			col 	= colour.list[['col']]
-			)#,
-		# col.set = 'black'
+	 		perchip = colour.list[['perchip']][perchip.levels + 1],
+			ccn 	= colour.list[['ccn']][ccn.levels + 1],
+			bc 		= colour.list[['bc']][bc.levels + 1],
+			scc 	= colour.list[['scc']][scc.levels + 1],
+			matched = colour.list[['matched']][matched.levels + 1],
+			oth 	= colour.list[['oth']][oth.levels + 1],
+			cnas 	= colour.list[['cnas']][cnas.levels + 1],
+			col 	= colour.list[['col']][col.levels + 1]
+			),
+		col.set = border.col
 		);
 
 	return(run.covs);
@@ -839,7 +847,7 @@ covs.hmap <- create.heatmap(
 ### Put all together
 create.multiplot(
 	plot.objects = list(top5.ranks.bplot, top.ranks.bplot, hmap, criteria.barplot, covs.hmap, params.barplot),
-	filename = generate.filename("reduced_ranks", "multiplot", "png"),
+	# filename = generate.filename("reduced_ranks", "multiplot", "png"),
 	panel.heights = c(2.3,6,1,1),
 	panel.widths = c(3,1),
 	plot.layout = c(2, 4),
@@ -859,15 +867,6 @@ create.multiplot(
 		c(1,nrow(reduced.ranks)),
 		c(0,nrow(ranks))
 		),
-	# ylimits = list(
-	# 	c(1.5, 4.5),
-	# 	NULL,
-	# 	c(0.5, ncol(reduced.ranks) + 0.5),
-	# 	NULL,
-	# 	c(0.5, 4.5),
-	# 	c(0.5, 4.5)
-	# 	),
-ylimits = list(NULL,NULL,NULL,NULL,NULL,c(.5, 9.5)),
 	y.relation = 'free',
 	xaxis.cex = 0.55,
 	# xlab.label = c('', '-log10(p)', '', '    Euclidean distance', '', ''),
@@ -885,14 +884,14 @@ ylimits = list(NULL,NULL,NULL,NULL,NULL,c(.5, 9.5)),
 
 ### Make a heatmap showing the ranks of the top methods
 all.scores <- cbind(ordering.scores.df[1:10 , ], ranks[run.orders2[1:10] , ]);
-all.scores[, c(1:2)] <- apply(all.scores[, c(1:2)], 2, function(f) 1 - (f / max(f)));	# need to transform top and top5 rankings
+all.scores[, c(1:2)] <- apply(all.scores[, c(1:2)], 2, function(f) 1 - (f / max(f)));# need to transform top and top5 rankings
 all.scores[, -c(1:2)] <- apply(all.scores[, -c(1:2)], 2, function(f) f / max(f));
-top.run.covs <- make.covs(results$params[run.orders2[1:10],]);
+top.run.covs <- make.covs(results$params[run.orders2[1:10],], border.col = 'black');
 
 ### Put all together
 create.heatmap(
 	x = t(all.scores),
-	filename = generate.filename('top_runs', 'metric_comparison', 'png'),
+	# filename = generate.filename('top_runs', 'metric_comparison', 'png'),
 	cluster.dimensions = 'none',
 	xaxis.lab = colnames(all.scores),
 	yaxis.lab = 1:10,
@@ -900,11 +899,16 @@ create.heatmap(
 	yaxis.cex = 1,
 	covariates = top.run.covs,
 	covariate.legends = run.legend,
+	legend.between.row = 0.5,
+	legend.border.padding = 0.5,
+	legend.cex = 0.5,
+	legend.title.cex = 0.6,
 	colour.scheme = c('white', 'black'),
 	colour.alpha = 0.5,
 	colourkey.labels = c('Best', '10th'),
 	colourkey.labels.at = c(0.01, 1),
 	colourkey.cex = 1.5,
 	total.colours = 99,
-	resolution = 600
+	resolution = 600,
+	top.padding = 15
 	);
