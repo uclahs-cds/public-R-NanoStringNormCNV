@@ -23,6 +23,7 @@ score.runs <- function(replicate.eval, normalized.data, cna.rounded, phenodata, 
 
 	### Check the adjusted rand index (ARI) of multiple parameters
 	# evaluate using cartridge information (all patients)
+	flog.info("Calculating ARI using cartridge information (all samples)..");
 	scores$ari.chip <- NanoStringNormCNV::get.ari(
 		data.to.cluster = log10(normalized.data[, -c(1:3)] + 1),
 		feature = phenodata$Cartridge,
@@ -38,6 +39,7 @@ score.runs <- function(replicate.eval, normalized.data, cna.rounded, phenodata, 
 			match(colnames(replicate.eval$norm.counts), phenodata$SampleID)
 			,]$Patient;
 		
+		flog.info("Calculating ARI using normalized counts (tumour only)..");
 		scores$ari.pts.normcor <- NanoStringNormCNV::get.ari(
 			data.to.cluster = log10(replicate.eval$norm.counts + 1),
 			feature = replicate.eval$count.pheno$Patient[replicate.eval$count.pheno$Type == 'Tumour'],
@@ -47,6 +49,7 @@ score.runs <- function(replicate.eval, normalized.data, cna.rounded, phenodata, 
 
 	# evaluate using tissue type information (all patients)
 	if (any(phenodata$Type == 'Reference')) {
+		flog.info("Calculating ARI using tissue type information (all samples)..");
 		scores$ari.type <- NanoStringNormCNV::get.ari(
 			data.to.cluster = log10(normalized.data[, -c(1:3)] + 1),
 			feature = phenodata$Type,
@@ -54,8 +57,9 @@ score.runs <- function(replicate.eval, normalized.data, cna.rounded, phenodata, 
 			);
 		}
 
-	# must remove probes with NA values from CN calls
+	# evaluate tumour replicates (CN calls)
 	if (!is.null(replicate.eval$cna.calls)) {
+		# must remove probes with NA values from CN calls first
 		na.probes <- as.vector(which(is.na(rowSums(replicate.eval$cna.calls))));
 		if (length(na.probes) > 0) {
 			flog.warn(paste0(
@@ -65,7 +69,7 @@ score.runs <- function(replicate.eval, normalized.data, cna.rounded, phenodata, 
 			replicate.eval$cna.calls <- replicate.eval$cna.calls[-na.probes,];
 			}
 
-		# evaluate tumour replicates (CN calls)
+		flog.info("Calculating ARI using copy number calls (tumour only)..");
 		scores$ari.pts <- NanoStringNormCNV::get.ari(
 			data.to.cluster = replicate.eval$cna.calls,
 			feature = phenodata[match(colnames(replicate.eval$cna.calls), phenodata$SampleID),]$Patient
