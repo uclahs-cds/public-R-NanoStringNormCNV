@@ -6,7 +6,6 @@ library(NanoStringNorm);
 library(BoutrosLab.utilities);
 library(BoutrosLab.pipeline.limma);
 library(BoutrosLab.plotting.general);
-#library(BoutrosLab.statistics.general);
 library(futile.logger);
 library(reshape2);
 library(devtools);
@@ -88,8 +87,8 @@ load.data  <- function(
 	colnames(params)  <- last.results[1:n.params, 2];
 	colnames(results) <- last.results[(n.params + 1):n.scores, 2];
 
-	criteria.to.remove <- qw("sd.inv sd.hk normals.w.cnas");
-	# criteria.to.remove <- qw("sd.inv sd.hk cand.gene.cor prop.disc.genes lmyc.validation normals.w.cnas");
+	# criteria.to.remove <- qw("sd.inv sd.hk normals.w.cnas");
+	criteria.to.remove <- qw("sd.inv sd.hk cand.gene.cor prop.disc.genes lmyc.validation normals.w.cnas");
 	# criteria.to.remove <- qw("sd.inv sd.hk ari.type ari.pts.normcor cand.gene.cor prop.disc.genes lmyc.validation");
 	results <- results[, -which(colnames(results) %in% criteria.to.remove)];
 
@@ -308,6 +307,33 @@ run.rf <- function(glm.data, stem.name) {
 	return(param.importance);
 	}
 
+# switching from default algorithm (Hartigan-Wong) to Lloyd (because inexplicable warning messages..)
+cluster.param <- function(param, n.groups, decr) {
+	clustered.param <- param;
+	clusters <- kmeans(
+		na.exclude(param),
+		centers = n.groups,
+		nstart = 1e3,
+		iter.max = 1e4,
+		algorithm = "Lloyd"
+		)$cluster;
+
+	cluster.order <- order(
+		unlist(
+			lapply(
+				1:n.groups,
+				function(k) median(param[clusters==k])
+				)
+			), decreasing = decr
+		);
+
+	for(i in 1:n.groups){
+		clustered.param[clusters == cluster.order[i]] <- n.groups^i;
+		}
+
+	return(clustered.param);
+	}
+
 ### MAIN ########################################################################################
 # collect results data
 setwd(data.dir);
@@ -328,36 +354,35 @@ results$params <- results$params[, match(names(colour.list), names(results$param
 results$params <- results$params[, -which(colnames(results$params) %in% 'matched')];
 colour.list[['matched']] <- NULL;
 
-{
-	# colnames(results$params)[8] <- 'collapsed';
-	# print(results$scores[, grep(x = colnames(results$scores), pattern = 'validation')]);
+# ### Run k-means on params with many ties *** can decide to re-introduce if needed ***
+# sd.clusters <- cluster.param(
+# 	results$scores$sd.inv.and.hk,
+# 	n.groups = 4,
+# 	decr = FALSE
+# 	);	# have NAs here due to lm so skip this one
 
-	# ### Run k-means on params with many ties *** can decide to re-introduce if needed ***
-	# sd.clusters <- cluster.param(
-	# 	results$scores$sd.inv.and.hk,
-	# 	n.groups = 4,
-	# 	decr = FALSE
-	# 	);	# have NAs here due to lm so skip this one
+# ari.pts.normcor.clusters <- cluster.param(
+# 	results$scores$ari.pts.normcor,
+# 	n.groups = 8,
+# 	decr = TRUE
+# 	);
 
-	# ari.pts.normcor.clusters <- cluster.param(
-	# 	results$scores$ari.pts.normcor,
-	# 	n.groups = 8,
-	# 	decr = TRUE
-	# 	);
+# ari.chip.clusters <- cluster.param(
+# 	results$scores$ari.chip,
+# 	n.groups = 6,
+# 	decr = FALSE
+# 	);
 
-	# ari.chip.clusters <- cluster.param(
-	# 	results$scores$ari.chip,
-	# 	n.groups = 6,
-	# 	decr = FALSE
-	# 	);
+ari.pts.clusters <- cluster.param(
+	results$scores$ari.pts,
+	n.groups = 8,
+	decr = TRUE
+	);
 
-	# results$scores <- cbind(
-	# 	results$scores,
-	# 	cand.gene.clusters,
-	# 	replicates.conc.clusters,
-	# 	total.val.clusters
-	# 	);
-}
+results$scores <- cbind(
+	results$scores,
+	ari.pts.clusters
+	);
 
 ### Evalute which parameters are associated with each criteria
 kw.out  <- matrix(nrow = ncol(results$scores), ncol = ncol(results$params));
@@ -410,7 +435,7 @@ setwd(data.dir);
 ranks <- results$scores[, !(colnames(results$scores) %in% c('normal.cnas', 'total.cnas'))];
 
 # sort.decr <- c(TRUE, TRUE, FALSE, TRUE, TRUE, FALSE);#EL
-sort.decr <- c(FALSE, TRUE, TRUE, TRUE, FALSE, TRUE, FALSE);#DS --see svn/Collaborators/RobBristow/nanostring_validation/normalization/compare_preprocessing_results.R r35400
+sort.decr <- c(FALSE, TRUE, TRUE, TRUE, FALSE, TRUE, TRUE);#DS --see svn/Collaborators/RobBristow/nanostring_validation/normalization/compare_preprocessing_results.R r35400
 print(cbind(metric = names(ranks), decreasing = sort.decr));
 
 for (r in 1:ncol(ranks)) {
@@ -423,32 +448,34 @@ for (r in 1:ncol(ranks)) {
 
 ### Specify 'important' criteria
 # imp.vars <- c('replicates.conc', 'ari.pts.normcor.clusters');
-imp.vars <- c('replicates.conc', 'prop.disc.genes', 'ari.pts');
+imp.vars <- c('replicates.conc', 'ari.pts');
+# imp.vars <- c('replicates.conc', 'prop.disc.genes', 'ari.pts');
 # imp.vars <- c('ari.chip', 'ari.pts.normcor', 'ari.type', 'sd.inv.and.hk', 'replicates.conc', 'ari.pts');
 
 # DS: all top ranking runs correspond to matched = 1 (where patient.n = 1) and ari.pts is NA 
 overall.rank <- apply(
-	X = ranks[, imp.vars, drop = FALSE],
+	X = ranks,
+	# X = ranks[, imp.vars, drop = FALSE],
 	MARGIN = 1,
 	FUN = function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); }
-	);
-
-# DS: keeping NAs to exclude top ranking runs from previous calc
-overall.rank.na <- apply(
-	X = ranks[, imp.vars, drop = FALSE],
-	MARGIN = 1,
-	FUN = function(f) { prod(f) ^ (1 / length(f)); }
 	);
 
 ranks$overall <- rank(overall.rank);
 run.orders    <- order(ranks$overall);
 
-ranks$overall.na <- rank(overall.rank.na);
-run.orders.na    <- order(ranks$overall.na);
+# # DS: keeping NAs to exclude top ranking runs from previous calc
+# overall.rank.na <- apply(
+# 	X = ranks[, imp.vars, drop = FALSE],
+# 	MARGIN = 1,
+# 	FUN = function(f) { prod(f) ^ (1 / length(f)); }
+# 	);
+
+# ranks$overall.na <- rank(overall.rank.na);
+# run.orders.na    <- order(ranks$overall.na);
 
 ### Repeat analysis with each variable omitted and track ranks of runs
 reduced.ranks <- ranks[, -c(ncol(ranks) - 1, ncol(ranks)),];
-reduced.ranks.na <- reduced.ranks;
+# reduced.ranks.na <- reduced.ranks;
 
 for (r in 1:ncol(reduced.ranks)) {
 	reduced.ranks[,r] <- rank(
@@ -461,15 +488,15 @@ for (r in 1:ncol(reduced.ranks)) {
 		na.last = 'keep'
 		);
 
-	reduced.ranks.na[,r] <- rank(
-		apply(
-			X = ranks[, -r],
-			MARGIN = 1,
-			FUN = function(f) { prod((f)) ^ (1 / length(f)); }
-			),
-		ties = 'min',
-		na.last = 'keep'
-		);
+	# reduced.ranks.na[,r] <- rank(
+	# 	apply(
+	# 		X = ranks[, -r],
+	# 		MARGIN = 1,
+	# 		FUN = function(f) { prod((f)) ^ (1 / length(f)); }
+	# 		),
+	# 	ties = 'min',
+	# 	na.last = 'keep'
+	# 	);
 	}
 
 # summarize # top ranks
@@ -478,11 +505,11 @@ n.top.ranks 	<- apply(ranks, 		1, function(f) { length(which(f == 1)); } );
 n.top5.ranks 	<- apply(ranks, 		1, function(f) { length(which(f <= 5)); } );
 n.top5imp.ranks <- apply(ranks[, imp.vars, drop = FALSE], 1, function(f) { length(which(f <= 5)); } );# this doesn't get accessed anywhere
 
-final.rank.na <- apply(reduced.ranks.na, 1, function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); } );
+# final.rank.na <- apply(reduced.ranks.na, 1, function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); } );
 
 # add the rank prod to the matrix
 reduced.ranks$rank.prod <- final.rank;
-reduced.ranks.na$rank.prod <- final.rank.na;
+# reduced.ranks.na$rank.prod <- final.rank.na;
 
 ### Track various score for runs
 ordering.scores.df <- data.frame(
@@ -531,16 +558,26 @@ write.table(
 
 ### Fit some linear models to evaluate statistically which variables are important for the rank product
 # for parameters
-glm.df 			 <- data.frame(lapply(results$params, factor));
+glm.df <- data.frame(lapply(results$params, factor));
 glm.df$rank.prod <- final.rank;
-glm.params 		 <- run.glm(glm.df, stem.name = 'parameters');
-rf.params 		 <- run.rf(glm.df,  stem.name = 'parameters');
+glm.params <- run.glm(glm.df, stem.name = 'parameters');
+rf.params  <- run.rf(glm.df,  stem.name = 'parameters');
+
+glm.df.unmatched <- data.frame(lapply(results$params[-which(is.na(results$scores$normal.cnas)),], factor));
+glm.df.unmatched$rank.prod <- final.rank[-which(is.na(results$scores$normal.cnas))];
+glm.params.unmatched <- run.glm(glm.df.unmatched, stem.name = 'parameters');
+rf.params.unmatched  <- run.rf(glm.df.unmatched,  stem.name = 'parameters');
 
 # for ranking criteria
-glm.df.criteria 		  <- results$scores;
+glm.df.criteria <- results$scores;
 glm.df.criteria$rank.prod <- overall.rank;
-glm.criteria 	  		  <- run.glm(glm.df.criteria, stem.name = 'criteria');
-rf.criteria 	 		  <- run.rf(glm.df.criteria,  stem.name = 'criteria');
+glm.criteria <- run.glm(glm.df.criteria, stem.name = 'criteria');
+rf.criteria  <- run.rf(glm.df.criteria,  stem.name = 'criteria');
+
+glm.df.criteria.unmatched <- results$scores[-which(is.na(results$scores$normal.cnas)),];
+glm.df.criteria.unmatched$rank.prod <- overall.rank[-which(is.na(results$scores$normal.cnas))];
+glm.criteria.unmatched <- run.glm(glm.df.criteria.unmatched, stem.name = 'criteria');
+rf.criteria.unmatched  <- run.rf(glm.df.criteria.unmatched,  stem.name = 'criteria');
 
 ### Plotting ################################################################
 setwd(plot.dir);
