@@ -32,11 +32,12 @@ colour.list[['scc']] 	 <- c(none.colour, rev(default.colours(4, palette.type = "
 colour.list[['oth']] 	 <- c(none.colour, rev(default.colours(3, palette.type = "spiral.dusk")));
 colour.list[['matched']] <- c('#ABD9E9', '#2C7BB6');
 colour.list[['perchip']] <- c(none.colour, 'black');
+# colour.list[['cnas']] 	 <- c("#f1eef6", "#d4b9da", "#c994c7", "#df65b0");
 colour.list[['cnas']] 	 <- c("#f1eef6", "#d4b9da", "#c994c7", "#df65b0", "#dd1c77", "#980043");
 colour.list[['col']] 	 <- c(none.colour, 'chartreuse4');
 
 ### FUNCTIONS #################################################################################
-# added parameters 'perchip'
+# added parameter 'perchip' (not including 'matched' due to too few replicates)
 
 ### Load data
 # modified from ~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R
@@ -47,12 +48,14 @@ load.data  <- function(
 	total.runs,
 	patterns = c('global_*', 'perchip_*'),
 	n.scores = 15,
-	n.params = 9
+	n.params = 9,
+	oncoscan.dates = "2017-02-09",
+	oncoscan.scores = 0
 	){
 
 	if (total.runs < 2) { stop("Need at least two samples or results will be wonky!"); }
 
-	results <- matrix(nrow = total.runs, ncol = (n.scores - n.params));
+	results <- matrix(nrow = total.runs, ncol = (n.scores + oncoscan.scores - n.params));
 	params 	<- matrix(nrow = total.runs, ncol = n.params);
 	genes	<- list(length = total.runs);
 	file.n 	<- 1;
@@ -72,7 +75,16 @@ load.data  <- function(
 					header = FALSE
 					);
 
-				results[file.n, ] <- as.numeric(t(cur.results[(n.params + 1):n.scores, 1]));
+				# read in OncoScan comparison results, if available
+				if (file.exists(paste0(result.patterns[run], '/', oncoscan.dates, '_oncoscan_comparison.txt'))) {
+					oncoscan.results <- read.table(
+						paste0(result.patterns[run], '/', oncoscan.dates, '_oncoscan_comparison.txt'),
+						header = FALSE
+						);
+					cur.results <- rbind(cur.results, oncoscan.results);
+					}
+
+				results[file.n, ] <- as.numeric(t(cur.results[(n.params + 1):(n.scores + oncoscan.scores), 1]));
 				params[file.n, ]  <- t(cur.results[1:n.params, 1]);
 				genes[[file.n]]   <- read.delim(paste0(result.patterns[run], '/', dates, '_tmr2ref_rounded_counts.txt'));
 			} else {
@@ -85,7 +97,7 @@ load.data  <- function(
 	last.results <- cur.results;
 	
 	colnames(params)  <- last.results[1:n.params, 2];
-	colnames(results) <- last.results[(n.params + 1):n.scores, 2];
+	colnames(results) <- last.results[(n.params + 1):(n.scores + oncoscan.scores), 2];
 
 	# criteria.to.remove <- qw("sd.inv sd.hk normals.w.cnas");
 	criteria.to.remove <- qw("sd.inv sd.hk cand.gene.cor prop.disc.genes lmyc.validation normals.w.cnas");
@@ -201,9 +213,9 @@ make.p.heatmap <- function(pvals, fname) {
 	}
 
 ### Linear model analysis for which params are relevant to run ranking-- evaluate which pipeline parameters are most important
-run.glm <- function(glm.data, stem.name) {
+run.glm <- function(glm.data, stem.name, oncoscan = FALSE) {
 	### Generalized linear modelling
-	if (stem.name == 'parameters') {
+	if (grepl('parameters', stem.name)) {
 		glm.full <- glm(
 			# log10(rank.prod) ~ perchip + bc + ccn + scc + matched + oth + cnas + col + 
 			# 	perchip*bc + perchip*ccn + perchip*scc + perchip*matched + perchip*oth + perchip*cnas + perchip*col +
@@ -214,7 +226,7 @@ run.glm <- function(glm.data, stem.name) {
 			# 	oth*cnas + oth*col + 
 			# 	cnas*col,
 			log10(rank.prod) ~ perchip + bc + ccn + scc + oth + cnas + col + 
-				perchip*bc + perchip*ccn + perchip*scc + + perchip*oth + perchip*cnas + perchip*col +
+				perchip*bc + perchip*ccn + perchip*scc + perchip*oth + perchip*cnas + perchip*col +
 				bc*ccn + bc*scc + bc*oth + bc*cnas + bc*col + 
 				ccn*scc + ccn*oth + ccn*cnas + ccn*col + 
 				scc*oth + scc*cnas + scc*col + 
@@ -223,13 +235,25 @@ run.glm <- function(glm.data, stem.name) {
 			data = glm.data
 			);
 	} else {
-		glm.full <- glm(
-			log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + sd.inv.and.hk + replicates.conc,
-			data = glm.data
-			);
+		if (oncoscan) {
+			glm.full <- glm(
+				# log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + replicates.conc + ari.pts.clusters,
+				# log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + sd.inv.and.hk + replicates.conc + ari.pts.clusters,
+				log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + sd.inv.and.hk + replicates.conc,
+				data = glm.data
+				);
+		} else {
+			glm.full <- glm(
+				# log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + replicates.conc + ari.pts.clusters,
+				# log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + sd.inv.and.hk + replicates.conc + ari.pts.clusters,
+				log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + sd.inv.and.hk + replicates.conc,
+				data = glm.data
+				);			
+			}
 		}
 
 	### Get the percent of variance explained by each parameter
+	# pve = percent variance explained from ANOVA performed on glm model
 	pve.full 	 <- get.pve(glm.full);
 	pve.full$pve <- pve.full$pve * 100;
 	pve.full$ind <- seq(1:nrow(pve.full));
@@ -245,10 +269,8 @@ run.glm <- function(glm.data, stem.name) {
 	pve$pve 	<- pve$pve * 100;
 	pve$ind 	<- seq(1:nrow(pve));
 	
-	make.pve.barplot(
-		pve,
-		paste0(plot.dir, generate.filename(stem.name, 'glm_bwelim_pve_barplot', 'png'))
-		);
+	make.pve.barplot(pve, generate.filename(stem.name, 'glm_bwelim_pve_barplot', 'png'));
+
 	pdf(file = paste0(plot.dir, generate.filename(stem.name, 'glm_plots', 'pdf')));
 	plot(glm.reduced);
 	dev.off();
@@ -264,16 +286,24 @@ run.glm <- function(glm.data, stem.name) {
 		filename = paste0(plot.dir, generate.filename(stem.name, 'glm_bwelim_resid_vs_fitted', 'png')),
 		xlab.label = 'fitted values',
 		ylab.label = 'Standardized residuals',
+		xlimits = c(min(plot.df$fitted.vals) * 0.9, max(plot.df$fitted.vals) * 1.05),
 		xlab.cex = 2,
-		ylab.cex = 2
+		ylab.cex = 2,
+		abline.h = 0,
+		abline.col = 'red',
+		abline.lty = 2
 		);
+
+	# model reduction as shown in http://www.stat.columbia.edu/~martin/W2024/R11.pdf
+	glm.reduced2 <- glm(log10(rank.prod) ~ 1, data = glm.data);
+	anova(glm.reduced2, glm.full, test = "Chisq");
 
 	return(glm.reduced);
 	}
 
 ### Random forest analysis in regression mode-- evaluate which scores are most important
-run.rf <- function(glm.data, stem.name) {
-	if (stem.name == 'parameters') {
+run.rf <- function(glm.data, stem.name, oncoscan = FALSE) {
+	if (grepl("parameters", stem.name)) {
 		rf.params <- randomForest(
 			formula = log10(rank.prod) ~ bc + ccn + scc + oth + perchip + cnas + col,
 			# formula = log10(rank.prod) ~ bc + ccn + scc + oth + matched + perchip + cnas + col,#DS
@@ -282,12 +312,22 @@ run.rf <- function(glm.data, stem.name) {
 			keep.forest = TRUE
 			);
 	} else {
-		rf.params <- randomForest(
-			formula = log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + sd.inv.and.hk + replicates.conc,#DS
-			# formula = log10(rank.prod) ~ ari.chip + ari.pts + sd.inv.and.hk + replicates.conc,#EL
-			data = glm.data,
-			keep.forest = TRUE
-			);	# *** add any other metrics here! ***
+		if (oncoscan) {
+			rf.params <- randomForest(
+				formula = log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + replicates.conc + conc.mean.oncoscan + prop.disc.genes.oncoscan,#DS
+				data = glm.data,
+				keep.forest = TRUE
+				);	# *** add any other metrics here! ***
+		} else {
+			rf.params <- randomForest(
+				# formula = log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + replicates.conc + ari.pts.clusters,#DS
+				formula = log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + replicates.conc,#DS
+				# formula = log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + sd.inv.and.hk + replicates.conc,#DS
+				# formula = log10(rank.prod) ~ ari.chip + ari.pts + sd.inv.and.hk + replicates.conc,#EL
+				data = glm.data,
+				keep.forest = TRUE
+				);	# *** add any other metrics here! ***
+			}
 		}
 
 	param.importance <- importance(rf.params);
@@ -299,8 +339,8 @@ run.rf <- function(glm.data, stem.name) {
 	param.importance$ind 	   <- 1:nrow(param.importance);
 
 	make.pve.barplot(
-		param.importance,
-		paste0(plot.dir, generate.filename(stem.name, 'rf_importance_barplot', 'png')),
+		pve.df = param.importance,
+		fname = paste0(plot.dir, generate.filename(stem.name, 'rf_importance_barplot', 'png')),
 		var.type = 'Increase Node Purity'
 		);
 
@@ -344,15 +384,32 @@ results <- load.data(
 	dates = '2017-01-20',
 	total.runs = 12672,
 	n.scores = 20,
-	n.params = 8
+	n.params = 8,
+	oncoscan.scores = 2
 	);
 
 # order param results by colour list names
 results$params <- results$params[, match(names(colour.list), names(results$params))];
 
 # removing because there are too few replicates for 'matched' to be tested properly
-results$params <- results$params[, -which(colnames(results$params) %in% 'matched')];
-colour.list[['matched']] <- NULL;
+if ('matched' %in% names(results$params)) {
+	results$params <- results$params[, -which(colnames(results$params) %in% 'matched')];
+	colour.list[['matched']] <- NULL;
+	}
+
+# removing duplicate param combos (due to 'matched' removal) where 'ari.pts' and 'normal.cnas' are NA
+if (!all(which(is.na(results$scores$normal.cnas)) == which(is.na(results$scores$ari.pts)))) {
+	stop("Check NAs in normal.cnas and ari.pts!");
+	}
+
+removal <- which(is.na(results$scores$normal.cnas));
+results$scores <- results$scores[-removal,];
+results$params <- results$params[-removal,];
+
+# #temp
+# results$scores <- results$scores[which(results$params$cnas < 4),];
+# results$params <- results$params[which(results$params$cnas < 4),];
+# rownames(results$scores) <- rownames(results$params) <- NULL;
 
 # ### Run k-means on params with many ties *** can decide to re-introduce if needed ***
 # sd.clusters <- cluster.param(
@@ -373,16 +430,18 @@ colour.list[['matched']] <- NULL;
 # 	decr = FALSE
 # 	);
 
-ari.pts.clusters <- cluster.param(
-	results$scores$ari.pts,
-	n.groups = 8,
-	decr = TRUE
-	);
+# if (!'ari.pts.clusters' %in% names(results$scores)) {
+# 	ari.pts.clusters <- cluster.param(
+# 		results$scores$ari.pts,
+# 		n.groups = 8,
+# 		decr = TRUE
+# 		);
 
-results$scores <- cbind(
-	results$scores,
-	ari.pts.clusters
-	);
+# 	results$scores <- cbind(
+# 		results$scores,
+# 		ari.pts.clusters
+# 		);
+# 	}
 
 ### Evalute which parameters are associated with each criteria
 kw.out  <- matrix(nrow = ncol(results$scores), ncol = ncol(results$params));
@@ -435,7 +494,7 @@ setwd(data.dir);
 ranks <- results$scores[, !(colnames(results$scores) %in% c('normal.cnas', 'total.cnas'))];
 
 # sort.decr <- c(TRUE, TRUE, FALSE, TRUE, TRUE, FALSE);#EL
-sort.decr <- c(FALSE, TRUE, TRUE, TRUE, FALSE, TRUE, TRUE);#DS --see svn/Collaborators/RobBristow/nanostring_validation/normalization/compare_preprocessing_results.R r35400
+sort.decr <- c(FALSE, TRUE, TRUE, TRUE, FALSE, TRUE, FALSE, TRUE);#DS --see svn/Collaborators/RobBristow/nanostring_validation/normalization/compare_preprocessing_results.R r35400
 print(cbind(metric = names(ranks), decreasing = sort.decr));
 
 for (r in 1:ncol(ranks)) {
@@ -447,15 +506,25 @@ for (r in 1:ncol(ranks)) {
 	}
 
 ### Specify 'important' criteria
+# DS: originally, EL selected these by taking the top 2 criteria for 'increasing node purity'
 # imp.vars <- c('replicates.conc', 'ari.pts.normcor.clusters');
-imp.vars <- c('replicates.conc', 'ari.pts');
+imp.vars <- c('replicates.conc', 'ari.pts', 'conc.mean.oncoscan');
 # imp.vars <- c('replicates.conc', 'prop.disc.genes', 'ari.pts');
-# imp.vars <- c('ari.chip', 'ari.pts.normcor', 'ari.type', 'sd.inv.and.hk', 'replicates.conc', 'ari.pts');
+# imp.vars <- qw('ari.chip ari.type');
+# imp.vars <- qw('conc.mean.oncoscan prop.disc.genes.oncoscan');
+# imp.vars <- qw('ari.chip ari.pts.normcor ari.type replicates.conc ari.pts ari.pts.clusters conc.mean.oncoscan prop.disc.genes.oncoscan');
+# imp.vars <- qw('ari.chip ari.pts.normcor ari.type replicates.conc ari.pts');
 
-# DS: all top ranking runs correspond to matched = 1 (where patient.n = 1) and ari.pts is NA 
+# DS: when matched param is not excluded (see above) all top ranking runs correspond to matched = 1 and ari.pts is NA 
+# geometric mean
 overall.rank <- apply(
+	X = ranks[, imp.vars, drop = FALSE],
+	MARGIN = 1,
+	FUN = function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); }
+	);
+
+overall.rank.all <- apply(
 	X = ranks,
-	# X = ranks[, imp.vars, drop = FALSE],
 	MARGIN = 1,
 	FUN = function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); }
 	);
@@ -463,19 +532,8 @@ overall.rank <- apply(
 ranks$overall <- rank(overall.rank);
 run.orders    <- order(ranks$overall);
 
-# # DS: keeping NAs to exclude top ranking runs from previous calc
-# overall.rank.na <- apply(
-# 	X = ranks[, imp.vars, drop = FALSE],
-# 	MARGIN = 1,
-# 	FUN = function(f) { prod(f) ^ (1 / length(f)); }
-# 	);
-
-# ranks$overall.na <- rank(overall.rank.na);
-# run.orders.na    <- order(ranks$overall.na);
-
 ### Repeat analysis with each variable omitted and track ranks of runs
-reduced.ranks <- ranks[, -c(ncol(ranks) - 1, ncol(ranks)),];
-# reduced.ranks.na <- reduced.ranks;
+reduced.ranks <- ranks[, -tail(1:ncol(ranks), n = 2),];
 
 for (r in 1:ncol(reduced.ranks)) {
 	reduced.ranks[,r] <- rank(
@@ -487,36 +545,25 @@ for (r in 1:ncol(reduced.ranks)) {
 		ties = 'min',
 		na.last = 'keep'
 		);
-
-	# reduced.ranks.na[,r] <- rank(
-	# 	apply(
-	# 		X = ranks[, -r],
-	# 		MARGIN = 1,
-	# 		FUN = function(f) { prod((f)) ^ (1 / length(f)); }
-	# 		),
-	# 	ties = 'min',
-	# 	na.last = 'keep'
-	# 	);
 	}
 
 # summarize # top ranks
 final.rank 		<- apply(reduced.ranks, 1, function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); } );
 n.top.ranks 	<- apply(ranks, 		1, function(f) { length(which(f == 1)); } );
 n.top5.ranks 	<- apply(ranks, 		1, function(f) { length(which(f <= 5)); } );
-n.top5imp.ranks <- apply(ranks[, imp.vars, drop = FALSE], 1, function(f) { length(which(f <= 5)); } );# this doesn't get accessed anywhere
-
-# final.rank.na <- apply(reduced.ranks.na, 1, function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); } );
+# n.top5imp.ranks <- apply(ranks[, imp.vars, drop = FALSE], 1, function(f) { length(which(f <= 5)); } );# this doesn't get accessed anywhere
 
 # add the rank prod to the matrix
 reduced.ranks$rank.prod <- final.rank;
-# reduced.ranks.na$rank.prod <- final.rank.na;
 
 ### Track various score for runs
 ordering.scores.df <- data.frame(
 	top  = n.top.ranks * -1,	# need -1 for rand prod below
 	top5 = n.top5.ranks * -1,
-	imp.rank.prod = apply(ranks[, imp.vars, drop = FALSE], 1, function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); } ),# same as overall.rank
-	all.rank.prod = apply(ranks, 1, function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); } ),
+	imp.rank.prod = overall.rank,
+	# imp.rank.prod = apply(ranks[, imp.vars, drop = FALSE], 1, function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); } ),# same as overall.rank
+	all.rank.prod = apply(ranks[, !colnames(ranks) %in% 'overall'], 1, function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); } ),
+	# all.rank.prod = apply(ranks, 1, function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); } ),
 	reduced.ranks.score = final.rank
 	);
 
@@ -540,8 +587,8 @@ run.orders2 <- order(
 reduced.ranks 		  <- reduced.ranks[run.orders2,];
 reduced.ranks$overall <- seq(1:nrow(reduced.ranks));
 
-ordering.scores.df 	   <- ordering.scores.df[run.orders2,];
-ordering.scores.df$run <- seq(1:nrow(ordering.scores.df));
+ordering.scores.df <- ordering.scores.df[run.orders2,];
+ordering.scores.df$meta.rank <- seq(1:nrow(ordering.scores.df));
 
 # put variables back to positive space
 ordering.scores.df$top  <- ordering.scores.df$top  * -1;
@@ -561,23 +608,90 @@ write.table(
 glm.df <- data.frame(lapply(results$params, factor));
 glm.df$rank.prod <- final.rank;
 glm.params <- run.glm(glm.df, stem.name = 'parameters');
-rf.params  <- run.rf(glm.df,  stem.name = 'parameters');
+# rf.params  <- run.rf(glm.df,  stem.name = 'parameters');
 
-glm.df.unmatched <- data.frame(lapply(results$params[-which(is.na(results$scores$normal.cnas)),], factor));
-glm.df.unmatched$rank.prod <- final.rank[-which(is.na(results$scores$normal.cnas))];
-glm.params.unmatched <- run.glm(glm.df.unmatched, stem.name = 'parameters');
-rf.params.unmatched  <- run.rf(glm.df.unmatched,  stem.name = 'parameters');
+# glm.df.unmatched <- data.frame(lapply(results$params[-which(is.na(results$scores$normal.cnas)),], factor));
+# glm.df.unmatched$rank.prod <- final.rank[-which(is.na(results$scores$normal.cnas))];
+# glm.params.unmatched <- run.glm(glm.df.unmatched, stem.name = 'parameters_unmatched');
+# # rf.params.unmatched  <- run.rf(glm.df.unmatched,  stem.name = 'parameters_unmatched');
 
 # for ranking criteria
 glm.df.criteria <- results$scores;
 glm.df.criteria$rank.prod <- overall.rank;
-glm.criteria <- run.glm(glm.df.criteria, stem.name = 'criteria');
-rf.criteria  <- run.rf(glm.df.criteria,  stem.name = 'criteria');
+# glm.df.criteria$rank.prod <- overall.rank.all;# not just 'imp.vars'
+# glm.criteria <- run.glm(glm.df.criteria, stem.name = 'criteria');
 
-glm.df.criteria.unmatched <- results$scores[-which(is.na(results$scores$normal.cnas)),];
-glm.df.criteria.unmatched$rank.prod <- overall.rank[-which(is.na(results$scores$normal.cnas))];
-glm.criteria.unmatched <- run.glm(glm.df.criteria.unmatched, stem.name = 'criteria');
-rf.criteria.unmatched  <- run.rf(glm.df.criteria.unmatched,  stem.name = 'criteria');
+rf.criteria <- run.rf(
+	glm.df.criteria[,!names(glm.df.criteria) %in% c("conc.mean.oncoscan", "prop.disc.genes.oncoscan")],
+	stem.name = 'criteria'
+	);# won't run with missing values
+
+rf.criteria.collapsed.only <- run.rf(
+	glm.df.criteria[which(results$params$col == 1),],
+	stem.name = 'criteria_collapsed_only',
+	oncoscan = TRUE
+	);
+
+# glm.df.criteria.unmatched <- results$scores[-which(is.na(results$scores$normal.cnas)),];
+# glm.df.criteria.unmatched$rank.prod <- overall.rank[-which(is.na(results$scores$normal.cnas))];
+# # glm.criteria.unmatched <- run.glm(glm.df.criteria.unmatched, stem.name = 'criteria_unmatched');
+# rf.criteria.unmatched  <- run.rf(glm.df.criteria.unmatched, stem.name = 'criteria_unmatched');
+
+{
+	glm.df.binomial <- apply(glm.df.unmatched,2,as.numeric);
+	cols.to.transform <- which(!colnames(glm.df.binomial) %in% c('cnas', 'rank.prod'));
+	glm.df.binomial[, cols.to.transform][glm.df.binomial[, cols.to.transform] > 0] <- 1;
+	glm.df.binomial <- as.data.frame(glm.df.binomial);
+	glm.df.binomial[,-ncol(glm.df.binomial)] <- apply(glm.df.binomial[,-ncol(glm.df.binomial)],2,as.factor);
+
+	glm.binomial <- glm(
+		log10(rank.prod)/10 ~ perchip + bc + ccn + scc + oth + cnas + col + 
+			perchip*bc + perchip*ccn + perchip*scc + perchip*oth + perchip*cnas + perchip*col +
+			bc*ccn + bc*scc + bc*oth + bc*cnas + bc*col + 
+			ccn*scc + ccn*oth + ccn*cnas + ccn*col + 
+			scc*oth + scc*cnas + scc*col + 
+			oth*cnas + oth*col + 
+			cnas*col,
+		data = glm.df.binomial,
+		family = 'binomial'
+		);
+
+	pve.binomial 	 <- get.pve(glm.binomial);
+	pve.binomial$pve <- pve.full$pve * 100;
+	pve.binomial$ind <- seq(1:nrow(pve.binomial));
+		
+	glm.binomial.reduced 	 <- step(glm.binomial, direction = 'backward');
+	pve.binomial.reduced 	 <- get.pve(glm.reduced);
+	pve.binomial.reduced$pve <- pve$pve * 100;
+	pve.binomial.reduced$ind <- seq(1:nrow(pve));
+
+	pdf(file = paste0(plot.dir, generate.filename(stem.name, 'glm_plots', 'pdf')));
+	plot(glm.binomial.reduced);
+	dev.off();
+
+	plot.df <- data.frame(
+		resids = stdres(glm.binomial.reduced),
+		fitted.vals = glm.binomial.reduced$fitted.values
+		);
+
+	create.scatterplot(
+		resids ~ fitted.vals,
+		data = plot.df,
+		# filename = paste0(plot.dir, generate.filename(stem.name, 'glm_bwelim_resid_vs_fitted', 'png')),
+		xlab.label = 'fitted values',
+		ylab.label = 'Standardized residuals',
+		xlimits = c(min(plot.df$fitted.vals) * 0.9, max(plot.df$fitted.vals) * 1.05),
+		xlab.cex = 2,
+		ylab.cex = 2,
+		abline.h = 0,
+		abline.col = 'red',
+		abline.lty = 2
+		);
+
+	# model reduction as shown in http://www.stat.columbia.edu/~martin/W2024/R11.pdf
+	glm.binomial.reduced2 <- glm(log10(rank.prod) ~ 1, data = glm.df.binomial);
+	anova(glm.binomial.reduced2, glm.binomial, test = "Chisq");
+}
 
 ### Plotting ################################################################
 setwd(plot.dir);
@@ -652,6 +766,12 @@ run.legend <- list(
 heatmap.data <- scores.plotting[,! names(scores.plotting) %in% c('normal.cnas', 'total.cnas', 'sd.inv.and.hk')];
 # heatmap.data[heatmap.data < 0] <- 0;
 
+for (i in 1:ncol(heatmap.data)) {
+	if (max(heatmap.data[,i], na.rm = TRUE) > 1) {
+		heatmap.data[,i] <- heatmap.data[,i]/max(heatmap.data[,i], na.rm = TRUE);
+		}	
+	}
+
 create.heatmap(
 	x = heatmap.data,
 	generate.filename('runs_summary', 'heatmap', 'png'),
@@ -669,7 +789,7 @@ create.heatmap(
 	legend.side = 'right',
 	colour.scheme = c('yellow', 'white', 'purple'),
 	colourkey.cex = 0.6,
-	resolution = 60,
+	resolution = 600,
 	height = 9,
 	width = 10
 	);
@@ -692,7 +812,7 @@ create.heatmap(
 	colourkey.labels.at = c(1, 3000, 6000, 9000, 12000),
 	colourkey.cex = 1,
 	resolution = 600,
-	height = 9
+	height = 7
 	);
 
 ### For each criteria, plot the distribution in the cohort
@@ -782,7 +902,7 @@ hmap <- create.heatmap(
 
 ### Get summary data to use in barplots
 top.ranks.bplot <- create.barplot(
-	top ~ run,
+	top ~ meta.rank,
 	data = ordering.scores.df,
 #	filename = generate.filename('reduced_ranks', 'n_top_ranks_barplot', 'png'),
 	ylab.label = "# top ranks",
@@ -791,20 +911,20 @@ top.ranks.bplot <- create.barplot(
 	#xlimits = c(0.5,nrow(reduced.ranks)+ 0.5),
 	xlimits = c(0, nrow(reduced.ranks)),
 	xaxis.tck = 0,
-	ylimits = c(0, 4.5),
+	ylimits = c(0, max(ordering.scores.df$top, na.rm = TRUE) + 0.5),
 	yat = pretty(c(0, max(ordering.scores.df$top, na.rm = TRUE))),
 	# yat = seq(0, 20, by = 3),
 	xat = rep('', nrow(ordering.scores.df))
 	);
 
 top5.ranks.bplot <- create.barplot(
-	top5 ~ run,
+	top5 ~ meta.rank,
 	data = ordering.scores.df,
 #	filename = generate.filename('reduced_ranks', 'n_top5_ranks_barplot', 'png'),
 	lwd = 0,
 	ylab.label = "# top 5 ranks",
 	main = "# top 5 ranks",
-	ylimits = c(0, 4.5),
+	ylimits = c(0, max(ordering.scores.df$top, na.rm = TRUE) + 0.5),
 	yat = pretty(c(0, max(ordering.scores.df$top5, na.rm = TRUE))),
 	# yat = seq(0, 20, by = 3),
 	xlimits = c(0,nrow(reduced.ranks)),
@@ -834,9 +954,9 @@ criteria.barplot <- create.barplot(
 	yaxis.lab = rep('', nrow(rank.dist.df)),
 	xlab.label = 'Euclidean distance',
 	main = 'Euclidean distance',
-	xaxis.lab = c('0', "1", "2", '3\nEuclidean Distance (100 000s)', '4', '5', '6'),
-	xat = seq(0, 600000, 100000),
-	xlimits = c(0, 610000),
+	xaxis.lab = c('0', "1\n\t\tEuclidean Distance (100 000s)", "2", '3'),
+	xat = seq(0, 300000, 100000),
+	xlimits = c(0, 310000),
 	ylimits = c(0.5, nrow(rank.dist.df) + 0.5)
 	);
 
@@ -963,17 +1083,23 @@ create.multiplot(
 	);
 
 ### Make a heatmap showing the ranks of the top methods
-top.n <- 1000;
+top.n <- 50;
 all.scores <- cbind(ordering.scores.df[1:top.n,], ranks[run.orders2[1:top.n] , ]);
 all.scores[, c(1:2)] <- apply(all.scores[, c(1:2)], 2, function(f) 1 - (f / max(f)));# need to transform top and top5 rankings
-all.scores[, -c(1:2)] <- apply(all.scores[, -c(1:2)], 2, function(f) f / max(f));
-top.run.covs <- make.covs(results$params[run.orders2[1:top.n],], border.col = 'black');
-# top.run.covs <- make.covs(results$params[run.orders2[1:top.n],], border.col = NULL);
+all.scores[,-c(1:2)] <- apply(all.scores[,-c(1:2)], 2, function(f) f / max(f));
+if(top.n < 200) {
+	top.run.covs <- make.covs(results$params[run.orders2[1:top.n],], border.col = 'black');
+} else {
+	top.run.covs <- make.covs(results$params[run.orders2[1:top.n],], border.col = NULL);	
+	}
+
+# all.scores <- apply(all.scores, 2, function(x) { if (all(x == 0)) { x <- rep(1, nrow(all.scores)); } else { x; } });
+# all.scores <- apply(all.scores, 2, function(x) { if (all(x == 1)) { x <- rep(min(all.scores), nrow(all.scores)); } else { x; } });
 
 ### Put all together
 create.heatmap(
 	x = t(all.scores),
-	# filename = generate.filename('top_runs', 'metric_comparison', 'png'),
+	filename = generate.filename('top_runs', 'metric_comparison', 'png'),
 	cluster.dimensions = 'none',
 	xaxis.lab = colnames(all.scores),
 	yaxis.lab = 1:top.n,
@@ -981,16 +1107,18 @@ create.heatmap(
 	yaxis.cex = 0.7,
 	covariates = top.run.covs,
 	covariate.legends = run.legend,
+	scale.data = TRUE,
 	legend.between.row = 0.5,
 	legend.border.padding = 0.5,
 	legend.cex = 0.5,
 	legend.title.cex = 0.6,
 	colour.scheme = c('white', 'black'),
 	colour.alpha = 0.5,
-	colourkey.labels = c('Best', '10th'),
-	colourkey.labels.at = c(0.01, 1),
+	colourkey.labels = c('Best', paste0(nrow(all.scores), 'th')),
+	colourkey.labels.at = c(0, max(all.scores)),
 	colourkey.cex = 1.5,
 	total.colours = 99,
 	resolution = 600,
-	top.padding = 15
+	top.padding = 15,
+	height = 10
 	);
