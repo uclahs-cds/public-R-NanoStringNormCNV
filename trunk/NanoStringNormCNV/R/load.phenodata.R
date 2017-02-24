@@ -50,7 +50,7 @@ load.phenodata <- function(fname, separator = 'comma') {
 	ref.normal <- phenodata[phenodata$Type == 'Reference',]$ReferenceID;
 
 	if (length(which(phenodata$Type == 'Reference')) < 1) {
-		flog.warn('Cannot perform CNA calling downstream without normal tissue samples!');
+		flog.warn("Column 'Type' contains no reference samples: unable to call CNAs downstream!");
 		}
 
 	if (any(!(ref.tumour[ref.tumour != 'missing'] %in% phenodata$SampleID))) {
@@ -95,7 +95,7 @@ load.phenodata <- function(fname, separator = 'comma') {
 			}
 
 	} else {
-		flog.warn("Column 'Sex' not provided: unable to call CNAs downstream!");
+		flog.warn("Column 'Sex' not provided: unable to call CNAs on sex chromosomes downstream!");
 		phenodata$Sex <- NA;
 		}
 
