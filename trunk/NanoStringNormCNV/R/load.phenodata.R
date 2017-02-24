@@ -49,6 +49,10 @@ load.phenodata <- function(fname, separator = 'comma') {
 	ref.tumour <- phenodata[phenodata$Type == 'Tumour',]$ReferenceID;
 	ref.normal <- phenodata[phenodata$Type == 'Reference',]$ReferenceID;
 
+	if (length(which(phenodata$Type == 'Reference')) < 1) {
+		flog.warn('Cannot perform CNA calling downstream without normal tissue samples!');
+		}
+
 	if (any(!(ref.tumour[ref.tumour != 'missing'] %in% phenodata$SampleID))) {
 		stop(paste0(
 			"Column 'ReferenceID' must contain sample IDs of matched normal samples. ",
