@@ -1,6 +1,10 @@
-load.phenodata <- function(fname) {
+load.phenodata <- function(fname, separator = 'comma') {
 	# read data
-	phenodata <- read.csv(fname, stringsAsFactors = FALSE);
+	if (separator == "comma") {
+		phenodata <- read.csv(fname, stringsAsFactors = FALSE);
+	} else if (separator == "tab") {
+		phenodata <- read.delim(fname, stringsAsFactors = FALSE);
+		}
 
 	# check column names
 	required.cols <- c(
