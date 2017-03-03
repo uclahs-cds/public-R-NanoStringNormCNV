@@ -18,7 +18,7 @@ calculate.replicate.variance <- function (normalized.data.reps, phenodata.reps, 
 
 		# calculate the per-gene variance of replicates
 		per.gene.var <- apply(
-			X = normalized.data.reps[,which(colnames(normalized.data.reps) == this.ID), drop = FALSE],
+			X = normalized.data.reps[,which(colnames(normalized.data.reps) %in% this.ID), drop = FALSE],
 			MARGIN = 1,
 			FUN = var.function
 			);
