@@ -31,6 +31,23 @@ load.phenodata <- function(fname, separator = 'comma') {
 		stop("Sample IDs must be unique!");
 		}
 
+	# check that Names match across replicates
+	unmatched.reps <- c();
+	phenodata.for.reps <- phenodata[phenodata$HasReplicate == 1,];
+	for (i in unique(phenodata.for.reps$Name)) {
+		if (length(which(phenodata.for.reps$Name == i)) < 2) {
+			unmatched.reps <- c(unmatched.reps, paste0("\n\t", i));
+			}
+		}
+
+	if (length(unmatched.reps) > 0) {
+		flog.warn(paste0(
+			"Sample replicates must have matching names (see column 'Name')! ",
+			"Cannot identify replicate(s) for the following samples:",
+			paste0(unmatched.reps, collapse = "")
+			));
+		}
+	
 	# check Cartridge values are numeric
 	if (!is.numeric(phenodata$Cartridge)) {
 		flog.warn("Cartridge values must be numeric");
