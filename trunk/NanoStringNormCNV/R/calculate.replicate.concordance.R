@@ -18,7 +18,7 @@ calculate.replicate.concordance <- function(cna.rounded.reps, phenodata.reps) {
 
 		# calculate the per-gene CN concordance of replicates
 		per.gene.conc <- apply(
-			X = cna.rounded.reps[,which(colnames(cna.rounded.reps) == this.ID), drop = FALSE],
+			X = cna.rounded.reps[,which(colnames(cna.rounded.reps) %in% this.ID), drop = FALSE],
 			MARGIN = 1,
 			FUN = function(f) { ifelse(length(unique(as.numeric(f))) == 1, 1, 0); }
 			);
