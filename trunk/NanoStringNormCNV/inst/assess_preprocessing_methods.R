@@ -14,12 +14,18 @@ library(reshape2);
 library(devtools)
 library(getopt);
 library(BoutrosLab.dist.overload);
-load_all("~/svn/BoutrosLab/Resources/code/R/prostate.acgh.biomarkers");
-load_all("~/svn/BoutrosLab/Resources/code/R/NanoStringNormCNV/");
-source("~/svn/BoutrosLab/Training/elalonde/OncoScan_reprocess/cna.plotting.functions.R");
-source("~/svn/BoutrosLab/Resources/code/R/ParameterEval/R/generate.covariates.R")
-source("~/svn/BoutrosLab/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
-source("~/svn/BoutrosLab/Collaborators/RobBristow/nanostring_validation/normalization/call_signature_pga.R")
+load_all("~/svn/Resources/code/R/prostate.acgh.biomarkers");
+load_all("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV/");
+source("~/svn/Training/elalonde/OncoScan_reprocess/cna.plotting.functions.R");
+source("~/svn/Resources/code/R/ParameterEval/R/generate.covariates.R")
+source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
+source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/call_signature_pga.R")
+# load_all("~/svn/BoutrosLab/Resources/code/R/prostate.acgh.biomarkers");
+# load_all("~/svn/BoutrosLab/Resources/code/R/NanoStringNormCNV/");
+# source("~/svn/BoutrosLab/Training/elalonde/OncoScan_reprocess/cna.plotting.functions.R");
+# source("~/svn/BoutrosLab/Resources/code/R/ParameterEval/R/generate.covariates.R")
+# source("~/svn/BoutrosLab/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
+# source("~/svn/BoutrosLab/Collaborators/RobBristow/nanostring_validation/normalization/call_signature_pga.R")
 
 
 dropoutliers  <- 1;
@@ -131,7 +137,7 @@ if(opts$scc == 4){
 
 home.dir <- make_dir_name(opts);
 # list directories
-root.dir <- '/isilon/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV/';
+root.dir <- '/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV/';
 setwd(root.dir);
 prep_analysis_dir(dir.name = paste0('normalization_assessment/', home.dir), stats = F);
 data.dir <- paste0(root.dir, '/test_data');
@@ -144,7 +150,7 @@ setwd(data.dir);
 
 # read in the RCC files
 data.raw <- read.markup.RCC(
-	rcc.path = data.dir,
+	# rcc.path = data.dir,
 	rcc.pattern = "*.RCC"
 	);
 
