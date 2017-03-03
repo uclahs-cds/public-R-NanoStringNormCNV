@@ -18,7 +18,9 @@ dropoutliers <- 0;
 writetables <- 0;
 plotnorm <- 0;
 
-proj.stem <- 'bristow';#'bartlett';#'nsncnv';
+
+# proj.stem <- 'bristow';#'bartlett';#'nsncnv';
+proj.stem <- 'nsncnv';
 
 set.seed(12345);
 
@@ -139,7 +141,7 @@ if (interactive()) {
 	opts$perchip <- 0;
 	opts$ccn  	 <- 0;
 	opts$bc 	 <- 2;
-	opts$scc 	 <- 0;
+	opts$scc 	 <- 1;
 	opts$oth 	 <- 3;
 	opts$matched <- 0;
 	opts$cnas 	 <- 0;
@@ -208,7 +210,7 @@ if (proj.stem == 'nsncnv') {
 		stats = FALSE
 		);
 	out.dir <- paste0(root.dir, '/bristow_assessment/', home.dir);
-	data.dir <- paste0('/.mounts/labs/boutroslab/private/Collaborators/RobBristow/cna_biomarkers/validation/4_Nanostring/data/raw/');
+	data.dir <- '/.mounts/labs/boutroslab/private/Collaborators/RobBristow/cna_biomarkers/validation/4_Nanostring/data/raw/';
 	}
 
 plot.dir <- paste0(out.dir, '/plots/');
@@ -277,9 +279,7 @@ if (proj.stem == 'nsncnv') {
 
 # get phenodata and match Emilie's formatting
 if (proj.stem == 'nsncnv') {
-	phenodata <- load.phenodata(fname = paste0(data.dir, "/NSannotation.csv"));
-	phenodata$Name[phenodata$Name == "CPCG0346B.M2.01"] <- "CPCG0346.B.M2.01";
-	phenodata$Name <- gsub("(.*)\\.M.*", "\\1", phenodata$Name);
+	phenodata <- load.phenodata(fname = paste0(data.dir, "/NSannotation_reformatted.csv"));
 	phenodata <- phenodata[, c("SampleID", "Patient", "Name", "Cartridge", "Type", "ReferenceID", "HasReplicate", "Sex")];
 # } else if (proj.stem == 'bartlett') {
 	# phenodata <- read.delim('../phenodata.txt');
@@ -306,11 +306,16 @@ if (proj.stem == 'nsncnv') {
 	phenodata <- phenodata[match(colnames(nano.raw)[-(1:3)], phenodata$Name),];
 	}
 
-colnames(nano.raw)[-c(1:3)] <- phenodata$SampleID;
-
-if (! check.sample.order(phenodata$SampleID, colnames(nano.raw)[-c(1:3)])) {
-	stop("Sorry, sample order doesn't match after re-naming.");
+if (! check.sample.order(phenodata$Name, colnames(nano.raw)[-c(1:3)])) {
+	stop("Sorry, sample order doesn't match after normalization, see above.");
 	}
+
+# changing names so they match across tumour replicates
+for (i in unique(phenodata[phenodata$HasReplicate == 1,]$Patient)) {
+	phenodata[phenodata$HasReplicate == 1 & phenodata$Patient == i,]$Name <- paste0(i, "-F1");
+	}
+
+colnames(nano.raw)[-c(1:3)] <- phenodata$SampleID;
 
 # # Remove bad normals (low restriction frag ratios) from phenodata
 # if (dropoutliers == 1) {
@@ -423,10 +428,10 @@ do.nsn.norm <- TRUE;
 # set up kd values if required
 if (opts$cnas == 0) kd.vals <- NULL; # 'round'; using NS-provided thresholds
 if (opts$cnas == 1) kd.vals <- NULL; # 'round'; using min/max seen in normals
-if (opts$cnas == 2) kd.vals <- NULL;						# 'KD'; "pkg defaults"   --ToDo
-if (opts$cnas == 3) kd.vals <- c(0.998, 0.79, 0.88, 0.989); # 'KD'; "user-provided"  --ToDo
-if (opts$cnas == 4) kd.vals <- c(0.980, 0.84, 0.92, 0.970); # 'KD'; "user-provided"  --ToDo
-if (opts$cnas == 5) kd.vals <- c(0.89, 0.69, 0.65, 0.87); 	# 'KD'; "user-provided"  --ToDo
+if (opts$cnas == 2) kd.vals <- NULL;						 # 'KD'; "pkg defaults"   --ToDo
+if (opts$cnas == 3) kd.vals <- c(0.998, 0.79, 0.88, 0.989);  # 'KD'; "user-provided"  --ToDo
+if (opts$cnas == 4) kd.vals <- c(0.980, 0.84, 0.92, 0.970);  # 'KD'; "user-provided"  --ToDo
+if (opts$cnas == 5) kd.vals <- c(0.996, 0.695, 0.73, 0.956); # 'KD'; "user-provided" (from original 'bristow' dataset calcs, see below)
 
 ### RUN NORMALIZATION ##############################################################################
 setwd(plot.dir);
@@ -572,6 +577,8 @@ pheno.cna <- phenodata[has.ref,];
 
 
 {### Density plots ##################################################################################
+	# ## CURRENTLY SET UP FOR THE ORIGINAL BRISTOW DATASET
+
 	# # normal.for.plot <- norm.data[, phenodata[phenodata$Type == "Reference",]$SampleID];
 	# # normal.for.plot <- as.vector(unlist(normal.for.plot));
 	# # tumour.for.plot <- norm.data[, phenodata[phenodata$Type == "Tumour",]$SampleID];
@@ -618,7 +625,8 @@ pheno.cna <- phenodata[has.ref,];
 	# 		tumour = tumour.for.plot,
 	# 		normal = normal.for.plot
 	# 		),
-	# 	filename = paste0(plot.dir, "../../../plots/densityplot_comparison_cnas-option-", opts$cnas, ".tiff"),
+	# 	filename = paste0(plot.dir, "../../../bristow_plots/densityplot_comparison_cnas-option-", opts$cnas, ".tiff"),
+	# 	# filename = paste0(plot.dir, "../../../plots/densityplot_comparison_cnas-option-", opts$cnas, ".tiff"),
 	# 	col = plot.colours,
 	# 	legend = list(
 	# 		inside = list(
@@ -672,7 +680,8 @@ pheno.cna <- phenodata[has.ref,];
 	# intersection.point <- normal.density$x[which(diff(density.difference > 0) != 0) + 1];
 
 	# # chosen from above/plot
-	# intersection.point <- c(0.3, 1.67, 2.42, 3.57);
+	# intersection.point <- c(0.31, 1.8, 2.24, 3.5);
+	# # intersection.point <- c(0.3, 1.67, 2.42, 3.57);
 
 	# kd.vals <- list();
 	# kd.vals[[1]] <- 1 - length(which(tumour.for.plot < intersection.point[1])) / length(tumour.for.plot);
@@ -688,9 +697,6 @@ reps <- evaluate.replicates(
 	phenodata = phenodata,
 	cna.rounded = cna.rounded
 	);
-normalized.data = norm.data[use.genes,]
-phenodata = phenodata
-cna.rounded = cna.rounded
 
 ### OUTPUT #########################################################################################
 # table required for downstream comparison
@@ -725,7 +731,7 @@ if (writetables == 1) {
 		);
 
 	write.table(
-		reps$concordance,
+		reps$concordance,	
 		generate.filename('replicate_CNAs', 'concordance_matrix', 'txt'),
 		sep = "\t",
 		quote = FALSE
@@ -761,6 +767,9 @@ cna.raw = cna.raw
 replicate.eval = reps
 max.cn = 10
 exclude.covs = FALSE
+
+#TODO: sort out 100% concordance issues, etc (a.k.a. nlevels == 1) for heatmap
+# --this is no longer an issue since evaluate.replicates subs were fixed but should still look into it!
 	}
 
 ### Save items to compare runs ####################################################################
