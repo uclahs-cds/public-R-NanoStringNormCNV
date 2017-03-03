@@ -18,9 +18,9 @@ dropoutliers <- 0;
 writetables <- 0;
 plotnorm <- 0;
 
-
-# proj.stem <- 'bristow';#'bartlett';#'nsncnv';
-proj.stem <- 'nsncnv';
+# proj.stem <- 'bartlett';
+proj.stem <- 'bristow';
+# proj.stem <- 'nsncnv';
 
 set.seed(12345);
 
@@ -575,7 +575,6 @@ if (! check.sample.order(sub(x = phenodata$SampleID[has.ref], pattern = 'outlier
 
 pheno.cna <- phenodata[has.ref,];
 
-
 {### Density plots ##################################################################################
 	# ## CURRENTLY SET UP FOR THE ORIGINAL BRISTOW DATASET
 
@@ -748,7 +747,6 @@ if (writetables == 1) {
 ## PLOTS ##################################################################
 if (opts$vis == 1) {
 	setwd(plot.dir);
-
 	visualize.results(
 		raw.data = nano.raw,
 		normalized.data = norm.data,
@@ -758,18 +756,6 @@ if (opts$vis == 1) {
 		replicate.eval = reps,
 		max.cn = 10
 		);
-
-raw.data = nano.raw
-normalized.data = norm.data
-phenodata = phenodata
-cna.rounded = cna.rounded
-cna.raw = cna.raw
-replicate.eval = reps
-max.cn = 10
-exclude.covs = FALSE
-
-#TODO: sort out 100% concordance issues, etc (a.k.a. nlevels == 1) for heatmap
-# --this is no longer an issue since evaluate.replicates subs were fixed but should still look into it!
 	}
 
 ### Save items to compare runs ####################################################################

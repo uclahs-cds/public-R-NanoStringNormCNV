@@ -140,7 +140,8 @@ home.dir <- make_dir_name(opts);
 root.dir <- '/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV/';
 setwd(root.dir);
 prep_analysis_dir(dir.name = paste0('normalization_assessment/', home.dir), stats = F);
-data.dir <- paste0(root.dir, '/test_data');
+data.dir <- '/.mounts/labs/boutroslab/private/Collaborators/RobBristow/cna_biomarkers/validation/4_Nanostring/data/raw/';
+# data.dir <- paste0(root.dir, '/test_data');
 out.dir  <- paste0(root.dir, '/normalization_assessment/', home.dir);
 plot.dir <- paste0(out.dir, '/plots');
 
@@ -150,7 +151,7 @@ setwd(data.dir);
 
 # read in the RCC files
 data.raw <- read.markup.RCC(
-	# rcc.path = data.dir,
+	rcc.path = data.dir,
 	rcc.pattern = "*.RCC"
 	);
 
