@@ -42,7 +42,7 @@ load.phenodata <- function(fname, separator = 'comma') {
 
 	if (length(unmatched.reps) > 0) {
 		flog.warn(paste0(
-			"Sample replicates must have matching names (see column 'Name')! ",
+			"Sample replicates must have matching sample names (see column 'Name')! ",
 			"Cannot identify replicate(s) for the following samples:",
 			paste0(unmatched.reps, collapse = "")
 			));
@@ -65,6 +65,15 @@ load.phenodata <- function(fname, separator = 'comma') {
 	# check reference sample information
 	ref.tumour <- phenodata[phenodata$Type == 'Tumour',]$ReferenceID;
 	ref.normal <- phenodata[phenodata$Type == 'Reference',]$ReferenceID;
+
+	for (i in which(!is.na(phenodata$ReferenceID) & phenodata$ReferenceID != 'missing')) {
+		if (!(phenodata$ReferenceID[i] %in% phenodata$SampleID)) {
+			stop(paste0(
+				"Cannot identify reference sample ", phenodata[i,]$ReferenceID,
+				" for tumour sample ", phenodata[i,]$SampleID, "!"
+				 ));
+			}
+		}
 
 	if (length(which(phenodata$Type == 'Reference')) < 1) {
 		flog.warn("Column 'Type' contains no reference samples: unable to call CNAs downstream!");
