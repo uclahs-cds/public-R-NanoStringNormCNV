@@ -138,14 +138,14 @@ check.sample.order <- function(names1, names2) {
 ### SET PARAMETERS #################################################################################
 if (interactive()) {
 	opts <- list();
-	opts$perchip <- 0;
-	opts$ccn  	 <- 0;
-	opts$bc 	 <- 2;
-	opts$scc 	 <- 1;
-	opts$oth 	 <- 3;
-	opts$matched <- 0;
-	opts$cnas 	 <- 0;
-	opts$col 	 <- 0;
+	opts$perchip <- 1;
+	opts$ccn  	 <- 1;
+	opts$bc 	 <- 3;
+	opts$scc 	 <- 4;
+	opts$oth 	 <- 0;
+	opts$matched <- 1;
+	opts$cnas 	 <- 5;
+	opts$col 	 <- 1;
 	opts$vis 	 <- 0;
 } else {
 	params <- matrix(
@@ -304,10 +304,23 @@ if (proj.stem == 'nsncnv') {
 } else if (proj.stem == 'bristow') {
 	nano.raw <- nano.raw[, c(1:3, unlist(lapply(phenodata$Name, function(f) which(colnames(nano.raw) == f))))];
 	phenodata <- phenodata[match(colnames(nano.raw)[-(1:3)], phenodata$Name),];
+
+	# accounting for missing reference samples
+	phenodata[phenodata$SampleID == 'CPCG0050F1',]$ReferenceID <- 'missing';
+	phenodata[phenodata$SampleID == 'CPCG0339F1',]$ReferenceID <- 'missing';
+
+	for (i in which(!is.na(phenodata$ReferenceID) & phenodata$ReferenceID != 'missing')) {
+		if (!(phenodata$ReferenceID[i] %in% phenodata$SampleID)) {
+			stop(paste0(
+				"Cannot identify reference sample ", phenodata[i,]$ReferenceID,
+				" for tumour sample ", phenodata[i,]$SampleID, "!"
+				 ));
+			}
+		}
 	}
 
 if (! check.sample.order(phenodata$Name, colnames(nano.raw)[-c(1:3)])) {
-	stop("Sorry, sample order doesn't match after normalization, see above.");
+	stop("Sorry, sample order doesn't match, see above.");
 	}
 
 # changing names so they match across tumour replicates
@@ -316,6 +329,10 @@ for (i in unique(phenodata[phenodata$HasReplicate == 1,]$Patient)) {
 	}
 
 colnames(nano.raw)[-c(1:3)] <- phenodata$SampleID;
+
+# sort sample IDs so order matches after normalization
+phenodata <- phenodata[order(phenodata$SampleID),];
+nano.raw <- cbind(nano.raw[, 1:3], nano.raw[, sort(colnames(nano.raw)[-c(1:3)])]);
 
 # # Remove bad normals (low restriction frag ratios) from phenodata
 # if (dropoutliers == 1) {
