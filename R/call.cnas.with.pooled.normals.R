@@ -198,10 +198,6 @@ call.cnas.with.pooled.normals <- function(
 
 	cna.raw 	<- as.matrix(cna.raw[, colnames(cna.raw) %in% phenodata$SampleID[is.tmr]]);
 	cna.rounded <- as.matrix(cna.rounded[, colnames(cna.rounded) %in% phenodata$SampleID[is.tmr]]);
-	has.ref 	<- is.tmr[colnames(normalized.data)[is.tmr + 3] %in% colnames(cna.rounded)];
-
-	colnames(cna.rounded) <- phenodata$SampleID[has.ref];
-	colnames(cna.raw)     <- phenodata$SampleID[has.ref];
 
 	# combine output
 	cna.all <- list(
