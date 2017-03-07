@@ -143,9 +143,9 @@ if (interactive()) {
 	opts$bc 	 <- 3;
 	opts$scc 	 <- 4;
 	opts$oth 	 <- 0;
-	opts$matched <- 1;
-	opts$cnas 	 <- 5;
-	opts$col 	 <- 1;
+	opts$matched <- 0;
+	opts$cnas 	 <- 3;
+	opts$col 	 <- 0;
 	opts$vis 	 <- 0;
 } else {
 	params <- matrix(
@@ -317,10 +317,10 @@ if (proj.stem == 'nsncnv') {
 				 ));
 			}
 		}
-	}
 
-if (! check.sample.order(phenodata$Name, colnames(nano.raw)[-c(1:3)])) {
-	stop("Sorry, sample order doesn't match, see above.");
+	if (! check.sample.order(phenodata$Name, colnames(nano.raw)[-c(1:3)])) {
+		stop("Sorry, sample order doesn't match, see above.");
+		}
 	}
 
 # changing names so they match across tumour replicates
@@ -586,9 +586,12 @@ if (opts$matched == 1) {
 	}
 
 # sanity check
-if (! check.sample.order(sub(x = phenodata$SampleID[has.ref], pattern = 'outlier', ''), colnames(cna.rounded))) {
+if (! check.sample.order(phenodata$SampleID[has.ref][phenodata$SampleID[has.ref] %in% colnames(cna.rounded)], colnames(cna.rounded))) {
 	stop("Sorry, sample order doesn't match after normalization, see above.");
 	}
+# if (! check.sample.order(sub(x = phenodata$SampleID[has.ref], pattern = 'outlier', ''), colnames(cna.rounded))) {
+# 	stop("Sorry, sample order doesn't match after normalization, see above.");
+# 	}
 
 pheno.cna <- phenodata[has.ref,];
 
