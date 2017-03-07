@@ -18,10 +18,8 @@ source("~/svn/Resources/code/R/ParameterEval/R/generate.covariates.R")
 source("~/svn/Resources/code/R/BoutrosLab.statistics.general/R/get.pve.R")
 source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
 
-# set up directories
-main.dir <- ("/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV/");
-data.dir <- paste0(main.dir, "normalization_assessment/");
-plot.dir <- paste0(main.dir, "plots/");
+# proj.stem <- 'nsncnv';
+proj.stem <- 'bristow';
 
 # set colours
 colour.list <- list();
@@ -375,18 +373,35 @@ cluster.param <- function(param, n.groups, decr) {
 	}
 
 ### MAIN ########################################################################################
+# set up directories
+main.dir <- ("/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV/");
+
+if (proj.stem == 'nsncnv') {
+	data.dir <- paste0(main.dir, "normalization_assessment/");
+	plot.dir <- paste0(main.dir, "plots/");
+	dates <- '2017-01-20';
+	total.runs <- 12672;
+} else if (proj.stem == 'bristow') {
+	data.dir <- paste0(main.dir, "bristow_assessment/");
+	plot.dir <- paste0(main.dir, "bristow_plots/");
+	dates <- '2017-03-06';
+	total.runs <- 12672;
+	}
+
 # collect results data
 setwd(data.dir);
 
 # load.data will read in the score files from each directory ** probably very specific to my data **
 results <- load.data(
 	dir.name = data.dir,
-	dates = '2017-01-20',
-	total.runs = 12672,
+	dates = dates,
+	total.runs = total.runs,
 	n.scores = 20,
 	n.params = 8,
 	oncoscan.scores = 2
 	);
+
+if (proj.stem == 'bristow') results$scores <- results$scores[,!is.na(names(results$scores))];
 
 # order param results by colour list names
 results$params <- results$params[, match(names(colour.list), names(results$params))];
@@ -494,7 +509,11 @@ setwd(data.dir);
 ranks <- results$scores[, !(colnames(results$scores) %in% c('normal.cnas', 'total.cnas'))];
 
 # sort.decr <- c(TRUE, TRUE, FALSE, TRUE, TRUE, FALSE);#EL
-sort.decr <- c(FALSE, TRUE, TRUE, TRUE, FALSE, TRUE, FALSE, TRUE);#DS --see svn/Collaborators/RobBristow/nanostring_validation/normalization/compare_preprocessing_results.R r35400
+if (proj.stem == 'nsncnv') {
+	sort.decr <- c(FALSE, TRUE, TRUE, TRUE, FALSE, TRUE, FALSE, TRUE);#DS --see svn/Collaborators/RobBristow/nanostring_validation/normalization/compare_preprocessing_results.R r35400
+} else if () {
+	sort.decr <- c(FALSE, TRUE, TRUE, TRUE, FALSE, TRUE);
+	}
 print(cbind(metric = names(ranks), decreasing = sort.decr));
 
 for (r in 1:ncol(ranks)) {
@@ -507,8 +526,9 @@ for (r in 1:ncol(ranks)) {
 
 ### Specify 'important' criteria
 # DS: originally, EL selected these by taking the top 2 criteria for 'increasing node purity'
+# imp.vars <- c('replicates.conc', 'ari.pts', 'conc.mean.oncoscan');
+imp.vars <- c('replicates.conc', 'ari.pts');
 # imp.vars <- c('replicates.conc', 'ari.pts.normcor.clusters');
-imp.vars <- c('replicates.conc', 'ari.pts', 'conc.mean.oncoscan');
 # imp.vars <- c('replicates.conc', 'prop.disc.genes', 'ari.pts');
 # imp.vars <- qw('ari.chip ari.type');
 # imp.vars <- qw('conc.mean.oncoscan prop.disc.genes.oncoscan');
@@ -629,7 +649,8 @@ rf.criteria <- run.rf(
 rf.criteria.collapsed.only <- run.rf(
 	glm.df.criteria[which(results$params$col == 1),],
 	stem.name = 'criteria_collapsed_only',
-	oncoscan = TRUE
+	oncoscan = FALSE
+	# oncoscan = TRUE
 	);
 
 # glm.df.criteria.unmatched <- results$scores[-which(is.na(results$scores$normal.cnas)),];
