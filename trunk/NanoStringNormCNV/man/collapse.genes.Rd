@@ -8,7 +8,7 @@ collapse.genes(normalized.data)
 \arguments{
   \item{normalized.data}{A data-frame of normalized NanoString counts. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs}
 }
-\details{Collapse counts for probes within the same gene. Collapsing is done with the mean count}
+\details{Collapse counts for 'Endogenous' and 'Housekeeping' probes within the same gene. Collapsing is done with the mean count}
 \value{A data-frame with collapsed counts}
 \author{Cindy Yao}
 \seealso{collapse.duplicate.samples}
