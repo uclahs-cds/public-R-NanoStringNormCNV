@@ -15,6 +15,7 @@ load_all("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV");
 
 # set options
 dropoutliers <- 0;
+drop.low.cnt.smp <- 1;
 writetables <- 0;
 plotnorm <- 0;
 
@@ -138,13 +139,13 @@ check.sample.order <- function(names1, names2) {
 ### SET PARAMETERS #################################################################################
 if (interactive()) {
 	opts <- list();
-	opts$perchip <- 1;
-	opts$ccn  	 <- 1;
-	opts$bc 	 <- 3;
-	opts$scc 	 <- 4;
+	opts$perchip <- 0;
+	opts$ccn  	 <- 2;
+	opts$bc 	 <- 0;
+	opts$scc 	 <- 1;
 	opts$oth 	 <- 0;
 	opts$matched <- 0;
-	opts$cnas 	 <- 3;
+	opts$cnas 	 <- 0;
 	opts$col 	 <- 0;
 	opts$vis 	 <- 0;
 } else {
@@ -488,8 +489,8 @@ low.count.samples <- names(which(apply(
 	FUN = mean
 	) < 100));
 
-# drop low counts samples
-if (length(low.count.samples) > 0) {
+# drop low counts samples (MENTION THIS IS METHODS!)
+if (drop.low.cnt.smp & length(low.count.samples) > 0) {
 	print(paste0(
 		"Removing low invariant count samples: ",
 		paste(low.count.samples, collapse = "  ")
@@ -498,15 +499,28 @@ if (length(low.count.samples) > 0) {
 	nano.raw  <- nano.raw[, !(colnames(nano.raw) %in% low.count.samples)];
 	phenodata <- phenodata[ !(phenodata$SampleID %in% low.count.samples),];
 	pheno.df  <- pheno.df[  !(rownames(pheno.df) %in% low.count.samples),];
+
+	### this part is highly dataset specific and, therefore, not automated!
+	# changing ref sample for CPCG248-F1 since original was poor quality
+	print("WARNING: must manually update phenodata to account for changes!");
+
+	if (proj.stem == 'nsncnv') {
+		phenodata[phenodata$SampleID == "CPCG0248F1",]$ReferenceID <- "CPCG0248B.M1";
+		
+		# setting HasReplicate for replicates to 0
+		phenodata[phenodata$SampleID %in% c("CPCG0266B.M2", "CPCG0248B.M1"),]$HasReplicate <- 0;
+	} else if (proj.stem == 'bristow') {
+		# dropping matched normals
+		matched.normals <- c('CPCG0019B1', 'CPCG0196B1');
+		nano.raw  <- nano.raw[,!(colnames(nano.raw) %in% matched.normals)];
+		phenodata <- phenodata[!(phenodata$SampleID %in% matched.normals),];
+		pheno.df  <- pheno.df[ !(rownames(pheno.df) %in% matched.normals),];
+		}
+	###
 	}
 
-# changing ref sample for CPCG248-F1 since original was poor quality
 if (proj.stem == 'nsncnv') {
-	phenodata[phenodata$SampleID == "CPCG0248F1",]$ReferenceID <- "CPCG0248B.M1";
 	phenodata[phenodata$SampleID == "CPCG0233F1",]$ReferenceID <- "CPCG0233B.M1";# because 'M2' ref is weird..
-	
-	# setting HasReplicate for replicates to 0
-	phenodata[phenodata$SampleID %in% c("CPCG0266B.M2", "CPCG0248B.M1"),]$HasReplicate <- 0;
 	}
 
 ### NanoStringNorm
