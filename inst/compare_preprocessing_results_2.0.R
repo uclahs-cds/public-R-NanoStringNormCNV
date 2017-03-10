@@ -143,8 +143,8 @@ load.data  <- function(
 					cur.results <- rbind(cur.results, oncoscan.results, stringsAsFactors = FALSE);
 					}
 
-				results[file.n, ] <- cur.results[cur.results[, 2] %in% score.and.sort[, 1], 1];
-				params[file.n, ]  <- t(cur.results[1:n.params, 1]);
+				params[file.n, ]  <- cur.results[match(parameters, cur.results[,2]), 1];
+				results[file.n, ] <- cur.results[match(score.and.sort[,1], cur.results[,2]), 1];#  cur.results[, 2] %in% score.and.sort[, 1], 1];
 				genes[[file.n]]   <- read.delim(paste0(result.patterns[run], '/', dates[the.date], '_tmr2ref_rounded_counts.txt'));
 			} else {
 				print(paste("Missing file for", patterns[p], result.patterns[run]));
@@ -285,7 +285,7 @@ run.glm <- function(glm.data, stem.name, proj.stem) {
 	pve.full$pve <- pve.full$pve * 100;
 	pve.full$ind <- seq(1:nrow(pve.full));
 	
-	make.pve.barplot(pve.full, paste(plot.dir, generate.filename(stem.name, 'glm_full_pve_barplot', 'png')));
+	make.pve.barplot(pve.full, paste0(plot.dir, generate.filename(stem.name, 'glm_full_pve_barplot', 'png')));
 	
 	### Model selection by AIC (Akaike information criterion)
 	# According to Wikipedia, AIC "is a measure of relative quality of statistical models for a
@@ -755,6 +755,7 @@ ranks.plotting  <- ranks[run.orders, ];
 
 run.covs <- make.covs(results$params[run.orders,]);
 
+# create legend
 border.col <- 'black';
 run.legend <- list(
 	col = list(
@@ -815,6 +816,7 @@ run.legend <- list(
 		)
 	);
 
+# remove parameters from legend that don't apply to proj.stem
 for (n in names(run.legend)) {
 	if (!n %in% names(colour.list)) {
 		run.legend[[n]] <- NULL;
