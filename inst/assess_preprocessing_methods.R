@@ -28,7 +28,8 @@ source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/call_
 # source("~/svn/BoutrosLab/Collaborators/RobBristow/nanostring_validation/normalization/call_signature_pga.R")
 
 
-dropoutliers  <- 1;
+dropoutliers  <- 0;#DS
+# dropoutliers  <- 1;#EL
 
 
 ### FUNCTIONS #################################################################################
@@ -90,18 +91,17 @@ make_dir_name <- function(params){
 	return(name);
 	}
 
-
 ### get parameterization options ###############################################################################
 if(interactive()){
 	#perchip0 <- ccn1 <- bc1 <- scc3 <- other2 <- matched0 <- kd1 <- col0
 	opts <- list();
 	opts$perchip <- 0;
-	opts$ccn <- 0;
-	opts$bc <- 0;
-	opts$scc <- 4;
+	opts$ccn <- 1;
+	opts$bc <- 3;
+	opts$scc <- 1;
 	opts$oth <- 0;
 	opts$matched <- 0;
-	opts$kd <- 1;
+	opts$kd <- 0;
 	opts$col <- 0;
 }else{
 	params <- matrix(
@@ -270,7 +270,9 @@ if(opts$perchip == 1){	# each chip separately
 		norm.data.full[, -c(1:3)] <- norm.data.full[, -c(1:3)] + min(norm.data.full[, -c(1:3)] + 0.1);
 		}
 }else{
-	norm.data <- normalize.global(nano.raw, cc.val, bc.val, sc.val, oth.val, do.nsn.norm, do.rcc.inv.norm, pheno.df, plot.types=qw('cv mean.sd norm.factors missing RNA.estimates positive.controls'));
+	norm.data <- normalize.global(raw.data = nano.raw, cc = cc.val, bc = bc.val, sc = sc.val, oth = oth.val, do.nsn = do.nsn.norm, do.rcc.inv = do.rcc.inv.norm, covs = pheno.df, phenodata = pheno.df, plot.types = qw('cv mean.sd norm.factors missing RNA.estimates positive.controls'));
+	# norm.data <- normalize.global(nano.raw, cc.val, bc.val, sc.val, oth.val, do.nsn.norm, do.rcc.inv.norm, pheno.df, plot.types=qw('cv mean.sd norm.factors missing RNA.estimates positive.controls'));
+	
 	### When other normalization is normal.rank we get negative values and need to transform
 	if(oth.val == 'rank.normal'){
 		norm.data[, -c(1:3)] <- (norm.data[, -c(1:3)] - min(norm.data[, -c(1:3)])) + 0.1;
