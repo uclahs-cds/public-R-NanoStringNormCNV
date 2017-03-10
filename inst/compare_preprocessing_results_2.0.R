@@ -18,21 +18,73 @@ source("~/svn/Resources/code/R/ParameterEval/R/generate.covariates.R")
 source("~/svn/Resources/code/R/BoutrosLab.statistics.general/R/get.pve.R")
 source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
 
-# proj.stem <- 'nsncnv';
+# set project!
 proj.stem <- 'bristow';
+# proj.stem <- 'nsncnv';
+
+parameters <- qw('perchip bc ccn scc matched oth cnas col');
+score.and.sort <- rbind(
+	c('ari.chip', FALSE, 0),
+	c('ari.pts.normcor', TRUE, 0),
+	c('ari.type', TRUE, 0),
+	c('ari.pts', TRUE, 0),
+	c('sd.inv', FALSE, 0),
+	c('sd.hk', FALSE, 0),
+	c('sd.inv.and.hk', FALSE, 0),
+	c('replicates.conc', TRUE, 0),
+	c('prop.disc.genes', TRUE, 0),
+	c('normal.w.cnas', NA, 0),
+	c('normal.cnas', NA, 0),
+	c('total.cnas', NA, 0),
+	c('prop.disc.genes.oncoscan', FALSE, 1),
+	c('conc.mean.oncoscan', TRUE, 1),
+	c('mean.f1score', TRUE, 1), 
+	c('mean.f1score.gain', TRUE, 1), 
+	c('mean.f1score.loss', TRUE, 1),
+	c('mean.ari', TRUE, 1),
+	c('sd.ari', NA, 1)
+	);
+score.and.sort <- as.data.frame(score.and.sort);
+colnames(score.and.sort) <- c('score', 'sort', 'oncoscan');
+
+# state which parameters and scoring metrics are not used for given dataset
+if (proj.stem == 'nsncnv') {
+	skip.params <- c('matched');
+	skip.scores <- c(
+		'normal.cnas', 'normal.w.cnas', 'total.cnas',
+		'sd.inv', 'sd.hk', 'sd.ari',
+		'prop.disc.genes'
+		);
+} else if (proj.stem == 'bristow') {
+	skip.params <- c('col');
+	skip.scores <- c(
+		'mean.f1score', 'mean.f1score.gain', 'mean.f1score.loss',
+		'normal.cnas', 'normal.w.cnas', 'total.cnas',
+		'sd.inv', 'sd.hk', 'sd.ari',
+		'prop.disc.genes'
+		);
+	}
+
+parameters <- parameters[!parameters %in% skip.params];
+score.and.sort <- score.and.sort[!score.and.sort[,1] %in% skip.scores,];
 
 # set colours
-colour.list <- list();
 none.colour <- 'grey80';
+colour.list <- list();
 colour.list[['bc']]   	 <- c(none.colour, rev(default.colours(3, palette.type = "spiral.sunrise")));
 colour.list[['ccn']]  	 <- c(none.colour, rev(default.colours(2, palette.type = "spiral.afternoon")));
 colour.list[['scc']] 	 <- c(none.colour, rev(default.colours(4, palette.type = "div")), "firebrick4");
 colour.list[['oth']] 	 <- c(none.colour, rev(default.colours(3, palette.type = "spiral.dusk")));
 colour.list[['matched']] <- c('#ABD9E9', '#2C7BB6');
 colour.list[['perchip']] <- c(none.colour, 'black');
-# colour.list[['cnas']] 	 <- c("#f1eef6", "#d4b9da", "#c994c7", "#df65b0");
 colour.list[['cnas']] 	 <- c("#f1eef6", "#d4b9da", "#c994c7", "#df65b0", "#dd1c77", "#980043");
 colour.list[['col']] 	 <- c(none.colour, 'chartreuse4');
+
+for (i in 1:length(colour.list)) {
+	if (!names(colour.list)[i] %in% parameters) {
+		colour.list[i] <- NULL;
+		}
+	}
 
 ### FUNCTIONS #################################################################################
 # added parameter 'perchip' (not including 'matched' due to too few replicates)
@@ -45,15 +97,23 @@ load.data  <- function(
 	dates,
 	total.runs,
 	patterns = c('global_*', 'perchip_*'),
-	n.scores = 15,
-	n.params = 9,
-	oncoscan.dates = "2017-02-09",
-	oncoscan.scores = 0
+	scores = score.and.sort,
+	params = parameters,
+	use.oncoscan = TRUE
 	){
 
 	if (total.runs < 2) { stop("Need at least two samples or results will be wonky!"); }
 
-	results <- matrix(nrow = total.runs, ncol = (n.scores + oncoscan.scores - n.params));
+	if (use.oncoscan) {
+		oncoscan.date <- dates[length(dates)];
+		dates <- dates[-length(dates)];
+		}
+
+	n.params <- length(parameters);
+	n.scores <- length(which(score.and.sort[, 3] == 0));
+	os.n.scores <- length(which(score.and.sort[, 3] == 1));
+
+	results <- matrix(nrow = total.runs, ncol = (n.scores + os.n.scores));
 	params 	<- matrix(nrow = total.runs, ncol = n.params);
 	genes	<- list(length = total.runs);
 	file.n 	<- 1;
@@ -67,24 +127,25 @@ load.data  <- function(
 			);
 
 		for (run in 1:length(result.patterns)) {
-			if (file.exists(paste0(result.patterns[run], '/', dates, '_summary_statistics.txt'))) {
+			if (any(file.exists(paste0(result.patterns[run], '/', dates, '_summary_statistics.txt')))) {
+				the.date <- which(file.exists(paste0(result.patterns[run], '/', dates, '_summary_statistics.txt')));
 				cur.results <- read.table(
-					paste0(result.patterns[run], '/', dates, '_summary_statistics.txt'),
+					paste0(result.patterns[run], '/', dates[the.date], '_summary_statistics.txt'),
 					header = FALSE
 					);
-
+			
 				# read in OncoScan comparison results, if available
-				if (file.exists(paste0(result.patterns[run], '/', oncoscan.dates, '_oncoscan_comparison.txt'))) {
+				if (use.oncoscan & file.exists(paste0(result.patterns[run], '/', oncoscan.date, '_oncoscan_comparison.txt'))) {
 					oncoscan.results <- read.table(
-						paste0(result.patterns[run], '/', oncoscan.dates, '_oncoscan_comparison.txt'),
+						paste0(result.patterns[run], '/', oncoscan.date, '_oncoscan_comparison.txt'),
 						header = FALSE
 						);
-					cur.results <- rbind(cur.results, oncoscan.results);
+					cur.results <- rbind(cur.results, oncoscan.results, stringsAsFactors = FALSE);
 					}
 
-				results[file.n, ] <- as.numeric(t(cur.results[(n.params + 1):(n.scores + oncoscan.scores), 1]));
+				results[file.n, ] <- cur.results[cur.results[, 2] %in% score.and.sort[, 1], 1];
 				params[file.n, ]  <- t(cur.results[1:n.params, 1]);
-				genes[[file.n]]   <- read.delim(paste0(result.patterns[run], '/', dates, '_tmr2ref_rounded_counts.txt'));
+				genes[[file.n]]   <- read.delim(paste0(result.patterns[run], '/', dates[the.date], '_tmr2ref_rounded_counts.txt'));
 			} else {
 				print(paste("Missing file for", patterns[p], result.patterns[run]));
 				}
@@ -94,13 +155,8 @@ load.data  <- function(
 
 	last.results <- cur.results;
 	
-	colnames(params)  <- last.results[1:n.params, 2];
-	colnames(results) <- last.results[(n.params + 1):(n.scores + oncoscan.scores), 2];
-
-	# criteria.to.remove <- qw("sd.inv sd.hk normals.w.cnas");
-	criteria.to.remove <- qw("sd.inv sd.hk cand.gene.cor prop.disc.genes lmyc.validation normals.w.cnas");
-	# criteria.to.remove <- qw("sd.inv sd.hk ari.type ari.pts.normcor cand.gene.cor prop.disc.genes lmyc.validation");
-	results <- results[, -which(colnames(results) %in% criteria.to.remove)];
+	colnames(params)  <- parameters;
+	colnames(results) <- score.and.sort[, 1];
 
 	return(list(
 		params = as.data.frame(params),
@@ -110,39 +166,21 @@ load.data  <- function(
 	}
 
 ### Set up covariates for plotting
-make.covs <- function(parameters, border.col = NULL) {
+make.covs <- function(param.combns, border.col = NULL) {
 	if (is.null(border.col)) border.col <- 'transparent';
 
-	perchip.levels <- as.numeric(levels(factor(parameters[, "perchip"])));
-	ccn.levels 	   <- as.numeric(levels(factor(parameters[, "ccn"])));
-	bc.levels 	   <- as.numeric(levels(factor(parameters[, "bc"])));
-	scc.levels 	   <- as.numeric(levels(factor(parameters[, "scc"])));
-	# matched.levels <- as.numeric(levels(factor(parameters[, "matched"])));
-	oth.levels 	   <- as.numeric(levels(factor(parameters[, "oth"])));
-	cnas.levels	   <- as.numeric(levels(factor(parameters[, "cnas"])));
-	col.levels	   <- as.numeric(levels(factor(parameters[, "col"])));
+	params.factored <- param.combns;
+	colours.factored    <- list();
+
+	for (n in names(param.combns)) {
+		levels <- as.numeric(levels(factor(param.combns[, n])));
+		params.factored[, n]  <- factor(param.combns[, n], levels = levels);
+		colours.factored[[n]] <- colour.list[[n]][levels + 1];
+		}
 
 	run.covs <- generate.covariates(
-		x = data.frame(
-		 	perchip = factor(parameters[, "perchip"], levels = perchip.levels),
-			ccn 	= factor(parameters[, "ccn"], 	  levels = ccn.levels),
-			bc 		= factor(parameters[, "bc"], 	  levels = bc.levels),
-			scc 	= factor(parameters[, "scc"], 	  levels = scc.levels),
-			# matched = factor(parameters[, 'matched'], levels = matched.levels),
-			oth 	= factor(parameters[, 'oth'], 	  levels = oth.levels),
-			cnas 	= factor(parameters[, 'cnas'], 	  levels = cnas.levels),
-			col 	= factor(parameters[, 'col'], 	  levels = col.levels)
-			),
-		colour.list = list(
-	 		perchip = colour.list[['perchip']][perchip.levels + 1],
-			ccn 	= colour.list[['ccn']][ccn.levels + 1],
-			bc 		= colour.list[['bc']][bc.levels + 1],
-			scc 	= colour.list[['scc']][scc.levels + 1],
-			# matched = colour.list[['matched']][matched.levels + 1],
-			oth 	= colour.list[['oth']][oth.levels + 1],
-			cnas 	= colour.list[['cnas']][cnas.levels + 1],
-			col 	= colour.list[['col']][col.levels + 1]
-			),
+		x = params.factored,
+		colour.list = colours.factored,
 		col.set = border.col
 		);
 
@@ -211,44 +249,35 @@ make.p.heatmap <- function(pvals, fname) {
 	}
 
 ### Linear model analysis for which params are relevant to run ranking-- evaluate which pipeline parameters are most important
-run.glm <- function(glm.data, stem.name, oncoscan = FALSE) {
+run.glm <- function(glm.data, stem.name, proj.stem) {
 	### Generalized linear modelling
 	if (grepl('parameters', stem.name)) {
+		param.names <- names(glm.data)[-length(names(glm.data))];
+		glm.formula <- "log10(rank.prod) ~ ";
+		glm.formula <- paste0(glm.formula, paste(param.names, collapse = " + "));
+		
+		while (length(param.names) > 1) {
+			p <- param.names[1];
+			param.names <- param.names[-1];
+			glm.formula <- paste(glm.formula, "+", paste(p, param.names, sep = "*", collapse = " + "));
+			}
+
 		glm.full <- glm(
-			# log10(rank.prod) ~ perchip + bc + ccn + scc + matched + oth + cnas + col + 
-			# 	perchip*bc + perchip*ccn + perchip*scc + perchip*matched + perchip*oth + perchip*cnas + perchip*col +
-			# 	bc*ccn + bc*scc + bc*matched + bc*oth + bc*cnas + bc*col + 
-			# 	ccn*scc + ccn*matched + ccn*oth + ccn*cnas + ccn*col + 
-			# 	scc*matched + scc*oth + scc*cnas + scc*col + 
-			# 	matched*oth + matched*cnas + matched*col + 
-			# 	oth*cnas + oth*col + 
-			# 	cnas*col,
-			log10(rank.prod) ~ perchip + bc + ccn + scc + oth + cnas + col + 
-				perchip*bc + perchip*ccn + perchip*scc + perchip*oth + perchip*cnas + perchip*col +
-				bc*ccn + bc*scc + bc*oth + bc*cnas + bc*col + 
-				ccn*scc + ccn*oth + ccn*cnas + ccn*col + 
-				scc*oth + scc*cnas + scc*col + 
-				oth*cnas + oth*col + 
-				cnas*col,
+			formula = glm.formula,
 			data = glm.data
 			);
 	} else {
-		if (oncoscan) {
-			glm.full <- glm(
-				# log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + replicates.conc + ari.pts.clusters,
-				# log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + sd.inv.and.hk + replicates.conc + ari.pts.clusters,
-				log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + sd.inv.and.hk + replicates.conc,
-				data = glm.data
-				);
-		} else {
-			glm.full <- glm(
-				# log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + replicates.conc + ari.pts.clusters,
-				# log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + sd.inv.and.hk + replicates.conc + ari.pts.clusters,
-				log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + sd.inv.and.hk + replicates.conc,
-				data = glm.data
-				);			
-			}
+		metric.names <- names(glm.data)[-length(names(glm.data))];
+		glm.formula  <- "log10(rank.prod) ~ ";
+		glm.formula  <- paste0(glm.formula, paste(metric.names, collapse = " + "));
+
+		glm.full <- glm(
+			formula = glm.formula,
+			data = glm.data
+			);
 		}
+
+	print(glm.formula);
 
 	### Get the percent of variance explained by each parameter
 	# pve = percent variance explained from ANOVA performed on glm model
@@ -256,7 +285,7 @@ run.glm <- function(glm.data, stem.name, oncoscan = FALSE) {
 	pve.full$pve <- pve.full$pve * 100;
 	pve.full$ind <- seq(1:nrow(pve.full));
 	
-	make.pve.barplot(pve.full, generate.filename(stem.name, 'glm_full_pve_barplot', 'png'));
+	make.pve.barplot(pve.full, paste(plot.dir, generate.filename(stem.name, 'glm_full_pve_barplot', 'png')));
 	
 	### Model selection by AIC (Akaike information criterion)
 	# According to Wikipedia, AIC "is a measure of relative quality of statistical models for a
@@ -267,7 +296,7 @@ run.glm <- function(glm.data, stem.name, oncoscan = FALSE) {
 	pve$pve 	<- pve$pve * 100;
 	pve$ind 	<- seq(1:nrow(pve));
 	
-	make.pve.barplot(pve, generate.filename(stem.name, 'glm_bwelim_pve_barplot', 'png'));
+	make.pve.barplot(pve, paste0(plot.dir, generate.filename(stem.name, 'glm_bwelim_pve_barplot', 'png')));
 
 	pdf(file = paste0(plot.dir, generate.filename(stem.name, 'glm_plots', 'pdf')));
 	plot(glm.reduced);
@@ -300,32 +329,27 @@ run.glm <- function(glm.data, stem.name, oncoscan = FALSE) {
 	}
 
 ### Random forest analysis in regression mode-- evaluate which scores are most important
-run.rf <- function(glm.data, stem.name, oncoscan = FALSE) {
+run.rf <- function(glm.data, stem.name) {
 	if (grepl("parameters", stem.name)) {
+		param.names <- names(glm.data)[-length(names(glm.data))];
+		glm.formula <- "log10(rank.prod) ~ ";
+		glm.formula <- paste0(glm.formula, paste(param.names, collapse = " + "));
+
 		rf.params <- randomForest(
-			formula = log10(rank.prod) ~ bc + ccn + scc + oth + perchip + cnas + col,
-			# formula = log10(rank.prod) ~ bc + ccn + scc + oth + matched + perchip + cnas + col,#DS
-			# formula = log10(rank.prod) ~ bc + ccn + scc + matched + oth + cnas + col,#EL
+			formula = formula(glm.formula),
 			data = glm.data,
 			keep.forest = TRUE
 			);
 	} else {
-		if (oncoscan) {
-			rf.params <- randomForest(
-				formula = log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + replicates.conc + conc.mean.oncoscan + prop.disc.genes.oncoscan,#DS
-				data = glm.data,
-				keep.forest = TRUE
-				);	# *** add any other metrics here! ***
-		} else {
-			rf.params <- randomForest(
-				# formula = log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + replicates.conc + ari.pts.clusters,#DS
-				formula = log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + replicates.conc,#DS
-				# formula = log10(rank.prod) ~ ari.chip + ari.pts.normcor + ari.type + ari.pts + sd.inv.and.hk + replicates.conc,#DS
-				# formula = log10(rank.prod) ~ ari.chip + ari.pts + sd.inv.and.hk + replicates.conc,#EL
-				data = glm.data,
-				keep.forest = TRUE
-				);	# *** add any other metrics here! ***
-			}
+		metric.names <- names(glm.data)[-length(names(glm.data))];
+		glm.formula  <- "log10(rank.prod) ~ ";
+		glm.formula  <- paste0(glm.formula, paste(metric.names, collapse = " + "));
+
+		rf.params <- randomForest(
+			formula = formula(glm.formula),
+			data = glm.data,
+			keep.forest = TRUE
+			);	# *** add any other metrics here! ***
 		}
 
 	param.importance <- importance(rf.params);
@@ -379,12 +403,12 @@ main.dir <- ("/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/
 if (proj.stem == 'nsncnv') {
 	data.dir <- paste0(main.dir, "normalization_assessment/");
 	plot.dir <- paste0(main.dir, "plots/");
-	dates <- '2017-01-20';
+	dates <- c('2017-01-20', '2017-02-09');
 	total.runs <- 12672;
 } else if (proj.stem == 'bristow') {
 	data.dir <- paste0(main.dir, "bristow_assessment/");
 	plot.dir <- paste0(main.dir, "bristow_plots/");
-	dates <- '2017-03-06';
+	dates <- c('2017-03-06', '2017-03-08');
 	total.runs <- 12672;
 	}
 
@@ -395,31 +419,40 @@ setwd(data.dir);
 results <- load.data(
 	dir.name = data.dir,
 	dates = dates,
-	total.runs = total.runs,
-	n.scores = 20,
-	n.params = 8,
-	oncoscan.scores = 2
+	total.runs = total.runs
 	);
-
-if (proj.stem == 'bristow') results$scores <- results$scores[,!is.na(names(results$scores))];
 
 # order param results by colour list names
 results$params <- results$params[, match(names(colour.list), names(results$params))];
 
+# identify and remove any duplicate param combination runs
+collapsed.params <- apply(results$params, 1, paste, sep = " ", collapse = " ");
+duplicate.params <- which(duplicated(collapsed.params));
+
+if (length(duplicate.params) > 0) {
+	results$params <- results$params[duplicate.params,];
+	results$scores <- results$scores[duplicate.params,];	
+	}
+
+###!!!
 # removing because there are too few replicates for 'matched' to be tested properly
-if ('matched' %in% names(results$params)) {
-	results$params <- results$params[, -which(colnames(results$params) %in% 'matched')];
-	colour.list[['matched']] <- NULL;
-	}
+if (proj.stem == 'nsncnv') {
+	if ('matched' %in% names(results$params)) {
+		results$params <- results$params[, -which(colnames(results$params) %in% 'matched')];
+		colour.list[['matched']] <- NULL;
+		}
 
-# removing duplicate param combos (due to 'matched' removal) where 'ari.pts' and 'normal.cnas' are NA
-if (!all(which(is.na(results$scores$normal.cnas)) == which(is.na(results$scores$ari.pts)))) {
-	stop("Check NAs in normal.cnas and ari.pts!");
-	}
+	# removing duplicate param combos (due to 'matched' removal) where 'ari.pts' and 'normal.cnas' are NA
+	if (!all(which(is.na(results$scores$normal.cnas)) == which(is.na(results$scores$ari.pts)))) {
+		stop("Check NAs in normal.cnas and ari.pts!");
+		}
 
-removal <- which(is.na(results$scores$normal.cnas));
-results$scores <- results$scores[-removal,];
-results$params <- results$params[-removal,];
+	removal <- which(is.na(results$scores$normal.cnas));
+	if (length(removal) > 0) {
+		results$scores <- results$scores[-removal,];
+		results$params <- results$params[-removal,];
+		}
+	}
 
 # #temp
 # results$scores <- results$scores[which(results$params$cnas < 4),];
@@ -467,6 +500,11 @@ for (criteria in 1:ncol(results$scores)) {
 		next;
 		}
 
+	if (nrow(unique(na.omit(as.vector(results$scores[criteria])))) < 2) {
+		print(paste0("Not unique: ", names(results$scores)[criteria]));
+		next;
+		}
+
 	for (param in 1:ncol(results$params)) {
 		if (nrow(unique(na.omit(as.vector(results$params[param])))) > 1) {
 			temp.df <- data.frame(
@@ -505,16 +543,9 @@ make.p.heatmap(kw.out,  generate.filename('criteria_x_params', 'kw_p_heatmap',  
 ### Rank data according to each metric
 # determine ranks for each variable
 setwd(data.dir);
-# ranks <- results$scores[, -ncol(results$scores)];
-ranks <- results$scores[, !(colnames(results$scores) %in% c('normal.cnas', 'total.cnas'))];
 
-# sort.decr <- c(TRUE, TRUE, FALSE, TRUE, TRUE, FALSE);#EL
-if (proj.stem == 'nsncnv') {
-	sort.decr <- c(FALSE, TRUE, TRUE, TRUE, FALSE, TRUE, FALSE, TRUE);#DS --see svn/Collaborators/RobBristow/nanostring_validation/normalization/compare_preprocessing_results.R r35400
-} else if () {
-	sort.decr <- c(FALSE, TRUE, TRUE, TRUE, FALSE, TRUE);
-	}
-print(cbind(metric = names(ranks), decreasing = sort.decr));
+ranks <- results$scores;
+sort.decr <- as.vector(score.and.sort$sort[match(names(ranks), as.vector(score.and.sort$score))]);
 
 for (r in 1:ncol(ranks)) {
 	if (sort.decr[r]) {
@@ -526,8 +557,8 @@ for (r in 1:ncol(ranks)) {
 
 ### Specify 'important' criteria
 # DS: originally, EL selected these by taking the top 2 criteria for 'increasing node purity'
-# imp.vars <- c('replicates.conc', 'ari.pts', 'conc.mean.oncoscan');
-imp.vars <- c('replicates.conc', 'ari.pts');
+imp.vars <- c('replicates.conc', 'ari.pts', 'conc.mean.oncoscan');
+# imp.vars <- c('replicates.conc', 'ari.pts');
 # imp.vars <- c('replicates.conc', 'ari.pts.normcor.clusters');
 # imp.vars <- c('replicates.conc', 'prop.disc.genes', 'ari.pts');
 # imp.vars <- qw('ari.chip ari.type');
@@ -543,17 +574,17 @@ overall.rank <- apply(
 	FUN = function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); }
 	);
 
-overall.rank.all <- apply(
-	X = ranks,
-	MARGIN = 1,
-	FUN = function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); }
-	);
+# overall.rank <- apply(
+# 	X = ranks,
+# 	MARGIN = 1,
+# 	FUN = function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); }
+# 	);
 
 ranks$overall <- rank(overall.rank);
 run.orders    <- order(ranks$overall);
 
 ### Repeat analysis with each variable omitted and track ranks of runs
-reduced.ranks <- ranks[, -tail(1:ncol(ranks), n = 2),];
+reduced.ranks <- ranks[, -tail(1:ncol(ranks), n = 1)];
 
 for (r in 1:ncol(reduced.ranks)) {
 	reduced.ranks[,r] <- rank(
@@ -627,8 +658,8 @@ write.table(
 # for parameters
 glm.df <- data.frame(lapply(results$params, factor));
 glm.df$rank.prod <- final.rank;
-glm.params <- run.glm(glm.df, stem.name = 'parameters');
-# rf.params  <- run.rf(glm.df,  stem.name = 'parameters');
+glm.params <- run.glm(glm.df, stem.name = 'parameters', proj.stem = proj.stem);
+# rf.params  <- run.rf(glm.df,  stem.name = 'parameters', proj.stem = proj.stem);
 
 # glm.df.unmatched <- data.frame(lapply(results$params[-which(is.na(results$scores$normal.cnas)),], factor));
 # glm.df.unmatched$rank.prod <- final.rank[-which(is.na(results$scores$normal.cnas))];
@@ -642,77 +673,77 @@ glm.df.criteria$rank.prod <- overall.rank;
 # glm.criteria <- run.glm(glm.df.criteria, stem.name = 'criteria');
 
 rf.criteria <- run.rf(
-	glm.df.criteria[,!names(glm.df.criteria) %in% c("conc.mean.oncoscan", "prop.disc.genes.oncoscan")],
+	glm.df.criteria,
 	stem.name = 'criteria'
 	);# won't run with missing values
 
-rf.criteria.collapsed.only <- run.rf(
-	glm.df.criteria[which(results$params$col == 1),],
-	stem.name = 'criteria_collapsed_only',
-	oncoscan = FALSE
-	# oncoscan = TRUE
-	);
+# if (proj.stem == 'nsncnv') {
+# 	rf.criteria.collapsed.only <- run.rf(
+# 		glm.df.criteria[which(results$params$col == 1),],
+# 		stem.name = 'criteria_collapsed_only'
+# 		);	
+# 	}
 
 # glm.df.criteria.unmatched <- results$scores[-which(is.na(results$scores$normal.cnas)),];
 # glm.df.criteria.unmatched$rank.prod <- overall.rank[-which(is.na(results$scores$normal.cnas))];
 # # glm.criteria.unmatched <- run.glm(glm.df.criteria.unmatched, stem.name = 'criteria_unmatched');
 # rf.criteria.unmatched  <- run.rf(glm.df.criteria.unmatched, stem.name = 'criteria_unmatched');
 
-{
-	glm.df.binomial <- apply(glm.df.unmatched,2,as.numeric);
-	cols.to.transform <- which(!colnames(glm.df.binomial) %in% c('cnas', 'rank.prod'));
-	glm.df.binomial[, cols.to.transform][glm.df.binomial[, cols.to.transform] > 0] <- 1;
-	glm.df.binomial <- as.data.frame(glm.df.binomial);
-	glm.df.binomial[,-ncol(glm.df.binomial)] <- apply(glm.df.binomial[,-ncol(glm.df.binomial)],2,as.factor);
+# {
+# 	glm.df.binomial <- apply(glm.df.unmatched,2,as.numeric);
+# 	cols.to.transform <- which(!colnames(glm.df.binomial) %in% c('cnas', 'rank.prod'));
+# 	glm.df.binomial[, cols.to.transform][glm.df.binomial[, cols.to.transform] > 0] <- 1;
+# 	glm.df.binomial <- as.data.frame(glm.df.binomial);
+# 	glm.df.binomial[,-ncol(glm.df.binomial)] <- apply(glm.df.binomial[,-ncol(glm.df.binomial)],2,as.factor);
 
-	glm.binomial <- glm(
-		log10(rank.prod)/10 ~ perchip + bc + ccn + scc + oth + cnas + col + 
-			perchip*bc + perchip*ccn + perchip*scc + perchip*oth + perchip*cnas + perchip*col +
-			bc*ccn + bc*scc + bc*oth + bc*cnas + bc*col + 
-			ccn*scc + ccn*oth + ccn*cnas + ccn*col + 
-			scc*oth + scc*cnas + scc*col + 
-			oth*cnas + oth*col + 
-			cnas*col,
-		data = glm.df.binomial,
-		family = 'binomial'
-		);
+# 	glm.binomial <- glm(
+# 		log10(rank.prod)/10 ~ perchip + bc + ccn + scc + oth + cnas + col + 
+# 			perchip*bc + perchip*ccn + perchip*scc + perchip*oth + perchip*cnas + perchip*col +
+# 			bc*ccn + bc*scc + bc*oth + bc*cnas + bc*col + 
+# 			ccn*scc + ccn*oth + ccn*cnas + ccn*col + 
+# 			scc*oth + scc*cnas + scc*col + 
+# 			oth*cnas + oth*col + 
+# 			cnas*col,
+# 		data = glm.df.binomial,
+# 		family = 'binomial'
+# 		);
 
-	pve.binomial 	 <- get.pve(glm.binomial);
-	pve.binomial$pve <- pve.full$pve * 100;
-	pve.binomial$ind <- seq(1:nrow(pve.binomial));
+# 	pve.binomial 	 <- get.pve(glm.binomial);
+# 	pve.binomial$pve <- pve.full$pve * 100;
+# 	pve.binomial$ind <- seq(1:nrow(pve.binomial));
 		
-	glm.binomial.reduced 	 <- step(glm.binomial, direction = 'backward');
-	pve.binomial.reduced 	 <- get.pve(glm.reduced);
-	pve.binomial.reduced$pve <- pve$pve * 100;
-	pve.binomial.reduced$ind <- seq(1:nrow(pve));
+# 	glm.binomial.reduced 	 <- step(glm.binomial, direction = 'backward');
+# 	pve.binomial.reduced 	 <- get.pve(glm.reduced);
+# 	pve.binomial.reduced$pve <- pve$pve * 100;
+# 	pve.binomial.reduced$ind <- seq(1:nrow(pve));
 
-	pdf(file = paste0(plot.dir, generate.filename(stem.name, 'glm_plots', 'pdf')));
-	plot(glm.binomial.reduced);
-	dev.off();
+# 	pdf(file = paste0(plot.dir, generate.filename(stem.name, 'glm_plots', 'pdf')));
+# 	plot(glm.binomial.reduced);
+# 	dev.off();
 
-	plot.df <- data.frame(
-		resids = stdres(glm.binomial.reduced),
-		fitted.vals = glm.binomial.reduced$fitted.values
-		);
+# 	plot.df <- data.frame(
+# 		resids = stdres(glm.binomial.reduced),
+# 		fitted.vals = glm.binomial.reduced$fitted.values
+# 		);
 
-	create.scatterplot(
-		resids ~ fitted.vals,
-		data = plot.df,
-		# filename = paste0(plot.dir, generate.filename(stem.name, 'glm_bwelim_resid_vs_fitted', 'png')),
-		xlab.label = 'fitted values',
-		ylab.label = 'Standardized residuals',
-		xlimits = c(min(plot.df$fitted.vals) * 0.9, max(plot.df$fitted.vals) * 1.05),
-		xlab.cex = 2,
-		ylab.cex = 2,
-		abline.h = 0,
-		abline.col = 'red',
-		abline.lty = 2
-		);
+# 	create.scatterplot(
+# 		resids ~ fitted.vals,
+# 		data = plot.df,
+# 		# filename = paste0(plot.dir, generate.filename(stem.name, 'glm_bwelim_resid_vs_fitted', 'png')),
+# 		xlab.label = 'fitted values',
+# 		ylab.label = 'Standardized residuals',
+# 		xlimits = c(min(plot.df$fitted.vals) * 0.9, max(plot.df$fitted.vals) * 1.05),
+# 		xlab.cex = 2,
+# 		ylab.cex = 2,
+# 		abline.h = 0,
+# 		abline.col = 'red',
+# 		abline.lty = 2
+# 		);
 
-	# model reduction as shown in http://www.stat.columbia.edu/~martin/W2024/R11.pdf
-	glm.binomial.reduced2 <- glm(log10(rank.prod) ~ 1, data = glm.df.binomial);
-	anova(glm.binomial.reduced2, glm.binomial, test = "Chisq");
-}
+# 	# model reduction as shown in http://www.stat.columbia.edu/~martin/W2024/R11.pdf
+# 	glm.binomial.reduced2 <- glm(log10(rank.prod) ~ 1, data = glm.df.binomial);
+# 	anova(glm.binomial.reduced2, glm.binomial, test = "Chisq");
+# }
 
 ### Plotting ################################################################
 setwd(plot.dir);
@@ -726,56 +757,56 @@ run.covs <- make.covs(results$params[run.orders,]);
 
 border.col <- 'black';
 run.legend <- list(
-	legend = list(
+	col = list(
 		colours = rev(colour.list[['col']]),
 		title = 'Collapsed Probeset',
 		border = border.col,
 		cex = 1,
 		labels = c('yes', 'no')
 		),
-	legend = list(
+	cnas = list(
 		colours = rev(colour.list[['cnas']]),
 		title = 'CNA Method',
 		border = border.col,
 		cex = 1,
 		labels = c('KD: 0.89, 0.69, 0.65, 0.87', 'KD: 0.98, 0.84, 0.92, 0.97', 'KD: 0.998, 0.79, 0.88, 0.989', 'KD (default): 0.85, 0.95', 'Normal Min/Max Thresholds', 'NS-inspired Thresholds')
 		),
-	legend = list(
+	oth = list(
 		colours = rev(colour.list[['oth']]),
 		title = 'Other Norm',
 		border = border.col,
 		cex = 1,
 		labels = c('quantile', 'rank.normal', 'vsn', 'none')
 		),
-	# legend = list(
-	# 	colours = rev(colour.list[['matched']]),
-	# 	title = 'Reference',
-	# 	border = border.col,
-	# 	cex = 1,
-	# 	labels = c('matched', 'pooled')
-	# 	),
-	legend = list(
+	matched = list(
+		colours = rev(colour.list[['matched']]),
+		title = 'Reference',
+		border = border.col,
+		cex = 1,
+		labels = c('matched', 'pooled')
+		),
+	scc = list(
 		colours = rev(colour.list[['scc']]),
 		title = 'Sample Content',
 		border = border.col,
 		cex = 1,
 		labels = c('invariant.norm', 'low.cv.geo.mean', 'top.geo.mean', 'total.sum', 'housekeeping.geo.mean', 'none')
 		),
-	legend = list(
+	bc = list(
 		colours = rev(colour.list[['bc']]),
 		title = 'Background',
 		border = border.col,
 		labels.cex = 1,
 		labels = c('max', 'mean.2sd', 'mean', 'none')
 		),
-	legend = list(
+	ccn = list(
 		colours = rev(colour.list[['ccn']]),
 		title = 'Code Count',
 		border = border.col,
 		labels.cex = 0.75,
 		labels = c('geo.mean', 'sum', 'none')
 		),
-	legend = list(
+	perchip = list(
 		colours = rev(colour.list[['perchip']]),
 		title = 'Per Chip',
 		border = border.col,
@@ -784,9 +815,14 @@ run.legend <- list(
 		)
 	);
 
-heatmap.data <- scores.plotting[,! names(scores.plotting) %in% c('normal.cnas', 'total.cnas', 'sd.inv.and.hk')];
-# heatmap.data[heatmap.data < 0] <- 0;
+for (n in names(run.legend)) {
+	if (!n %in% names(colour.list)) {
+		run.legend[[n]] <- NULL;
+		} 
+	}
+names(run.legend) <- rep("legend", length(run.legend));
 
+heatmap.data <- scores.plotting;
 for (i in 1:ncol(heatmap.data)) {
 	if (max(heatmap.data[,i], na.rm = TRUE) > 1) {
 		heatmap.data[,i] <- heatmap.data[,i]/max(heatmap.data[,i], na.rm = TRUE);
@@ -803,7 +839,7 @@ create.heatmap(
 	cluster.dimensions = 'none',
 	fill.colour = none.colour,
 	covariates.top = run.covs,
-	# scale.data = TRUE,
+	scale.data = TRUE,
 	covariate.legends = run.legend,
 	legend.title.cex = 0.85,
 	legend.cex = 0.6,
