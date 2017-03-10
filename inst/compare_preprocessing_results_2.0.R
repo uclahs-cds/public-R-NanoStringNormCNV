@@ -880,6 +880,17 @@ final.scores <- results$scores[run.orders2,];
 
 run.covs2 <- make.covs(final.params);
 
+key.labels <- rbind(
+	c('col', 'Collapsed'),
+	c('cnas', 'CNAmeth'),
+	c('oth', 'OthNorm'),
+	c('scc', 'SmpCont'),
+	c('bc', 'BkgdCor'),
+	c('ccn', 'CodeCnt'),
+	c('perchip', 'PerChip'),
+	c('matched', 'Reference')
+	);
+
 for (x in 1:ncol(final.scores)) {
 	temp.params <- final.params[order(final.scores[, x], decreasing = TRUE),];
 	temp.scores <- final.scores[order(final.scores[, x], decreasing = TRUE),];
@@ -898,8 +909,8 @@ for (x in 1:ncol(final.scores)) {
 		ylab.cex = 2,
 		xaxis.tck = 0,
 		xaxis.lab = rep('', nrow(final.scores)),
-		col = 'black',# bar.colours,
-		border.col = 'black',#bar.colours,
+		col = 'black',
+		border.col = 'black',
 		legend = list(
 			bottom = list(
 				fun = covariates.grob(
@@ -913,7 +924,6 @@ for (x in 1:ncol(final.scores)) {
 				fun = legend.grob(
 					legends = run.legend,
 					title.just = 'left',
-					# size = 1.5,
 					title.cex = .75,
 					label.cex = .75,
 					size = 2
@@ -924,13 +934,11 @@ for (x in 1:ncol(final.scores)) {
 			x = 1,
 			y = -0.037,
 			text = list(
-				lab = paste(
-					c('Collapsed', 'CNAmeth', 'OthNorm', 'SmpCont', 'BkgdCor', 'CodeCnt', 'PerChip'),
-					signif(kw.out[x, c('col', 'cnas', 'oth', 'scc', 'bc', 'ccn', 'perchip')], digits = 2),
-					# c('Collapsed', 'CNAmeth', 'OthNorm', 'Reference', 'SmpCont', 'BkgdCor', 'CodeCnt', 'PerChip'),
-					# signif(kw.out[x, c('col', 'cnas', 'oth', 'matched', 'scc', 'bc', 'ccn', 'perchip')], digits = 2),
+				lab = rev(paste(
+					key.labels[match(names(temp.params), key.labels[,1]), 2],
+					signif(kw.out[x, names(temp.params)], digits = 2),
 					sep = ": "
-					),
+					)),
 				cex = 0.66
 				),
 			padding.text = 1
@@ -1073,8 +1081,8 @@ params.barplot <- create.barplot(
 cov.colours <- unique(as.vector(unlist(colour.list)));
 
 run.params.matrix <- final.params;
-# run.params.matrix$matched <- run.params.matrix$matched + 1;
-run.params.matrix$cnas <- run.params.matrix$cnas + 1;
+if ('matched' %in% parameters) run.params.matrix$matched <- run.params.matrix$matched + 1;
+if ('cnas' %in% parameters) run.params.matrix$cnas <- run.params.matrix$cnas + 1;
 
 max.val <- max(run.params.matrix[, 1], na.rm = TRUE);
 for (param in 2:ncol(run.params.matrix)) {
