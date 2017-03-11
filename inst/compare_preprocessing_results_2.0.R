@@ -408,7 +408,7 @@ if (proj.stem == 'nsncnv') {
 } else if (proj.stem == 'bristow') {
 	data.dir <- paste0(main.dir, "bristow_assessment/");
 	plot.dir <- paste0(main.dir, "bristow_plots/");
-	dates <- c('2017-03-06', '2017-03-08');
+	dates <- c('2017-03-10', '2017-03-10');
 	total.runs <- 12672;
 	}
 
