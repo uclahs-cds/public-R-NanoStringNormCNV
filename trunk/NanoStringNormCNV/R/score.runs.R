@@ -15,6 +15,8 @@ score.runs <- function(replicate.eval, normalized.data, cna.rounded, phenodata, 
 		total.cnas = NA
 		);
 
+	score.n <- scores;
+
 	# remove unnecessary probes
 	normalized.data <- normalized.data[normalized.data$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"),];
 
@@ -29,6 +31,7 @@ score.runs <- function(replicate.eval, normalized.data, cna.rounded, phenodata, 
 		feature = phenodata$Cartridge,
 		is.discrete = FALSE
 		);
+	score.n$ari.chip <- ncol(normalized.data[, -c(1:3)]);
 
 	# evaluate tumour replicates (normalized NanoString counts)
 	if (!is.null(replicate.eval$norm.counts)) {
@@ -45,6 +48,7 @@ score.runs <- function(replicate.eval, normalized.data, cna.rounded, phenodata, 
 			feature = replicate.eval$count.pheno$Patient[replicate.eval$count.pheno$Type == 'Tumour'],
 			is.discrete = FALSE
 			);
+		score.n$ari.pts.normcor <- ncol(replicate.eval$norm.counts);
 		}
 
 	# evaluate using tissue type information (all patients)
@@ -55,6 +59,7 @@ score.runs <- function(replicate.eval, normalized.data, cna.rounded, phenodata, 
 			feature = phenodata$Type,
 			is.discrete = FALSE
 			);
+		score.n$ari.type <- ncol(normalized.data[, -c(1:3)]);
 		}
 
 	# evaluate tumour replicates (CN calls)
@@ -74,16 +79,23 @@ score.runs <- function(replicate.eval, normalized.data, cna.rounded, phenodata, 
 			data.to.cluster = replicate.eval$cna.calls,
 			feature = phenodata[match(colnames(replicate.eval$cna.calls), phenodata$SampleID),]$Patient
 			);
+		score.n$ari.pts <- ncol(replicate.eval$cna.calls);
 		}
 
 	### Calculate standard deviation for control genes
-	scores$sd.inv 		 <- mean(apply(normalized.data[normalized.data$CodeClass == 'Invariant', 	-c(1:3)], 1, sd));
-	scores$sd.hk  		 <- mean(apply(normalized.data[normalized.data$CodeClass == 'Housekeeping', -c(1:3)], 1, sd));
-	scores$sd.inv.and.hk <- mean(apply(normalized.data[normalized.data$CodeClass %in% c('Housekeeping', 'Invariant'), -c(1:3)], 1, sd));
+	scores$sd.inv  <- mean(apply(normalized.data[normalized.data$CodeClass == 'Invariant', -c(1:3)], 1, sd));
+	score.n$sd.inv <- ncol(normalized.data[normalized.data$CodeClass == 'Invariant', -c(1:3)]);
+
+	scores$sd.hk  <- mean(apply(normalized.data[normalized.data$CodeClass == 'Housekeeping', -c(1:3)], 1, sd));
+	score.n$sd.hk <- ncol(normalized.data[normalized.data$CodeClass == 'Housekeeping', -c(1:3)]);
+
+	scores$sd.inv.and.hk  <- mean(apply(normalized.data[normalized.data$CodeClass %in% c('Housekeeping', 'Invariant'), -c(1:3)], 1, sd));
+	score.n$sd.inv.and.hk <- ncol(normalized.data[normalized.data$CodeClass %in% c('Housekeeping', 'Invariant'), -c(1:3)]);
 
 	### Summarize replicate concordance
 	if (!is.null(replicate.eval$conc.summary)) {
 		scores$replicates.conc <- mean(replicate.eval$conc.summary);
+		score.n$replicates.conc <- length(replicate.eval$conc.summary);
 		}
 	
 	if (!is.null(replicate.eval$concordance)) {
@@ -94,18 +106,22 @@ score.runs <- function(replicate.eval, normalized.data, cna.rounded, phenodata, 
 				FUN = function(f) ifelse(any(f == 0), 1, 0)
 				))
 			)/nrow(replicate.eval$concordance);
+		score.n$prop.disc.genes <- ncol(replicate.eval$concordance);
 		}
 
 	### Summarize CNA counts
 	if (!is.null(cna.normals)) {
 		# number of normal samples where at least one CNA was called
-		scores$normals.w.cnas <- length(which(apply(cna.normals, 2, function(f) any(f != 2))));
+		scores$normals.w.cnas  <- length(which(apply(cna.normals, 2, function(f) any(f != 2))));
+		score.n$normals.w.cnas <- ncol(cna.normals);
 		# total number of CNAs called across all normal samples
-		scores$normal.cnas 	  <- sum(apply(cna.normals, 1, function(f)  sum(f != 2, na.rm = TRUE)), na.rm = TRUE);
+		scores$normal.cnas <-  sum(apply(cna.normals, 1, function(f)  sum(f != 2, na.rm = TRUE)), na.rm = TRUE);
+		score.n$normal.cnas <- ncol(cna.normals);
 		}
 
 	# total number of CNAs called across all tumour samples
-	scores$total.cnas <- sum(apply(cna.rounded, 2, function(f) sum(f != 2, na.rm = TRUE)), na.rm = TRUE);
+	scores$total.cnas  <- sum(apply(cna.rounded, 2, function(f) sum(f != 2, na.rm = TRUE)), na.rm = TRUE);
+	score.n$total.cnas <- ncol(cna.rounded);
 
-	return(scores);
+	return(list(scores = scores, sample.size = score.n));
 	}
