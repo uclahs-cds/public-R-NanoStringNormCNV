@@ -19,8 +19,8 @@ source("~/svn/Resources/code/R/BoutrosLab.statistics.general/R/get.pve.R")
 source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
 
 # set project!
-proj.stem <- 'bristow';
-# proj.stem <- 'nsncnv';
+# proj.stem <- 'bristow';
+proj.stem <- 'nsncnv';
 
 parameters <- qw('perchip bc ccn scc matched oth cnas col');
 score.and.sort <- rbind(
@@ -50,20 +50,27 @@ colnames(score.and.sort) <- c('score', 'sort', 'oncoscan');
 # state which parameters and scoring metrics are not used for given dataset
 if (proj.stem == 'nsncnv') {
 	skip.params <- c('matched');
-	skip.scores <- c(
-		'normal.cnas', 'normal.w.cnas', 'total.cnas',
-		'sd.inv', 'sd.hk', 'sd.ari',
-		'prop.disc.genes'
-		);
+	# skip.scores <- c(
+	# 	'normal.cnas', 'normal.w.cnas', 'total.cnas',
+	# 	'sd.inv', 'sd.hk', 'sd.ari',
+	# 	'prop.disc.genes'
+	# 	);
 } else if (proj.stem == 'bristow') {
 	skip.params <- c('col');
-	skip.scores <- c(
-		'mean.f1score', 'mean.f1score.gain', 'mean.f1score.loss',
-		'normal.cnas', 'normal.w.cnas', 'total.cnas',
-		'sd.inv', 'sd.hk', 'sd.ari',
-		'prop.disc.genes'
-		);
+	# skip.scores <- c(
+	# 	'mean.f1score', 'mean.f1score.gain', 'mean.f1score.loss',
+	# 	'normal.cnas', 'normal.w.cnas', 'total.cnas',
+	# 	'sd.inv', 'sd.hk', 'sd.ari',
+	# 	'prop.disc.genes'
+	# 	);
 	}
+
+skip.scores <- c(
+	'mean.f1score', 'mean.f1score.gain', 'mean.f1score.loss',
+	'normal.cnas', 'normal.w.cnas', 'total.cnas',
+	'sd.inv', 'sd.hk', 'sd.ari',
+	'prop.disc.genes'
+	);
 
 parameters <- parameters[!parameters %in% skip.params];
 score.and.sort <- score.and.sort[!score.and.sort[,1] %in% skip.scores,];
@@ -133,6 +140,7 @@ load.data  <- function(
 					paste0(result.patterns[run], '/', dates[the.date], '_summary_statistics.txt'),
 					header = FALSE
 					);
+				cur.results <- cur.results[,1:2];
 			
 				# read in OncoScan comparison results, if available
 				if (use.oncoscan & file.exists(paste0(result.patterns[run], '/', oncoscan.date, '_oncoscan_comparison.txt'))) {
@@ -403,12 +411,12 @@ main.dir <- ("/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/
 if (proj.stem == 'nsncnv') {
 	data.dir <- paste0(main.dir, "normalization_assessment/");
 	plot.dir <- paste0(main.dir, "plots/");
-	dates <- c('2017-01-20', '2017-02-09');
+	dates <- c('2017-01-20', '2017-03-15');
 	total.runs <- 12672;
 } else if (proj.stem == 'bristow') {
 	data.dir <- paste0(main.dir, "bristow_assessment/");
 	plot.dir <- paste0(main.dir, "bristow_plots/");
-	dates <- c('2017-03-10', '2017-03-10');
+	dates <- c('2017-03-14', '2017-03-14');
 	total.runs <- 12672;
 	}
 
@@ -426,32 +434,21 @@ results <- load.data(
 results$params <- results$params[, match(names(colour.list), names(results$params))];
 
 # identify and remove any duplicate param combination runs
-collapsed.params <- apply(results$params, 1, paste, sep = " ", collapse = " ");
-duplicate.params <- which(duplicated(collapsed.params));
-
-if (length(duplicate.params) > 0) {
-	results$params <- results$params[duplicate.params,];
-	results$scores <- results$scores[duplicate.params,];	
-	}
-
-###!!!
-# removing because there are too few replicates for 'matched' to be tested properly
-if (proj.stem == 'nsncnv') {
+if (proj.stem == 'bristow') {
+	remove.params <- which(apply(results$params, 1, function(x) all(is.na(x))));
+} else if (proj.stem == 'nsncnv') {
+	# remove matched = 1 runs here (too few reps)
 	if ('matched' %in% names(results$params)) {
 		results$params <- results$params[, -which(colnames(results$params) %in% 'matched')];
 		colour.list[['matched']] <- NULL;
 		}
 
-	# removing duplicate param combos (due to 'matched' removal) where 'ari.pts' and 'normal.cnas' are NA
-	if (!all(which(is.na(results$scores$normal.cnas)) == which(is.na(results$scores$ari.pts)))) {
-		stop("Check NAs in normal.cnas and ari.pts!");
-		}
+	remove.params <- which(is.na(results$scores$ari.pts));
+	}
 
-	removal <- which(is.na(results$scores$normal.cnas));
-	if (length(removal) > 0) {
-		results$scores <- results$scores[-removal,];
-		results$params <- results$params[-removal,];
-		}
+if (length(remove.params) > 0) {
+	results$params <- results$params[-remove.params,];
+	results$scores <- results$scores[-remove.params,];	
 	}
 
 # #temp
@@ -557,7 +554,7 @@ for (r in 1:ncol(ranks)) {
 
 ### Specify 'important' criteria
 # DS: originally, EL selected these by taking the top 2 criteria for 'increasing node purity'
-imp.vars <- c('replicates.conc', 'ari.pts', 'conc.mean.oncoscan');
+imp.vars <- c('replicates.conc', 'ari.pts', 'ari.pts.normcor', 'conc.mean.oncoscan');
 # imp.vars <- c('replicates.conc', 'ari.pts');
 # imp.vars <- c('replicates.conc', 'ari.pts.normcor.clusters');
 # imp.vars <- c('replicates.conc', 'prop.disc.genes', 'ari.pts');
@@ -635,7 +632,7 @@ run.orders2 <- order(
 	ordering.scores.df$top5
 	);
 
-reduced.ranks 		  <- reduced.ranks[run.orders2,];
+reduced.ranks <- reduced.ranks[run.orders2,];
 reduced.ranks$overall <- seq(1:nrow(reduced.ranks));
 
 ordering.scores.df <- ordering.scores.df[run.orders2,];
@@ -749,12 +746,6 @@ rf.criteria <- run.rf(
 setwd(plot.dir);
 
 # make a plot of run scores showing params as covariates
-# order matrix according to scores
-scores.plotting <- as.data.frame(results$scores[run.orders, ]);
-ranks.plotting  <- ranks[run.orders, ];
-
-run.covs <- make.covs(results$params[run.orders,]);
-
 # create legend
 border.col <- 'black';
 run.legend <- list(
@@ -824,36 +815,9 @@ for (n in names(run.legend)) {
 	}
 names(run.legend) <- rep("legend", length(run.legend));
 
-heatmap.data <- scores.plotting;
-for (i in 1:ncol(heatmap.data)) {
-	if (max(heatmap.data[,i], na.rm = TRUE) > 1) {
-		heatmap.data[,i] <- heatmap.data[,i]/max(heatmap.data[,i], na.rm = TRUE);
-		}	
-	}
-
-create.heatmap(
-	x = heatmap.data,
-	generate.filename('runs_summary', 'heatmap', 'png'),
-	yaxis.lab = TRUE,
-	yaxis.cex = 1,
-	xaxis.lab = NULL,
-	clustering.method = 'none',
-	cluster.dimensions = 'none',
-	fill.colour = none.colour,
-	covariates.top = run.covs,
-	scale.data = TRUE,
-	covariate.legends = run.legend,
-	legend.title.cex = 0.85,
-	legend.cex = 0.6,
-	legend.side = 'right',
-	colour.scheme = c('yellow', 'white', 'purple'),
-	colourkey.cex = 0.6,
-	resolution = 600,
-	height = 9,
-	width = 10
-	);
-
-### heatmap of ranks
+# heatmap of ranks
+ranks.plotting <- ranks[run.orders, ];
+run.covs <- make.covs(results$params[run.orders,]);
 create.heatmap(
 	x = ranks.plotting,
 	generate.filename('runs_summary', 'ranks_heatmap', 'png'),
@@ -873,6 +837,48 @@ create.heatmap(
 	resolution = 600,
 	height = 7
 	);
+
+# order matrix according to scores
+scores.plotting <- as.data.frame(results$scores);
+scores.plotting$run.orders <- run.orders;
+
+for (j in names(scores.plotting)) {
+	if (j == 'run.orders') {
+		ordering <- order(scores.plotting[,j]);
+	} else {
+		ordering <- order(scores.plotting[,j], decreasing = score.and.sort$sort[score.and.sort$score %in% j]);
+		}
+	scores.plotting <- scores.plotting[ordering,];
+	run.covs <- make.covs(results$params[ordering,]);
+
+	scores.plotting[scores.plotting < 0] <- 0;
+
+	for (i in 1:ncol(scores.plotting)) {
+		scores.plotting[,i] <- scores.plotting[,i]/max(scores.plotting[,i], na.rm = TRUE);
+		}
+
+	create.heatmap(
+		x = scores.plotting,
+		generate.filename(paste0('runs_summary_', j), 'heatmap', 'png'),
+		yaxis.lab = TRUE,
+		yaxis.cex = 1,
+		xaxis.lab = NULL,
+		clustering.method = 'none',
+		cluster.dimensions = 'none',
+		fill.colour = none.colour,
+		covariates.top = run.covs,
+		# scale.data = TRUE,
+		covariate.legends = run.legend,
+		legend.title.cex = 0.85,
+		legend.cex = 0.6,
+		legend.side = 'right',
+		colour.scheme = c('yellow', 'white', 'purple'),
+		colourkey.cex = 0.6,
+		resolution = 600,
+		height = 9,
+		width = 10
+		);
+	}
 
 ### For each criteria, plot the distribution in the cohort
 final.params <- results$params[run.orders2,];
@@ -1189,3 +1195,6 @@ create.heatmap(
 	top.padding = 15,
 	height = 10
 	);
+
+### SESSION_INFO ##################################################################################
+save.session.profile(paste0(plot.dir, generate.filename('Run_Comparison', 'Session_Info','txt')), FALSE);
