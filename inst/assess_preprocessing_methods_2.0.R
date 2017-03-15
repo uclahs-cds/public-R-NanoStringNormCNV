@@ -20,8 +20,8 @@ writetables <- 0;
 plotnorm <- 0;
 
 # proj.stem <- 'bartlett';
-proj.stem <- 'bristow';
-# proj.stem <- 'nsncnv';
+# proj.stem <- 'bristow';
+proj.stem <- 'nsncnv';
 
 set.seed(12345);
 
@@ -145,7 +145,7 @@ if (interactive()) {
 	opts$scc 	 <- 1;
 	opts$oth 	 <- 0;
 	opts$matched <- 0;
-	opts$cnas 	 <- 0;
+	opts$cnas 	 <- 5;
 	opts$col 	 <- 0;
 	opts$vis 	 <- 0;
 } else {
@@ -610,8 +610,6 @@ if (! check.sample.order(phenodata$SampleID[has.ref][phenodata$SampleID[has.ref]
 pheno.cna <- phenodata[has.ref,];
 
 {### Density plots ##################################################################################
-	# ## CURRENTLY SET UP FOR THE ORIGINAL BRISTOW DATASET
-
 	# # normal.for.plot <- norm.data[, phenodata[phenodata$Type == "Reference",]$SampleID];
 	# # normal.for.plot <- as.vector(unlist(normal.for.plot));
 	# # tumour.for.plot <- norm.data[, phenodata[phenodata$Type == "Tumour",]$SampleID];
@@ -650,6 +648,14 @@ pheno.cna <- phenodata[has.ref,];
 	# 	to = max(cnas.for.plot)
 	# 	);
 
+	# if (proj.stem == 'nsncnv') {
+	# 	filename1 <- paste0(plot.dir, "../../../plots/densityplot_comparison_cnas-option-", opts$cnas, ".tiff");
+	# 	filename2 <- paste0(plot.dir, "../../../plots/densityplot_comparison_raw.tiff")
+	# } else if (proj.stem == 'bristow') {
+	# 	filename1 <- paste0(plot.dir, "../../../bristow_plots/densityplot_comparison_cnas-option-", opts$cnas, ".tiff");
+	# 	filename2 <- paste0(plot.dir, "../../../bristow_plots/densityplot_comparison_raw.tiff");
+	# 	}
+
 	# # plotting calls
 	# plot.colours <- default.colours(3);
 	# create.densityplot(
@@ -658,8 +664,7 @@ pheno.cna <- phenodata[has.ref,];
 	# 		tumour = tumour.for.plot,
 	# 		normal = normal.for.plot
 	# 		),
-	# 	filename = paste0(plot.dir, "../../../bristow_plots/densityplot_comparison_cnas-option-", opts$cnas, ".tiff"),
-	# 	# filename = paste0(plot.dir, "../../../plots/densityplot_comparison_cnas-option-", opts$cnas, ".tiff"),
+	# 	filename = filename1,
 	# 	col = plot.colours,
 	# 	legend = list(
 	# 		inside = list(
@@ -687,7 +692,7 @@ pheno.cna <- phenodata[has.ref,];
 	# 		tumour = tumour.for.plot,
 	# 		normal = normal.for.plot
 	# 		),
-	# 	filename = paste0(plot.dir, "../../../plots/densityplot_comparison_raw.tiff"),
+	# 	filename = filename2,
 	# 	col = plot.colours,
 	# 	legend = list(
 	# 		inside = list(
@@ -824,12 +829,15 @@ summary.scores <- score.runs(
 	cna.normals = score.run.normals
 	);
 
-summary.data <- c(summary.data, summary.scores);
+n.param <- length(summary.data);
+summary.data <- c(summary.data, summary.scores$scores);
+summary.data <- melt(summary.data);
+summary.data <- cbind(summary.data, c(rep(NA, n.param), unlist(summary.scores$sample.size)));
 
 ### print to file
 setwd(out.dir);
 write.table(
-	melt(summary.data),
+	summary.data,
 	generate.filename('summary', 'statistics', 'txt'),
 	sep = "\t",
 	quote = FALSE,
