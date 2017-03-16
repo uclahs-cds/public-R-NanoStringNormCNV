@@ -16,8 +16,8 @@ load_all("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV");
 # set options
 dropoutliers <- 0;
 drop.low.cnt.smp <- 1;
-writetables <- 0;
-plotnorm <- 0;
+writetables <- 1;
+plotnorm <- 1;
 
 # proj.stem <- 'bartlett';
 # proj.stem <- 'bristow';
@@ -139,10 +139,10 @@ check.sample.order <- function(names1, names2) {
 ### SET PARAMETERS #################################################################################
 if (interactive()) {
 	opts <- list();
-	opts$perchip <- 0;
-	opts$ccn  	 <- 2;
+	opts$perchip <- 1;
+	opts$ccn  	 <- 0;
 	opts$bc 	 <- 0;
-	opts$scc 	 <- 1;
+	opts$scc 	 <- 0;
 	opts$oth 	 <- 0;
 	opts$matched <- 0;
 	opts$cnas 	 <- 5;
@@ -448,7 +448,7 @@ if (opts$cnas == 0) kd.vals <- NULL; # 'round'; using NS-provided thresholds
 if (opts$cnas == 1) kd.vals <- NULL; # 'round'; using min/max seen in normals
 if (opts$cnas == 2) kd.vals <- NULL;						 # 'KD'; "pkg defaults"   --ToDo
 if (opts$cnas == 3) kd.vals <- c(0.998, 0.79, 0.88, 0.989);  # 'KD'; "user-provided"  --ToDo
-if (opts$cnas == 4) kd.vals <- c(0.980, 0.84, 0.92, 0.970);  # 'KD'; "user-provided"  --ToDo
+if (opts$cnas == 4) kd.vals <- c(0.983, 0.748, 0.727, 0.969);  # 'KD'; "user-provided"  --ToDo
 if (opts$cnas == 5) kd.vals <- c(0.996, 0.695, 0.73, 0.956); # 'KD'; "user-provided" (from original 'bristow' dataset calcs, see below)
 
 ### RUN NORMALIZATION ##############################################################################
@@ -625,7 +625,7 @@ pheno.cna <- phenodata[has.ref,];
 
 	# normal.for.plot <- as.vector(na.omit(as.vector(unlist(cna.normals.unadj.autosomes))));
 	# tumour.for.plot <- as.vector(na.omit(as.vector(unlist(cna.raw.autosomes))));
-	# cnas.for.plot   <- as.vector(na.omit(as.vector(unlist(cna.rounded.autosomes))));
+	# cnas.for.plot   <- as.vector(na.omit(as.vector(unlist(cnas.rounded.autosomes))));
 
 	# density.thresh <- 5;
 	# normal.for.plot[normal.for.plot > density.thresh] <- density.thresh;
@@ -650,10 +650,8 @@ pheno.cna <- phenodata[has.ref,];
 
 	# if (proj.stem == 'nsncnv') {
 	# 	filename1 <- paste0(plot.dir, "../../../plots/densityplot_comparison_cnas-option-", opts$cnas, ".tiff");
-	# 	filename2 <- paste0(plot.dir, "../../../plots/densityplot_comparison_raw.tiff")
 	# } else if (proj.stem == 'bristow') {
 	# 	filename1 <- paste0(plot.dir, "../../../bristow_plots/densityplot_comparison_cnas-option-", opts$cnas, ".tiff");
-	# 	filename2 <- paste0(plot.dir, "../../../bristow_plots/densityplot_comparison_raw.tiff");
 	# 	}
 
 	# # plotting calls
@@ -684,6 +682,82 @@ pheno.cna <- phenodata[has.ref,];
 	# 	xgrid.at = seq(-1, 6, 0.1),
 	# 	ygrid.at = seq(0, 20, 0.25)
 	# 	);
+
+	# # added looping by cartridge for nsncnv (not tested on bristow dataset)
+	# for (i in unique(phenodata$Cartridge)) {
+	# 	ref.smp <- phenodata$SampleID[phenodata$Cartridge == i & phenodata$Type == 'Reference'];
+	# 	tmr.smp <- phenodata$SampleID[phenodata$Cartridge == i & phenodata$Type == 'Tumour'];
+
+	# 	normal.for.plot <- cna.normals.unadj.autosomes[, colnames(cna.normals.unadj.autosomes) %in% ref.smp];
+	# 	tumour.for.plot <- cna.raw.autosomes[, colnames(cna.raw.autosomes) %in% tmr.smp];
+	# 	cnas.for.plot   <- cna.rounded.autosomes[, colnames(cna.rounded.autosomes) %in% tmr.smp];
+
+	# 	normal.for.plot <- as.vector(na.omit(as.vector(unlist(normal.for.plot))));
+	# 	tumour.for.plot <- as.vector(na.omit(as.vector(unlist(tumour.for.plot))));
+	# 	cnas.for.plot   <- as.vector(na.omit(as.vector(unlist(cnas.for.plot))));
+
+	# 	density.thresh <- 5;
+	# 	normal.for.plot[normal.for.plot > density.thresh] <- density.thresh;
+	# 	tumour.for.plot[tumour.for.plot > density.thresh] <- density.thresh;
+	# 	cnas.for.plot[	  cnas.for.plot > density.thresh] <- density.thresh;
+
+	# 	normal.density <- density(
+	# 		normal.for.plot,
+	# 		from = min(c(normal.for.plot, tumour.for.plot)),
+	# 		to = max(c(normal.for.plot, tumour.for.plot))
+	# 		);
+	# 	tumour.density <- density(
+	# 		tumour.for.plot,
+	# 		from = min(c(normal.for.plot, tumour.for.plot)),
+	# 		to = max(c(normal.for.plot, tumour.for.plot))
+	# 		);
+	# 	cnas.density <- density(
+	# 		cnas.for.plot,
+	# 		from = min(cnas.for.plot),
+	# 		to = max(cnas.for.plot)
+	# 		);
+
+	# 	if (proj.stem == 'nsncnv') {
+	# 		filename1 <- paste0(plot.dir, "../../../plots/densityplot_comparison_cnas-option-", opts$cnas, "_cartridge-", i, ".tiff");
+	# 	} else if (proj.stem == 'bristow') {
+	# 		filename1 <- paste0(plot.dir, "../../../bristow_plots/densityplot_comparison_cnas-option-", opts$cnas, "_cartridge-", i, ".tiff");
+	# 		}
+
+	# 	# plotting calls
+	# 	plot.colours <- default.colours(3);
+	# 	create.densityplot(
+	# 		list(
+	# 			cnas = cnas.for.plot,
+	# 			tumour = tumour.for.plot,
+	# 			normal = normal.for.plot
+	# 			),
+	# 		filename = filename1,
+	# 		col = plot.colours,
+	# 		legend = list(
+	# 			inside = list(
+	# 				fun = draw.key,
+	# 				args = list(
+	# 					key = list(
+	# 						points = list(col = plot.colours, fill = plot.colours, pch = 19),
+	# 						text = list(lab = c("CNAs", "tumour", "normal"))
+	# 						)
+	# 					),
+	# 				x = 0.75,
+	# 				y = 0.85
+	# 				)
+	# 			),
+	# 		ylimits = c(-0.1, max(c(normal.density$y, tumour.density$y, cnas.density$y)) + .5),
+	# 		type = c('l', 'g'),
+	# 		xgrid.at = seq(-1, 6, 0.1),
+	# 		ygrid.at = seq(0, 20, 0.25)
+	# 		);
+	# 	}
+
+	# if (proj.stem == 'nsncnv') {
+	# 	filename2 <- paste0(plot.dir, "../../../plots/densityplot_comparison_raw.tiff")
+	# } else if (proj.stem == 'bristow') {
+	# 	filename2 <- paste0(plot.dir, "../../../bristow_plots/densityplot_comparison_raw.tiff");
+	# 	}
 
 	# # plotting raw tumour and normal
 	# plot.colours <- default.colours(3)[2:3];
@@ -718,7 +792,8 @@ pheno.cna <- phenodata[has.ref,];
 	# intersection.point <- normal.density$x[which(diff(density.difference > 0) != 0) + 1];
 
 	# # chosen from above/plot
-	# intersection.point <- c(0.31, 1.8, 2.24, 3.5);
+	# intersection.point <- c(0.3, 1.7, 2.26, 3.5);
+	# # intersection.point <- c(0.31, 1.8, 2.24, 3.5);
 	# # intersection.point <- c(0.3, 1.67, 2.42, 3.57);
 
 	# kd.vals <- list();
