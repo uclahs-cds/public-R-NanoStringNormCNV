@@ -20,7 +20,8 @@ source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/acces
 
 # set project!
 # proj.stem <- 'bristow';
-proj.stem <- 'nsncnv';
+# proj.stem <- 'nsncnv';
+proj.stem <- 'nsncnv_col';
 
 parameters <- qw('perchip bc ccn scc matched oth cnas col');
 score.and.sort <- rbind(
@@ -48,15 +49,17 @@ score.and.sort <- as.data.frame(score.and.sort);
 colnames(score.and.sort) <- c('score', 'sort', 'oncoscan');
 
 # state which parameters and scoring metrics are not used for given dataset
-if (proj.stem == 'nsncnv') {
-	skip.params <- c('matched');
+skip.params <- c();
+if (grepl('nsncnv', proj.stem)) {
+	skip.params <- c(skip.params, 'matched');
 	# skip.scores <- c(
 	# 	'normal.cnas', 'normal.w.cnas', 'total.cnas',
 	# 	'sd.inv', 'sd.hk', 'sd.ari',
 	# 	'prop.disc.genes'
 	# 	);
-} else if (proj.stem == 'bristow') {
-	skip.params <- c('col');
+	};
+if (proj.stem == 'bristow' | proj.stem == 'nsncnv_col') {
+	skip.params <- c(skip.params, 'col');
 	# skip.scores <- c(
 	# 	'mean.f1score', 'mean.f1score.gain', 'mean.f1score.loss',
 	# 	'normal.cnas', 'normal.w.cnas', 'total.cnas',
@@ -87,8 +90,8 @@ colour.list[['perchip']] <- c(none.colour, 'black');
 colour.list[['cnas']] 	 <- c("#f1eef6", "#d4b9da", "#c994c7", "#df65b0", "#dd1c77", "#980043");
 colour.list[['col']] 	 <- c(none.colour, 'chartreuse4');
 
-for (i in 1:length(colour.list)) {
-	if (!names(colour.list)[i] %in% parameters) {
+for (i in names(colour.list)) {
+	if (!i %in% parameters) {
 		colour.list[i] <- NULL;
 		}
 	}
@@ -408,10 +411,10 @@ cluster.param <- function(param, n.groups, decr) {
 # set up directories
 main.dir <- ("/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV/");
 
-if (proj.stem == 'nsncnv') {
+if (grepl('nsncnv', proj.stem)) {
 	data.dir <- paste0(main.dir, "normalization_assessment/");
 	plot.dir <- paste0(main.dir, "plots/");
-	dates <- c('2017-01-20', '2017-03-15');
+	dates <- c('2017-01-20', '2017-03-16');
 	total.runs <- 12672;
 } else if (proj.stem == 'bristow') {
 	data.dir <- paste0(main.dir, "bristow_assessment/");
@@ -437,13 +440,9 @@ results$params <- results$params[, match(names(colour.list), names(results$param
 if (proj.stem == 'bristow') {
 	remove.params <- which(apply(results$params, 1, function(x) all(is.na(x))));
 } else if (proj.stem == 'nsncnv') {
-	# remove matched = 1 runs here (too few reps)
-	if ('matched' %in% names(results$params)) {
-		results$params <- results$params[, -which(colnames(results$params) %in% 'matched')];
-		colour.list[['matched']] <- NULL;
-		}
-
 	remove.params <- which(is.na(results$scores$ari.pts));
+} else if (proj.stem == 'nsncnv_col') {
+	remove.params <- which(is.na(results$scores$prop.disc.genes.oncoscan));
 	}
 
 if (length(remove.params) > 0) {
@@ -534,8 +533,13 @@ colnames(kw.out) <- colnames(aov.out) <- colnames(results$params);
 
 # Make a heatmap of results
 setwd(plot.dir);
-make.p.heatmap(aov.out, generate.filename('criteria_x_params', 'aov_p_heatmap', 'png'));
-make.p.heatmap(kw.out,  generate.filename('criteria_x_params', 'kw_p_heatmap',  'png'));
+if (proj.stem == 'nsncnv_col') {
+	make.p.heatmap(aov.out, generate.filename('criteria_x_params_colOnly', 'aov_p_heatmap', 'png'));
+	make.p.heatmap(kw.out,  generate.filename('criteria_x_params_colOnly', 'kw_p_heatmap',  'png'));
+} else {
+	make.p.heatmap(aov.out, generate.filename('criteria_x_params', 'aov_p_heatmap', 'png'));
+	make.p.heatmap(kw.out,  generate.filename('criteria_x_params', 'kw_p_heatmap',  'png'));
+	}
 
 ### Rank data according to each metric
 # determine ranks for each variable
@@ -643,104 +647,112 @@ ordering.scores.df$top  <- ordering.scores.df$top  * -1;
 ordering.scores.df$top5 <- ordering.scores.df$top5 * -1;
 
 ### Output some scores to file
+if (proj.stem == 'nsncnv_col') {
+	fname <- generate.filename('params_x_scores_colOnly', 'ranked_output', 'txt')
+} else {
+	fname <- generate.filename('params_x_scores', 'ranked_output', 'txt')
+	}
+
 write.table(
 	cbind(results$params[run.orders2,], ordering.scores.df, ranks[run.orders2,]),
-	generate.filename('params_x_scores', 'ranked_output', 'txt'),
+	file = fname,
 	sep= "\t",
 	quote = FALSE,
 	row.names = FALSE
 	);
 
 ### Fit some linear models to evaluate statistically which variables are important for the rank product
-# for parameters
-glm.df <- data.frame(lapply(results$params, factor));
-glm.df$rank.prod <- final.rank;
-glm.params <- run.glm(glm.df, stem.name = 'parameters', proj.stem = proj.stem);
-# rf.params  <- run.rf(glm.df,  stem.name = 'parameters', proj.stem = proj.stem);
+if (proj.stem != 'nsncnv_col') {
+	# for parameters
+	glm.df <- data.frame(lapply(results$params, factor));
+	glm.df$rank.prod <- final.rank;
+	glm.params <- run.glm(glm.df, stem.name = 'parameters', proj.stem = proj.stem);
+	# rf.params  <- run.rf(glm.df,  stem.name = 'parameters', proj.stem = proj.stem);
 
-# glm.df.unmatched <- data.frame(lapply(results$params[-which(is.na(results$scores$normal.cnas)),], factor));
-# glm.df.unmatched$rank.prod <- final.rank[-which(is.na(results$scores$normal.cnas))];
-# glm.params.unmatched <- run.glm(glm.df.unmatched, stem.name = 'parameters_unmatched');
-# # rf.params.unmatched  <- run.rf(glm.df.unmatched,  stem.name = 'parameters_unmatched');
+	# glm.df.unmatched <- data.frame(lapply(results$params[-which(is.na(results$scores$normal.cnas)),], factor));
+	# glm.df.unmatched$rank.prod <- final.rank[-which(is.na(results$scores$normal.cnas))];
+	# glm.params.unmatched <- run.glm(glm.df.unmatched, stem.name = 'parameters_unmatched');
+	# # rf.params.unmatched  <- run.rf(glm.df.unmatched,  stem.name = 'parameters_unmatched');
 
-# for ranking criteria
-glm.df.criteria <- results$scores;
-glm.df.criteria$rank.prod <- overall.rank;
-# glm.df.criteria$rank.prod <- overall.rank.all;# not just 'imp.vars'
-# glm.criteria <- run.glm(glm.df.criteria, stem.name = 'criteria');
+	# for ranking criteria
+	glm.df.criteria <- results$scores;
+	glm.df.criteria$rank.prod <- overall.rank;
+	# glm.df.criteria$rank.prod <- overall.rank.all;# not just 'imp.vars'
+	# glm.criteria <- run.glm(glm.df.criteria, stem.name = 'criteria');
 
-rf.criteria <- run.rf(
-	glm.df.criteria,
-	stem.name = 'criteria'
-	);# won't run with missing values
+	rf.criteria <- run.rf(
+		glm.df.criteria,
+		stem.name = 'criteria'
+		);# won't run with missing values
 
-# if (proj.stem == 'nsncnv') {
-# 	rf.criteria.collapsed.only <- run.rf(
-# 		glm.df.criteria[which(results$params$col == 1),],
-# 		stem.name = 'criteria_collapsed_only'
-# 		);	
-# 	}
+	# if (proj.stem == 'nsncnv') {
+	# 	rf.criteria.collapsed.only <- run.rf(
+	# 		glm.df.criteria[which(results$params$col == 1),],
+	# 		stem.name = 'criteria_collapsed_only'
+	# 		);	
+	# 	}
 
-# glm.df.criteria.unmatched <- results$scores[-which(is.na(results$scores$normal.cnas)),];
-# glm.df.criteria.unmatched$rank.prod <- overall.rank[-which(is.na(results$scores$normal.cnas))];
-# # glm.criteria.unmatched <- run.glm(glm.df.criteria.unmatched, stem.name = 'criteria_unmatched');
-# rf.criteria.unmatched  <- run.rf(glm.df.criteria.unmatched, stem.name = 'criteria_unmatched');
+	# glm.df.criteria.unmatched <- results$scores[-which(is.na(results$scores$normal.cnas)),];
+	# glm.df.criteria.unmatched$rank.prod <- overall.rank[-which(is.na(results$scores$normal.cnas))];
+	# # glm.criteria.unmatched <- run.glm(glm.df.criteria.unmatched, stem.name = 'criteria_unmatched');
+	# rf.criteria.unmatched  <- run.rf(glm.df.criteria.unmatched, stem.name = 'criteria_unmatched');
 
-# {
-# 	glm.df.binomial <- apply(glm.df.unmatched,2,as.numeric);
-# 	cols.to.transform <- which(!colnames(glm.df.binomial) %in% c('cnas', 'rank.prod'));
-# 	glm.df.binomial[, cols.to.transform][glm.df.binomial[, cols.to.transform] > 0] <- 1;
-# 	glm.df.binomial <- as.data.frame(glm.df.binomial);
-# 	glm.df.binomial[,-ncol(glm.df.binomial)] <- apply(glm.df.binomial[,-ncol(glm.df.binomial)],2,as.factor);
+	# {
+	# 	glm.df.binomial <- apply(glm.df.unmatched,2,as.numeric);
+	# 	cols.to.transform <- which(!colnames(glm.df.binomial) %in% c('cnas', 'rank.prod'));
+	# 	glm.df.binomial[, cols.to.transform][glm.df.binomial[, cols.to.transform] > 0] <- 1;
+	# 	glm.df.binomial <- as.data.frame(glm.df.binomial);
+	# 	glm.df.binomial[,-ncol(glm.df.binomial)] <- apply(glm.df.binomial[,-ncol(glm.df.binomial)],2,as.factor);
 
-# 	glm.binomial <- glm(
-# 		log10(rank.prod)/10 ~ perchip + bc + ccn + scc + oth + cnas + col + 
-# 			perchip*bc + perchip*ccn + perchip*scc + perchip*oth + perchip*cnas + perchip*col +
-# 			bc*ccn + bc*scc + bc*oth + bc*cnas + bc*col + 
-# 			ccn*scc + ccn*oth + ccn*cnas + ccn*col + 
-# 			scc*oth + scc*cnas + scc*col + 
-# 			oth*cnas + oth*col + 
-# 			cnas*col,
-# 		data = glm.df.binomial,
-# 		family = 'binomial'
-# 		);
+	# 	glm.binomial <- glm(
+	# 		log10(rank.prod)/10 ~ perchip + bc + ccn + scc + oth + cnas + col + 
+	# 			perchip*bc + perchip*ccn + perchip*scc + perchip*oth + perchip*cnas + perchip*col +
+	# 			bc*ccn + bc*scc + bc*oth + bc*cnas + bc*col + 
+	# 			ccn*scc + ccn*oth + ccn*cnas + ccn*col + 
+	# 			scc*oth + scc*cnas + scc*col + 
+	# 			oth*cnas + oth*col + 
+	# 			cnas*col,
+	# 		data = glm.df.binomial,
+	# 		family = 'binomial'
+	# 		);
 
-# 	pve.binomial 	 <- get.pve(glm.binomial);
-# 	pve.binomial$pve <- pve.full$pve * 100;
-# 	pve.binomial$ind <- seq(1:nrow(pve.binomial));
-		
-# 	glm.binomial.reduced 	 <- step(glm.binomial, direction = 'backward');
-# 	pve.binomial.reduced 	 <- get.pve(glm.reduced);
-# 	pve.binomial.reduced$pve <- pve$pve * 100;
-# 	pve.binomial.reduced$ind <- seq(1:nrow(pve));
+	# 	pve.binomial 	 <- get.pve(glm.binomial);
+	# 	pve.binomial$pve <- pve.full$pve * 100;
+	# 	pve.binomial$ind <- seq(1:nrow(pve.binomial));
+			
+	# 	glm.binomial.reduced 	 <- step(glm.binomial, direction = 'backward');
+	# 	pve.binomial.reduced 	 <- get.pve(glm.reduced);
+	# 	pve.binomial.reduced$pve <- pve$pve * 100;
+	# 	pve.binomial.reduced$ind <- seq(1:nrow(pve));
 
-# 	pdf(file = paste0(plot.dir, generate.filename(stem.name, 'glm_plots', 'pdf')));
-# 	plot(glm.binomial.reduced);
-# 	dev.off();
+	# 	pdf(file = paste0(plot.dir, generate.filename(stem.name, 'glm_plots', 'pdf')));
+	# 	plot(glm.binomial.reduced);
+	# 	dev.off();
 
-# 	plot.df <- data.frame(
-# 		resids = stdres(glm.binomial.reduced),
-# 		fitted.vals = glm.binomial.reduced$fitted.values
-# 		);
+	# 	plot.df <- data.frame(
+	# 		resids = stdres(glm.binomial.reduced),
+	# 		fitted.vals = glm.binomial.reduced$fitted.values
+	# 		);
 
-# 	create.scatterplot(
-# 		resids ~ fitted.vals,
-# 		data = plot.df,
-# 		# filename = paste0(plot.dir, generate.filename(stem.name, 'glm_bwelim_resid_vs_fitted', 'png')),
-# 		xlab.label = 'fitted values',
-# 		ylab.label = 'Standardized residuals',
-# 		xlimits = c(min(plot.df$fitted.vals) * 0.9, max(plot.df$fitted.vals) * 1.05),
-# 		xlab.cex = 2,
-# 		ylab.cex = 2,
-# 		abline.h = 0,
-# 		abline.col = 'red',
-# 		abline.lty = 2
-# 		);
+	# 	create.scatterplot(
+	# 		resids ~ fitted.vals,
+	# 		data = plot.df,
+	# 		# filename = paste0(plot.dir, generate.filename(stem.name, 'glm_bwelim_resid_vs_fitted', 'png')),
+	# 		xlab.label = 'fitted values',
+	# 		ylab.label = 'Standardized residuals',
+	# 		xlimits = c(min(plot.df$fitted.vals) * 0.9, max(plot.df$fitted.vals) * 1.05),
+	# 		xlab.cex = 2,
+	# 		ylab.cex = 2,
+	# 		abline.h = 0,
+	# 		abline.col = 'red',
+	# 		abline.lty = 2
+	# 		);
 
-# 	# model reduction as shown in http://www.stat.columbia.edu/~martin/W2024/R11.pdf
-# 	glm.binomial.reduced2 <- glm(log10(rank.prod) ~ 1, data = glm.df.binomial);
-# 	anova(glm.binomial.reduced2, glm.binomial, test = "Chisq");
-# }
+	# 	# model reduction as shown in http://www.stat.columbia.edu/~martin/W2024/R11.pdf
+	# 	glm.binomial.reduced2 <- glm(log10(rank.prod) ~ 1, data = glm.df.binomial);
+	# 	anova(glm.binomial.reduced2, glm.binomial, test = "Chisq");
+	# }
+	}
 
 ### Plotting ################################################################
 setwd(plot.dir);
@@ -816,11 +828,17 @@ for (n in names(run.legend)) {
 names(run.legend) <- rep("legend", length(run.legend));
 
 # heatmap of ranks
+if (proj.stem == 'nsncnv_col') {
+	fname <- generate.filename('runs_summary_colsOnly', 'ranks_heatmap', 'png');
+} else {
+	fname <- generate.filename('runs_summary', 'ranks_heatmap', 'png');
+	}
+
 ranks.plotting <- ranks[run.orders, ];
 run.covs <- make.covs(results$params[run.orders,]);
 create.heatmap(
 	x = ranks.plotting,
-	generate.filename('runs_summary', 'ranks_heatmap', 'png'),
+	filename = fname,
 	yaxis.lab = TRUE,
 	yaxis.cex = 1,
 	xaxis.lab = NULL,
@@ -857,9 +875,15 @@ for (j in names(scores.plotting)) {
 		scores.plotting[,i] <- scores.plotting[,i]/max(scores.plotting[,i], na.rm = TRUE);
 		}
 
+	if (proj.stem == 'nsncnv_col') {
+		fname <- generate.filename(paste0('runs_summary_', j, '_colsOnly'), 'heatmap', 'png');
+	} else {
+		fname <- generate.filename(paste0('runs_summary_', j), 'heatmap', 'png');
+		}
+
 	create.heatmap(
 		x = scores.plotting,
-		generate.filename(paste0('runs_summary_', j), 'heatmap', 'png'),
+		filename = fname,
 		yaxis.lab = TRUE,
 		yaxis.cex = 1,
 		xaxis.lab = NULL,
@@ -907,10 +931,16 @@ for (x in 1:ncol(final.scores)) {
 		value = temp.scores[, x]
 		);
 
+	if (proj.stem == 'nsncnv_col') {
+		fname <- generate.filename(colnames(final.scores)[x], 'colsOnly_distribution', 'png');
+	} else {
+		fname <- generate.filename(colnames(final.scores)[x], 'distribution', 'png')
+		}
+
 	create.barplot(
 		formula = value ~ ranks,
 		data = temp.df,
-		filename = generate.filename(colnames(final.scores)[x], 'distribution', 'png'),
+		filename = fname,
 		ylab.label = colnames(final.scores)[x],
 		ylab.cex = 2,
 		xaxis.tck = 0,
@@ -1118,9 +1148,15 @@ covs.hmap <- create.heatmap(
 	);
 
 ### Put all together
+if (proj.stem == 'nsncnv_col') {
+	fname <- generate.filename("reduced_ranks_colsOnly", "multiplot", "png");
+} else {
+	fname <- generate.filename("reduced_ranks", "multiplot", "png");
+	}
+
 create.multiplot(
 	plot.objects = list(top5.ranks.bplot, top.ranks.bplot, hmap, criteria.barplot, covs.hmap, params.barplot),
-	filename = generate.filename("reduced_ranks", "multiplot", "png"),
+	filename = fname,
 	panel.heights = c(2.3,6,1,1),
 	panel.widths = c(3,1),
 	plot.layout = c(2, 4),
@@ -1170,9 +1206,15 @@ if(top.n < 200) {
 # all.scores <- apply(all.scores, 2, function(x) { if (all(x == 1)) { x <- rep(min(all.scores), nrow(all.scores)); } else { x; } });
 
 ### Put all together
+if (proj.stem == 'nsncnv_col') {
+	fname <- generate.filename('top_runs_colsOnly', 'metric_comparison', 'png');
+} else {
+	fname <- generate.filename('top_runs', 'metric_comparison', 'png');
+	}
+
 create.heatmap(
 	x = t(all.scores),
-	filename = generate.filename('top_runs', 'metric_comparison', 'png'),
+	filename = fname,
 	cluster.dimensions = 'none',
 	xaxis.lab = colnames(all.scores),
 	yaxis.lab = 1:top.n,
@@ -1197,4 +1239,8 @@ create.heatmap(
 	);
 
 ### SESSION_INFO ##################################################################################
-save.session.profile(paste0(plot.dir, generate.filename('Run_Comparison', 'Session_Info','txt')), FALSE);
+if (proj.stem == 'nsncnv_col') {
+	save.session.profile(paste0(plot.dir, generate.filename('Run_Comparison_colOnly', 'Session_Info','txt')), FALSE);
+} else {
+	save.session.profile(paste0(plot.dir, generate.filename('Run_Comparison', 'Session_Info','txt')), FALSE);
+	}
