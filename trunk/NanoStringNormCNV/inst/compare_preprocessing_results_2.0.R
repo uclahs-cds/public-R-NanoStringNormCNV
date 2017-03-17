@@ -19,9 +19,11 @@ source("~/svn/Resources/code/R/BoutrosLab.statistics.general/R/get.pve.R")
 source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
 
 # set project!
-# proj.stem <- 'bristow';
+proj.stem <- 'bristow';
 # proj.stem <- 'nsncnv';
-proj.stem <- 'nsncnv_col';
+# proj.stem <- 'nsncnv_col';
+
+remove.any.na.runs <- TRUE;
 
 parameters <- qw('perchip bc ccn scc matched oth cnas col');
 score.and.sort <- rbind(
@@ -69,7 +71,7 @@ if (proj.stem == 'bristow' | proj.stem == 'nsncnv_col') {
 	}
 
 skip.scores <- c(
-	'mean.f1score', 'mean.f1score.gain', 'mean.f1score.loss',
+	'mean.f1score', #'mean.f1score.gain', 'mean.f1score.loss',
 	'normal.cnas', 'normal.w.cnas', 'total.cnas',
 	'sd.inv', 'sd.hk', 'sd.ari',
 	'prop.disc.genes'
@@ -414,12 +416,12 @@ main.dir <- ("/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/
 if (grepl('nsncnv', proj.stem)) {
 	data.dir <- paste0(main.dir, "normalization_assessment/");
 	plot.dir <- paste0(main.dir, "plots/");
-	dates <- c('2017-01-20', '2017-03-16');
+	dates <- c('2017-01-20', '2017-03-17');
 	total.runs <- 12672;
 } else if (proj.stem == 'bristow') {
 	data.dir <- paste0(main.dir, "bristow_assessment/");
 	plot.dir <- paste0(main.dir, "bristow_plots/");
-	dates <- c('2017-03-14', '2017-03-14');
+	dates <- c('2017-03-14', '2017-03-17');
 	total.runs <- 12672;
 	}
 
@@ -448,6 +450,15 @@ if (proj.stem == 'bristow') {
 if (length(remove.params) > 0) {
 	results$params <- results$params[-remove.params,];
 	results$scores <- results$scores[-remove.params,];	
+	}
+
+### removing runs where mean.f1score.gain or mean.f1score.loss is NA
+if (remove.any.na.runs) {
+	to.remove <- which(apply(results$scores, 1, function(x) any(is.na(x))));
+	if (length(to.remove) > 0) {
+		results$scores <- results$scores[-to.remove,];
+		results$params <- results$params[-to.remove,];
+		}
 	}
 
 # #temp
@@ -558,7 +569,11 @@ for (r in 1:ncol(ranks)) {
 
 ### Specify 'important' criteria
 # DS: originally, EL selected these by taking the top 2 criteria for 'increasing node purity'
-imp.vars <- c('replicates.conc', 'ari.pts', 'ari.pts.normcor', 'conc.mean.oncoscan');
+if (grepl('nsncnv', proj.stem)) {
+	imp.vars <- c('mean.f1score.gain', 'ari.pts', 'conc.mean.oncoscan');
+} else if (proj.stem == 'bristow') {
+	imp.vars <- c('mean.f1score.loss', 'ari.pts', 'replicates.conc', 'mean.ari');
+	}
 # imp.vars <- c('replicates.conc', 'ari.pts');
 # imp.vars <- c('replicates.conc', 'ari.pts.normcor.clusters');
 # imp.vars <- c('replicates.conc', 'prop.disc.genes', 'ari.pts');
@@ -575,6 +590,7 @@ overall.rank <- apply(
 	FUN = function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); }
 	);
 
+# # used when running glm and rf below
 # overall.rank <- apply(
 # 	X = ranks,
 # 	MARGIN = 1,
@@ -662,97 +678,104 @@ write.table(
 	);
 
 ### Fit some linear models to evaluate statistically which variables are important for the rank product
-if (proj.stem != 'nsncnv_col') {
-	# for parameters
-	glm.df <- data.frame(lapply(results$params, factor));
-	glm.df$rank.prod <- final.rank;
-	glm.params <- run.glm(glm.df, stem.name = 'parameters', proj.stem = proj.stem);
-	# rf.params  <- run.rf(glm.df,  stem.name = 'parameters', proj.stem = proj.stem);
+params.stem <- 'parameters';
+criteria.stem <- 'criteria';
 
-	# glm.df.unmatched <- data.frame(lapply(results$params[-which(is.na(results$scores$normal.cnas)),], factor));
-	# glm.df.unmatched$rank.prod <- final.rank[-which(is.na(results$scores$normal.cnas))];
-	# glm.params.unmatched <- run.glm(glm.df.unmatched, stem.name = 'parameters_unmatched');
-	# # rf.params.unmatched  <- run.rf(glm.df.unmatched,  stem.name = 'parameters_unmatched');
-
-	# for ranking criteria
-	glm.df.criteria <- results$scores;
-	glm.df.criteria$rank.prod <- overall.rank;
-	# glm.df.criteria$rank.prod <- overall.rank.all;# not just 'imp.vars'
-	# glm.criteria <- run.glm(glm.df.criteria, stem.name = 'criteria');
-
-	rf.criteria <- run.rf(
-		glm.df.criteria,
-		stem.name = 'criteria'
-		);# won't run with missing values
-
-	# if (proj.stem == 'nsncnv') {
-	# 	rf.criteria.collapsed.only <- run.rf(
-	# 		glm.df.criteria[which(results$params$col == 1),],
-	# 		stem.name = 'criteria_collapsed_only'
-	# 		);	
-	# 	}
-
-	# glm.df.criteria.unmatched <- results$scores[-which(is.na(results$scores$normal.cnas)),];
-	# glm.df.criteria.unmatched$rank.prod <- overall.rank[-which(is.na(results$scores$normal.cnas))];
-	# # glm.criteria.unmatched <- run.glm(glm.df.criteria.unmatched, stem.name = 'criteria_unmatched');
-	# rf.criteria.unmatched  <- run.rf(glm.df.criteria.unmatched, stem.name = 'criteria_unmatched');
-
-	# {
-	# 	glm.df.binomial <- apply(glm.df.unmatched,2,as.numeric);
-	# 	cols.to.transform <- which(!colnames(glm.df.binomial) %in% c('cnas', 'rank.prod'));
-	# 	glm.df.binomial[, cols.to.transform][glm.df.binomial[, cols.to.transform] > 0] <- 1;
-	# 	glm.df.binomial <- as.data.frame(glm.df.binomial);
-	# 	glm.df.binomial[,-ncol(glm.df.binomial)] <- apply(glm.df.binomial[,-ncol(glm.df.binomial)],2,as.factor);
-
-	# 	glm.binomial <- glm(
-	# 		log10(rank.prod)/10 ~ perchip + bc + ccn + scc + oth + cnas + col + 
-	# 			perchip*bc + perchip*ccn + perchip*scc + perchip*oth + perchip*cnas + perchip*col +
-	# 			bc*ccn + bc*scc + bc*oth + bc*cnas + bc*col + 
-	# 			ccn*scc + ccn*oth + ccn*cnas + ccn*col + 
-	# 			scc*oth + scc*cnas + scc*col + 
-	# 			oth*cnas + oth*col + 
-	# 			cnas*col,
-	# 		data = glm.df.binomial,
-	# 		family = 'binomial'
-	# 		);
-
-	# 	pve.binomial 	 <- get.pve(glm.binomial);
-	# 	pve.binomial$pve <- pve.full$pve * 100;
-	# 	pve.binomial$ind <- seq(1:nrow(pve.binomial));
-			
-	# 	glm.binomial.reduced 	 <- step(glm.binomial, direction = 'backward');
-	# 	pve.binomial.reduced 	 <- get.pve(glm.reduced);
-	# 	pve.binomial.reduced$pve <- pve$pve * 100;
-	# 	pve.binomial.reduced$ind <- seq(1:nrow(pve));
-
-	# 	pdf(file = paste0(plot.dir, generate.filename(stem.name, 'glm_plots', 'pdf')));
-	# 	plot(glm.binomial.reduced);
-	# 	dev.off();
-
-	# 	plot.df <- data.frame(
-	# 		resids = stdres(glm.binomial.reduced),
-	# 		fitted.vals = glm.binomial.reduced$fitted.values
-	# 		);
-
-	# 	create.scatterplot(
-	# 		resids ~ fitted.vals,
-	# 		data = plot.df,
-	# 		# filename = paste0(plot.dir, generate.filename(stem.name, 'glm_bwelim_resid_vs_fitted', 'png')),
-	# 		xlab.label = 'fitted values',
-	# 		ylab.label = 'Standardized residuals',
-	# 		xlimits = c(min(plot.df$fitted.vals) * 0.9, max(plot.df$fitted.vals) * 1.05),
-	# 		xlab.cex = 2,
-	# 		ylab.cex = 2,
-	# 		abline.h = 0,
-	# 		abline.col = 'red',
-	# 		abline.lty = 2
-	# 		);
-
-	# 	# model reduction as shown in http://www.stat.columbia.edu/~martin/W2024/R11.pdf
-	# 	glm.binomial.reduced2 <- glm(log10(rank.prod) ~ 1, data = glm.df.binomial);
-	# 	anova(glm.binomial.reduced2, glm.binomial, test = "Chisq");
-	# }
+if (proj.stem == 'nsncnv_col') {
+	params.stem <- 'parameters_colOnly';
+	criteria.stem <- 'criteria_colOnly';
 	}
+
+# for parameters
+glm.df <- data.frame(lapply(results$params, factor));
+glm.df$rank.prod <- final.rank;
+glm.params <- run.glm(glm.df, stem.name = params.stem, proj.stem = proj.stem);
+# rf.params  <- run.rf(glm.df,  stem.name = 'parameters', proj.stem = proj.stem);
+
+# glm.df.unmatched <- data.frame(lapply(results$params[-which(is.na(results$scores$normal.cnas)),], factor));
+# glm.df.unmatched$rank.prod <- final.rank[-which(is.na(results$scores$normal.cnas))];
+# glm.params.unmatched <- run.glm(glm.df.unmatched, stem.name = 'parameters_unmatched');
+# # rf.params.unmatched  <- run.rf(glm.df.unmatched,  stem.name = 'parameters_unmatched');
+
+# for ranking criteria
+glm.df.criteria <- results$scores;
+glm.df.criteria$rank.prod <- overall.rank;
+# glm.df.criteria$rank.prod <- overall.rank.all;# not just 'imp.vars'
+# glm.criteria <- run.glm(glm.df.criteria, stem.name = 'criteria');
+
+if (!remove.any.na.runs & proj.stem == 'nsncnv_col') {
+	glm.df.criteria <- glm.df.criteria[apply(glm.df.criteria, 1, function(x) !any(is.na(x))),];
+	}
+
+rf.criteria <- run.rf(glm.df.criteria, stem.name = criteria.stem);# won't run with missing values
+
+# if (proj.stem == 'nsncnv') {
+# 	rf.criteria.collapsed.only <- run.rf(
+# 		glm.df.criteria[which(results$params$col == 1),],
+# 		stem.name = 'criteria_collapsed_only'
+# 		);	
+# 	}
+
+# glm.df.criteria.unmatched <- results$scores[-which(is.na(results$scores$normal.cnas)),];
+# glm.df.criteria.unmatched$rank.prod <- overall.rank[-which(is.na(results$scores$normal.cnas))];
+# # glm.criteria.unmatched <- run.glm(glm.df.criteria.unmatched, stem.name = 'criteria_unmatched');
+# rf.criteria.unmatched  <- run.rf(glm.df.criteria.unmatched, stem.name = 'criteria_unmatched');
+
+# {
+# 	glm.df.binomial <- apply(glm.df.unmatched,2,as.numeric);
+# 	cols.to.transform <- which(!colnames(glm.df.binomial) %in% c('cnas', 'rank.prod'));
+# 	glm.df.binomial[, cols.to.transform][glm.df.binomial[, cols.to.transform] > 0] <- 1;
+# 	glm.df.binomial <- as.data.frame(glm.df.binomial);
+# 	glm.df.binomial[,-ncol(glm.df.binomial)] <- apply(glm.df.binomial[,-ncol(glm.df.binomial)],2,as.factor);
+
+# 	glm.binomial <- glm(
+# 		log10(rank.prod)/10 ~ perchip + bc + ccn + scc + oth + cnas + col + 
+# 			perchip*bc + perchip*ccn + perchip*scc + perchip*oth + perchip*cnas + perchip*col +
+# 			bc*ccn + bc*scc + bc*oth + bc*cnas + bc*col + 
+# 			ccn*scc + ccn*oth + ccn*cnas + ccn*col + 
+# 			scc*oth + scc*cnas + scc*col + 
+# 			oth*cnas + oth*col + 
+# 			cnas*col,
+# 		data = glm.df.binomial,
+# 		family = 'binomial'
+# 		);
+
+# 	pve.binomial 	 <- get.pve(glm.binomial);
+# 	pve.binomial$pve <- pve.full$pve * 100;
+# 	pve.binomial$ind <- seq(1:nrow(pve.binomial));
+		
+# 	glm.binomial.reduced 	 <- step(glm.binomial, direction = 'backward');
+# 	pve.binomial.reduced 	 <- get.pve(glm.reduced);
+# 	pve.binomial.reduced$pve <- pve$pve * 100;
+# 	pve.binomial.reduced$ind <- seq(1:nrow(pve));
+
+# 	pdf(file = paste0(plot.dir, generate.filename(stem.name, 'glm_plots', 'pdf')));
+# 	plot(glm.binomial.reduced);
+# 	dev.off();
+
+# 	plot.df <- data.frame(
+# 		resids = stdres(glm.binomial.reduced),
+# 		fitted.vals = glm.binomial.reduced$fitted.values
+# 		);
+
+# 	create.scatterplot(
+# 		resids ~ fitted.vals,
+# 		data = plot.df,
+# 		# filename = paste0(plot.dir, generate.filename(stem.name, 'glm_bwelim_resid_vs_fitted', 'png')),
+# 		xlab.label = 'fitted values',
+# 		ylab.label = 'Standardized residuals',
+# 		xlimits = c(min(plot.df$fitted.vals) * 0.9, max(plot.df$fitted.vals) * 1.05),
+# 		xlab.cex = 2,
+# 		ylab.cex = 2,
+# 		abline.h = 0,
+# 		abline.col = 'red',
+# 		abline.lty = 2
+# 		);
+
+# 	# model reduction as shown in http://www.stat.columbia.edu/~martin/W2024/R11.pdf
+# 	glm.binomial.reduced2 <- glm(log10(rank.prod) ~ 1, data = glm.df.binomial);
+# 	anova(glm.binomial.reduced2, glm.binomial, test = "Chisq");
+# }
 
 ### Plotting ################################################################
 setwd(plot.dir);
@@ -891,7 +914,7 @@ for (j in names(scores.plotting)) {
 		cluster.dimensions = 'none',
 		fill.colour = none.colour,
 		covariates.top = run.covs,
-		# scale.data = TRUE,
+		scale.data = TRUE,
 		covariate.legends = run.legend,
 		legend.title.cex = 0.85,
 		legend.cex = 0.6,
