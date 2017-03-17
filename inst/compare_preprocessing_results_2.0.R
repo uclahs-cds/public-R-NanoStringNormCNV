@@ -19,8 +19,8 @@ source("~/svn/Resources/code/R/BoutrosLab.statistics.general/R/get.pve.R")
 source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
 
 # set project!
-proj.stem <- 'bristow';
-# proj.stem <- 'nsncnv';
+# proj.stem <- 'bristow';
+proj.stem <- 'nsncnv';
 # proj.stem <- 'nsncnv_col';
 
 remove.any.na.runs <- TRUE;
@@ -54,20 +54,9 @@ colnames(score.and.sort) <- c('score', 'sort', 'oncoscan');
 skip.params <- c();
 if (grepl('nsncnv', proj.stem)) {
 	skip.params <- c(skip.params, 'matched');
-	# skip.scores <- c(
-	# 	'normal.cnas', 'normal.w.cnas', 'total.cnas',
-	# 	'sd.inv', 'sd.hk', 'sd.ari',
-	# 	'prop.disc.genes'
-	# 	);
 	};
 if (proj.stem == 'bristow' | proj.stem == 'nsncnv_col') {
 	skip.params <- c(skip.params, 'col');
-	# skip.scores <- c(
-	# 	'mean.f1score', 'mean.f1score.gain', 'mean.f1score.loss',
-	# 	'normal.cnas', 'normal.w.cnas', 'total.cnas',
-	# 	'sd.inv', 'sd.hk', 'sd.ari',
-	# 	'prop.disc.genes'
-	# 	);
 	}
 
 skip.scores <- c(
@@ -416,7 +405,8 @@ main.dir <- ("/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/
 if (grepl('nsncnv', proj.stem)) {
 	data.dir <- paste0(main.dir, "normalization_assessment/");
 	plot.dir <- paste0(main.dir, "plots/");
-	dates <- c('2017-01-20', '2017-03-17');
+	if (proj.stem == 'nsncnv_col') dates <- c('2017-01-20', '2017-03-17');
+	if (proj.stem == 'nsncnv') dates <- c('2017-01-20', '2017-02-13');
 	total.runs <- 12672;
 } else if (proj.stem == 'bristow') {
 	data.dir <- paste0(main.dir, "bristow_assessment/");
@@ -442,7 +432,7 @@ results$params <- results$params[, match(names(colour.list), names(results$param
 if (proj.stem == 'bristow') {
 	remove.params <- which(apply(results$params, 1, function(x) all(is.na(x))));
 } else if (proj.stem == 'nsncnv') {
-	remove.params <- which(is.na(results$scores$ari.pts));
+	remove.params <- which(is.na(results$scores$ari.pts) | is.na(results$scores$prop.disc.genes.oncoscan));
 } else if (proj.stem == 'nsncnv_col') {
 	remove.params <- which(is.na(results$scores$prop.disc.genes.oncoscan));
 	}
@@ -569,6 +559,7 @@ for (r in 1:ncol(ranks)) {
 
 ### Specify 'important' criteria
 # DS: originally, EL selected these by taking the top 2 criteria for 'increasing node purity'
+imp.vars <- qw('ari.pts', '');
 if (grepl('nsncnv', proj.stem)) {
 	imp.vars <- c('mean.f1score.gain', 'ari.pts', 'conc.mean.oncoscan');
 } else if (proj.stem == 'bristow') {
@@ -708,13 +699,6 @@ if (!remove.any.na.runs & proj.stem == 'nsncnv_col') {
 	}
 
 rf.criteria <- run.rf(glm.df.criteria, stem.name = criteria.stem);# won't run with missing values
-
-# if (proj.stem == 'nsncnv') {
-# 	rf.criteria.collapsed.only <- run.rf(
-# 		glm.df.criteria[which(results$params$col == 1),],
-# 		stem.name = 'criteria_collapsed_only'
-# 		);	
-# 	}
 
 # glm.df.criteria.unmatched <- results$scores[-which(is.na(results$scores$normal.cnas)),];
 # glm.df.criteria.unmatched$rank.prod <- overall.rank[-which(is.na(results$scores$normal.cnas))];
