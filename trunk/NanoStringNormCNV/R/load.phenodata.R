@@ -1,12 +1,12 @@
 load.phenodata <- function(fname, separator = 'comma') {
-	# read data
+	# read in data (by file type)
 	if (separator == "comma") {
 		phenodata <- read.csv(fname, stringsAsFactors = FALSE);
 	} else if (separator == "tab") {
 		phenodata <- read.delim(fname, stringsAsFactors = FALSE);
 		}
 
-	# check column names
+	# check for mandatory column names
 	required.cols <- c(
 		"SampleID",
 		"Patient",
@@ -31,7 +31,7 @@ load.phenodata <- function(fname, separator = 'comma') {
 		stop("Sample IDs must be unique!");
 		}
 
-	# check that Names match across replicates
+	# check that sample Names match across replicates
 	unmatched.reps <- c();
 	phenodata.for.reps <- phenodata[phenodata$HasReplicate == 1,];
 	for (i in unique(phenodata.for.reps$Name)) {
@@ -56,11 +56,11 @@ load.phenodata <- function(fname, separator = 'comma') {
 		}
 
 	# check Type values
-	phenodata$Type[tolower(phenodata$Type) == 'tumour']    <- 'Tumour';
+	phenodata$Type[tolower(phenodata$Type) == 'tumour' | tolower(phenodata$Type) == 'tumor'] <- 'Tumour';
 	phenodata$Type[tolower(phenodata$Type) == 'reference'] <- 'Reference';
 	if (!all(phenodata$Type == 'Tumour' | phenodata$Type == 'Reference')) {
 		stop("Column 'Type' must contain only 'Tumour' or 'Reference'!");
-		}	
+		}
 
 	# check reference sample information
 	ref.tumour <- phenodata[phenodata$Type == 'Tumour',]$ReferenceID;
@@ -76,7 +76,7 @@ load.phenodata <- function(fname, separator = 'comma') {
 		}
 
 	if (length(which(phenodata$Type == 'Reference')) < 1) {
-		flog.warn("Column 'Type' contains no reference samples: unable to call CNAs downstream!");
+		flog.warn("Column 'Type' contains no reference samples: will be unable to call CNAs downstream!");
 		}
 
 	if (any(!(ref.tumour[ref.tumour != 'missing'] %in% phenodata$SampleID))) {
@@ -104,7 +104,7 @@ load.phenodata <- function(fname, separator = 'comma') {
 
 	# check for sex information
 	if ("sex" %in% tolower(names(phenodata))) {
-		names(phenodata)[which("Sex" == tolower(names(phenodata)))] <- "Sex";
+		names(phenodata)[which("sex" == tolower(names(phenodata)))] <- "Sex";
 
 		phenodata$Sex[tolower(phenodata$Sex) %in% c("female", "f")] <- "F";
 		phenodata$Sex[tolower(phenodata$Sex) %in% c("male", "m")]   <- "M";
