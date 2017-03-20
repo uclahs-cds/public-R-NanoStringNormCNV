@@ -31,6 +31,7 @@ normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs
 
 	# invariant probe normalization
 	if (do.rcc.inv) {
+		colnames(phenodata)[colnames(phenodata) == 'type'] <- 'Type';
 		normalized.data <- NanoStringNormCNV::invariant.probe.norm(normalized.data, phenodata);
 		}
 

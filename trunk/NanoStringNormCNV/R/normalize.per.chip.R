@@ -51,6 +51,7 @@ normalize.per.chip <- function(phenodata, raw.data, cc, bc, sc, oth, do.nsn, do.
 			} else {
 				phenodata.inv <- NULL;
 				}
+			colnames(phenodata.inv)[colnames(phenodata.inv) == 'type'] <- 'Type';
 			nano.parts[[chip]] <- NanoStringNormCNV::invariant.probe.norm(nano.parts[[chip]], phenodata.inv);
 			}
 
@@ -70,7 +71,7 @@ normalize.per.chip <- function(phenodata, raw.data, cc, bc, sc, oth, do.nsn, do.
 		}
 
 	# combine data
-	normalized.data <- cbind(raw.data[, 1:3], do.call(cbind, lapply(nano.parts, function(f) f[,-c(1:3), drop = FALSE])));
+	normalized.data <- cbind(raw.data[, 1:3], do.call(cbind, lapply(nano.parts, function(f) f[, -c(1:3), drop = FALSE])));
 	normalized.data <- normalized.data[, c(1:3, order(colnames(normalized.data)[-(1:3)]) + 3)];
 	rownames(normalized.data) <- raw.data[, colnames(raw.data) == 'Name'];
 
