@@ -48,7 +48,8 @@ for (my $perchip = 0; $perchip <= 1; ++$perchip) {
 				for(my $matched = 0; $matched <= 1; ++$matched){
 					for(my $oth = 0; $oth <= 3; ++$oth){
 						for(my $cnas = 0; $cnas <= 5; ++$cnas){
-							for(my $col = 0; $col <= 1; ++$col){
+							my $col = 0;
+							# for(my $col = 0; $col <= 1; ++$col){
 
 								# skipping because this is the same as 'cnas' set to 0
 								if ($matched == 1 && $cnas == 1) {
@@ -70,7 +71,7 @@ for (my $perchip = 0; $perchip <= 1; ++$perchip) {
 
 								}
 							}
-						}
+						# }
 					}
 				}
 			}

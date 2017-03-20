@@ -140,13 +140,13 @@ check.sample.order <- function(names1, names2) {
 if (interactive()) {
 	opts <- list();
 	opts$perchip <- 1;
-	opts$ccn  	 <- 0;
-	opts$bc 	 <- 0;
-	opts$scc 	 <- 0;
-	opts$oth 	 <- 0;
-	opts$matched <- 0;
-	opts$cnas 	 <- 5;
-	opts$col 	 <- 0;
+	opts$ccn  	 <- 1;
+	opts$bc 	 <- 1;
+	opts$scc 	 <- 1;
+	opts$oth 	 <- 1;
+	opts$matched <- 1;
+	opts$cnas 	 <- 1;
+	opts$col 	 <- 1;
 	opts$vis 	 <- 0;
 } else {
 	params <- matrix(
@@ -294,7 +294,7 @@ if (proj.stem == 'nsncnv') {
 if (proj.stem == 'nsncnv') {
 	check.names <- gsub("_[0-9]+", "", names(nano.raw)[-(1:3)]);
 	check.names <- gsub("\\.", "", check.names);
-	check.names <- matrix(unlist(strsplit(check.names, "M")), ncol = 2, byrow = T);
+	check.names <- matrix(unlist(strsplit(check.names, "M")), ncol = 2, byrow = TRUE);
 	for (i in 1:nrow(check.names)) {
 		if (grepl("M[12]", phenodata$SampleID[i])) {
 			if (paste0(check.names[i,1], ".M", check.names[i,2]) != phenodata$SampleID[i]) stop("Sample order does not match!");
@@ -455,7 +455,7 @@ if (opts$cnas == 5) kd.vals <- c(0.996, 0.695, 0.73, 0.956); # 'KD'; "user-provi
 setwd(plot.dir);
 
 ### Positive control normalization + plots
-corrs <- positive.control.norm(nano.raw);
+corrs <- positive.control.qc(nano.raw);
 if (plotnorm == 1) {
 	make.positive.control.plot(
 		correlations = corrs,
@@ -465,7 +465,7 @@ if (plotnorm == 1) {
 
 ### Restriction digestion normalization + plots
 if (plotnorm == 1) {
-	restr.frag.norm.output <- restriction.fragmentation.norm(nano.raw);
+	restr.frag.norm.output <- restriction.fragmentation.qc(nano.raw);
 
 	# write bad restr dig samples to file
 	write.table(
@@ -610,13 +610,13 @@ if (! check.sample.order(phenodata$SampleID[has.ref][phenodata$SampleID[has.ref]
 pheno.cna <- phenodata[has.ref,];
 
 {### Density plots ##################################################################################
-	# # normal.for.plot <- norm.data[, phenodata[phenodata$Type == "Reference",]$SampleID];
-	# # normal.for.plot <- as.vector(unlist(normal.for.plot));
-	# # tumour.for.plot <- norm.data[, phenodata[phenodata$Type == "Tumour",]$SampleID];
-	# # tumour.for.plot <- as.vector(unlist(tumour.for.plot));
+	# normal.for.plot <- norm.data[, phenodata[phenodata$Type == "Reference",]$SampleID];
+	# normal.for.plot <- as.vector(unlist(normal.for.plot));
+	# tumour.for.plot <- norm.data[, phenodata[phenodata$Type == "Tumour",]$SampleID];
+	# tumour.for.plot <- as.vector(unlist(tumour.for.plot));
 
-	# # normal.for.plot <- log10(normal.for.plot + 1);
-	# # tumour.for.plot <- log10(tumour.for.plot + 1);
+	# normal.for.plot <- log10(normal.for.plot + 1);
+	# tumour.for.plot <- log10(tumour.for.plot + 1);
 
 	# # remove sex probes
 	# cna.normals.unadj.autosomes <- cna.normals.unadj[!grepl("chr[xy]", tolower(rownames(cna.normals.unadj))),];
@@ -625,7 +625,7 @@ pheno.cna <- phenodata[has.ref,];
 
 	# normal.for.plot <- as.vector(na.omit(as.vector(unlist(cna.normals.unadj.autosomes))));
 	# tumour.for.plot <- as.vector(na.omit(as.vector(unlist(cna.raw.autosomes))));
-	# cnas.for.plot   <- as.vector(na.omit(as.vector(unlist(cnas.rounded.autosomes))));
+	# cnas.for.plot   <- as.vector(na.omit(as.vector(unlist(cna.rounded.autosomes))));
 
 	# density.thresh <- 5;
 	# normal.for.plot[normal.for.plot > density.thresh] <- density.thresh;
@@ -724,29 +724,29 @@ pheno.cna <- phenodata[has.ref,];
 	# 		}
 
 	# 	# plotting calls
-	# 	plot.colours <- default.colours(3);
+	# 	plot.colours <- default.colours(3)[2:3];
 	# 	create.densityplot(
 	# 		list(
-	# 			cnas = cnas.for.plot,
+	# 			# cnas = cnas.for.plot,
 	# 			tumour = tumour.for.plot,
 	# 			normal = normal.for.plot
 	# 			),
 	# 		filename = filename1,
 	# 		col = plot.colours,
-	# 		legend = list(
-	# 			inside = list(
-	# 				fun = draw.key,
-	# 				args = list(
-	# 					key = list(
-	# 						points = list(col = plot.colours, fill = plot.colours, pch = 19),
-	# 						text = list(lab = c("CNAs", "tumour", "normal"))
-	# 						)
-	# 					),
-	# 				x = 0.75,
-	# 				y = 0.85
-	# 				)
-	# 			),
-	# 		ylimits = c(-0.1, max(c(normal.density$y, tumour.density$y, cnas.density$y)) + .5),
+	# 		# legend = list(
+	# 		# 	inside = list(
+	# 		# 		fun = draw.key,
+	# 		# 		args = list(
+	# 		# 			key = list(
+	# 		# 				points = list(col = plot.colours, fill = plot.colours, pch = 19),
+	# 		# 				text = list(lab = c("CNAs", "tumour", "normal"))
+	# 		# 				)
+	# 		# 			),
+	# 		# 		x = 0.75,
+	# 		# 		y = 0.85
+	# 		# 		)
+	# 			# ),
+	# 		# ylimits = c(-0.1, max(c(normal.density$y, tumour.density$y, cnas.density$y)) + .5),
 	# 		type = c('l', 'g'),
 	# 		xgrid.at = seq(-1, 6, 0.1),
 	# 		ygrid.at = seq(0, 20, 0.25)
