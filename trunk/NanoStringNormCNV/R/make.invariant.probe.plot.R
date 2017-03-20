@@ -1,6 +1,3 @@
-# plot the counts for the invariant probes. It is BAD to have counts < 100 for these probes as it signifies
-# low DNA input, leading to unreliable CNA calls. Especially if the low counts are in the reference samples!!
-
 make.invariant.probe.plot <- function(inv.probe.counts, tissue.type = NULL) {
 	mean.counts <- apply(inv.probe.counts, 1, mean);
 
