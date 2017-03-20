@@ -3,14 +3,13 @@ collapse.genes <- function(normalized.data){
 	normalized.data.non.ctrl <- normalized.data[ normalized.data$CodeClass %in% c('Endogenous', 'Housekeeping'),];
 	normalized.data.ctrl     <- normalized.data[!normalized.data$CodeClass %in% c('Endogenous', 'Housekeeping'),];
 
-	# generate normalized.data.aggr gene-level data for non-control probes
+	# aggregate non-control probes per gene by mean value
 	normalized.data.gene <- aggregate(
 		x = normalized.data.non.ctrl[, !colnames(normalized.data.non.ctrl) %in% c('CodeClass', 'Name', 'Accession')],
 		by = list(normalized.data.non.ctrl$Accession),
 		FUN = mean
 		);
 
-	# rename the Group.1 column
 	colnames(normalized.data.gene)['Group.1' == colnames(normalized.data.gene)] <- 'Name';
 
 	# add gene annotation 
