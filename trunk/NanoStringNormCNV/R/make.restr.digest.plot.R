@@ -1,4 +1,3 @@
-
 make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 	# reformat for plotting
 	restr.df <- melt(data = t(restr.data));
@@ -71,6 +70,7 @@ make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 		abline.lty = 2
 		);
 	
+	# combine plots into single figure
 	pretty.bplot <- c(
 		floor(head(pretty(restr.df$count), 1)),
 		ceiling(tail(pretty(restr.df$count), 1))

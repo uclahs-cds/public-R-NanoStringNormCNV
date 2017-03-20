@@ -1,6 +1,5 @@
-
 make.positive.control.plot <- function(correlations, covs = NULL, print.x.labels = TRUE) {
-	# order correlation by size
+	# order values by size
 	correlations <- correlations[, order(correlations[1,])];
 
 	# set up covariates and legend

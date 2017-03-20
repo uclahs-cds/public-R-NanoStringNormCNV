@@ -1,25 +1,19 @@
-restriction.fragmentation.norm <- function(raw.data){
-	# restriction controls evaluation
+restriction.fragmentation.qc <- function(raw.data){
+	# only keep the rows containing restriction fragmentation controls
 	nano.restr <- raw.data[raw.data$CodeClass == 'RestrictionSite',];
 	nano.restr <- nano.restr[with(nano.restr, order(Name)),];
 
-	# remove CodeClass, Name, Accession from colnames
 	grep.cols <- colnames(nano.restr)[!colnames(nano.restr) %in% c('CodeClass', 'Name', 'Accession')];
 
-	# create a new data-frame
 	nano.restr.avg <- as.data.frame(
 		matrix(
 			ncol = length(grep.cols),
 			nrow = 2,
-			dimnames = list(
-				c('A+B', 'C+D'),
-				grep.cols
-				)
+			dimnames = list(c('A+B', 'C+D'), grep.cols)
 			),
 		stringsAsFactors = FALSE
 		);
 
-	# grep A and B names
 	grep.AB <- c(
 		grep(x = nano.restr$Name, pattern = 'RESTRICTIONSITE+A', fixed = TRUE),
 		grep(x = nano.restr$Name, pattern = 'RESTRICTIONSITE+B', fixed = TRUE)
@@ -30,11 +24,11 @@ restriction.fragmentation.norm <- function(raw.data){
 		grep(x = nano.restr$Name, pattern = 'RESTRICTIONSITE-D', fixed = TRUE)
 		);
 
-	# calculate the count average for A,B and C,D
+	# calculate mean counts probes for A+B and C+D
 	nano.restr.avg['A+B',] <- apply(X = nano.restr[grep.AB,grep.cols], MARGIN = 2, FUN = mean);
 	nano.restr.avg['C+D',] <- apply(X = nano.restr[grep.CD,grep.cols], MARGIN = 2, FUN = mean);
 
-	# if low counts is observed in RESTRICTIONSITE-C and RESTRICTIONSITE-D (<200), throw a warning
+	# check if low counts (<200) are observed in probes C+D
 	if (!all(nano.restr.avg['C+D',] >= 200)) {
 
 		# list out the sample names
@@ -43,31 +37,27 @@ restriction.fragmentation.norm <- function(raw.data){
 		print(low.count);
 		}
 
-	# check if average of A and B and average of C and D has a 10-fold difference in counts
+	# check if there is a 10-fold difference between A+B probe mean counts and C+D probe mean counts
 	which.low <- NULL;
-	if (!all((nano.restr.avg['C+D',]/nano.restr.avg['A+B',]) > 55)) {
+	if (!all((nano.restr.avg['C+D',]/nano.restr.avg['A+B',]) > 10)) {
 
-		# gives a warning, record the ratio and see if these should be removed
-		which.low <- which((nano.restr.avg['C+D',]/nano.restr.avg['A+B',]) <= 55);
-
-        # get the data-frame
+		which.low <- which((nano.restr.avg['C+D',]/nano.restr.avg['A+B',]) <= 10);
         low.ratio <- nano.restr.avg[, which.low, drop = FALSE];
-
-        # add a new row with the ratio
         low.ratio['ratio',] <- low.ratio['C+D',]/low.ratio['A+B',];
-
-        # throw out a warning
         flog.warn('Low Fold-Change!', capture = TRUE, low.ratio);
+
         }
 
-		# plot the ratios
-		NanoStringNormCNV::make.restr.digest.plot(nano.restr.avg, which.low);
+	# plot the ratios
+	NanoStringNormCNV::make.restr.digest.plot(nano.restr.avg, which.low);
 
-		out.df <- data.frame(
-			CD = as.numeric(t(nano.restr.avg['C+D',])),
-			AB = as.numeric(t(nano.restr.avg['A+B', ])),
-			ratio = as.numeric(t(nano.restr.avg['C+D',]/nano.restr.avg['A+B',]))
-			);
-		rownames(out.df) <- colnames(nano.restr.avg);
-		return(out.df);
+	# set up output
+	out.df <- data.frame(
+		CD = as.numeric(t(nano.restr.avg['C+D',])),
+		AB = as.numeric(t(nano.restr.avg['A+B', ])),
+		ratio = as.numeric(t(nano.restr.avg['C+D',]/nano.restr.avg['A+B',]))
+		);
+	rownames(out.df) <- colnames(nano.restr.avg);
+
+	return(out.df);
 	}
