@@ -3,10 +3,10 @@
 \title{Wrapper function to call all normalization function requested}
 \description{Wrapper function to apply all normalization functions requested to data globally}
 \usage{
-normalize.global(
-  raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs,
-  transform.data = TRUE, plot.types = 'all', phenodata = NULL
-  )
+  normalize.global(
+    raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs,
+    transform.data = TRUE, plot.types = 'all', phenodata = NULL
+    )
 }
 \arguments{
   \item{raw.data}{A gene by sample data-frame of raw NanoString counts for all samples in experiment. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs}
@@ -19,7 +19,7 @@ normalize.global(
   \item{covs}{A data-frame with covariates for which to assess batch effects in NanoStringNorm. Passed directly to NanoStringNorm::NanoStringNorm 'traits' argument, see function for more information.}
   \item{transform.data}{Whether to transform data so output does not contain negative values. Defaults to TRUE}
   \item{plot.types}{Which NSN plots to generate, if any, after normalization. Passed directly to NanoStringNorm::Plot.NanoStringNorm. Defaults to 'all'}
-  \item{phenodata}{A data-frame with fields 'SampleID' and 'Type' (specifying whether Tumour or Reference). Defaults to NULL}
+  \item{phenodata}{A data-frame of sample annotation which includes the fields 'SampleID' and 'Type'. See output in \code{\link{load.phenodata}}. Defaults to NULL}
 }
 \details{
   Normalizes all data in study together using NanoStringNorm and/or invariant probe normalizaiton. Normalization methods requested are performed in the following order: code count, background correction, sample content, invariant probe, and other. See individual normalization functions for details.
