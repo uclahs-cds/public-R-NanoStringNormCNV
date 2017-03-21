@@ -144,8 +144,8 @@ if (interactive()) {
 	opts$bc 	 <- 1;
 	opts$scc 	 <- 1;
 	opts$oth 	 <- 1;
-	opts$matched <- 1;
-	opts$cnas 	 <- 1;
+	opts$matched <- 0;
+	opts$cnas 	 <- 2;
 	opts$col 	 <- 1;
 	opts$vis 	 <- 0;
 } else {
@@ -174,7 +174,10 @@ if(is.null(opts$bc)) 	  { cat(usage()); q(status = 1) }
 if(is.null(opts$scc)) 	  { cat(usage()); q(status = 1) }
 if(is.null(opts$oth)) 	  { cat(usage()); q(status = 1) }
 if(is.null(opts$matched)) { cat(usage()); q(status = 1) }
+if(is.null(opts$cnas))    { cat(usage()); q(status = 1) }
 if(is.null(opts$vis))	  { cat(usage()); q(status = 1) }
+
+if (opts$matched == 1 & opts$cnas == 1) { cat(usage()); q(status = 1); }
 
 home.dir <- make_dir_name(opts);
 root.dir <- '/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV';
@@ -444,12 +447,12 @@ if (opts$oth == 3) oth.val <- 'quantile';
 do.nsn.norm <- TRUE;
 
 # set up kd values if required
-if (opts$cnas == 0) kd.vals <- NULL; # 'round'; using NS-provided thresholds
-if (opts$cnas == 1) kd.vals <- NULL; # 'round'; using min/max seen in normals
-if (opts$cnas == 2) kd.vals <- NULL;						 # 'KD'; "pkg defaults"   --ToDo
-if (opts$cnas == 3) kd.vals <- c(0.998, 0.79, 0.88, 0.989);  # 'KD'; "user-provided"  --ToDo
-if (opts$cnas == 4) kd.vals <- c(0.983, 0.748, 0.727, 0.969);  # 'KD'; "user-provided"  --ToDo
-if (opts$cnas == 5) kd.vals <- c(0.996, 0.695, 0.73, 0.956); # 'KD'; "user-provided" (from original 'bristow' dataset calcs, see below)
+if (opts$cnas == 0) {cnas.name <- 'NS_default'; 	  	call.method <- 1; kd.vals <- NULL;} # 'round'; using NS-provided thresholds
+if (opts$cnas == 1) {cnas.name <- 'NS_minMax'; 	  	  	call.method <- 3; kd.vals <- NULL;} # 'round'; using min/max seen in normals
+if (opts$cnas == 2) {cnas.name <- 'KD_85-95'; 	 	  	call.method <- 2; kd.vals <- c(0.85, 0.95);}	 			# 'KD'; "pkg defaults"   --ToDo
+if (opts$cnas == 3) {cnas.name <- 'KD_998-79-88-989';	call.method <- 2; kd.vals <- c(0.998, 0.79, 0.88, 0.989);}  # 'KD'; "user-provided"  --ToDo
+if (opts$cnas == 4) {cnas.name <- 'KD_983-748-727-969'; call.method <- 2; kd.vals <- c(0.983, 0.748, 0.727, 0.969);}# 'KD'; "user-provided"  --ToDo
+if (opts$cnas == 5) {cnas.name <- 'KD_996-695-73-956'; 	call.method <- 2; kd.vals <- c(0.996, 0.695, 0.73, 0.956);} # 'KD'; "user-provided" (from original 'bristow' dataset calcs, see below)
 
 ### RUN NORMALIZATION ##############################################################################
 setwd(plot.dir);
@@ -569,10 +572,10 @@ if (opts$matched == 1) {
 	flog.info('Calling CNAs with matched normals');
 
 	cna.all <- call.cnas.with.matched.normals(
-		normalized.data = norm.data, 
+		normalized.data = norm.data,
 		phenodata = phenodata,
 		per.chip = opts$perchip,
-		call.method = opts$cnas,
+		call.method = call.method,
 		kd.values = kd.vals
 		);
 
@@ -587,7 +590,7 @@ if (opts$matched == 1) {
 		normalized.data = norm.data,
 		phenodata = phenodata,
 		per.chip = opts$perchip,
-		call.method = opts$cnas,
+		call.method = call.method,
 		kd.values = kd.vals
 		);
 

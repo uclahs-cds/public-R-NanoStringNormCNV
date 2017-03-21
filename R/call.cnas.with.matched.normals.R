@@ -3,7 +3,7 @@ call.cnas.with.matched.normals <- function(
 	phenodata,
 	per.chip = FALSE,
 	call.method = 1,
-	kd.values = NULL,
+	kd.values = c(0.85, 0.95),
 	use.sex.info = TRUE
 	) {
 
@@ -95,7 +95,7 @@ call.cnas.with.matched.normals <- function(
 				)[, 4];
 			}		
 
-		if (call.method <= 1) {
+		if (call.method == 1) {
 			### Naive thresholds
 			thresh <- c(0.4, 1.5, 2.5, 3.5);
 
@@ -120,18 +120,15 @@ call.cnas.with.matched.normals <- function(
 					cna.thresh = thresh
 					)[, 4];
 				}			
-		} else {
+		} else if (call.method == 2) {
 			### Call copy number states using kernel density values
-			if (call.method == 3) { 
-				if ((length(kd.values) != 4 & length(kd.values) != 2) | !is.numeric(kd.values)) {
-					flog.warn(paste0(
-						"For 'call.method' 3, user must provide 4 or 2 kernel density values!\n",
-						"Switching to default values (setting 'call.method' to 2)."
-						));
-					call.method <- 2;
-					}
+			if ((length(kd.values) != 4 & length(kd.values) != 2) | !is.numeric(kd.values)) {
+				flog.warn(paste0(
+					"For 'call.method' 2, user must provide 4 or 2 kernel density values!\n",
+					"Switching to default KD values: 0.85, 0.95."
+					));
+				kd.values <- c(0.85, 0.95);
 				}
-			if (call.method == 2) { kd.values <- c(0.85, 0.95); }
 
 			# call CNAs in tumours (for autosome and female sex chrom probes)
 			cna.rounded[,tmr] <- NanoStringNormCNV::call.copy.number.state(
@@ -156,6 +153,8 @@ call.cnas.with.matched.normals <- function(
 					kd.values = kd.values
 					)[, 4];
 				}
+		} else {
+			stop("Argument 'call.method' accepts only values 1 or 2! Please consult documentation!");
 			}
 		}
 
