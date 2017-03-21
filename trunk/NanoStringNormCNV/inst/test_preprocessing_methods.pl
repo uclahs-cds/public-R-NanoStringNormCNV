@@ -51,7 +51,7 @@ for (my $perchip = 0; $perchip <= 1; ++$perchip) {
 							my $col = 0;
 							# for(my $col = 0; $col <= 1; ++$col){
 
-								# skipping because this is the same as 'cnas' set to 0
+								# skipping because this option is not available for call.cnas.with.matched.normals
 								if ($matched == 1 && $cnas == 1) {
 									next;
 									}
