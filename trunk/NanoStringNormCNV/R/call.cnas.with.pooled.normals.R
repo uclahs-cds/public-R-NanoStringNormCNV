@@ -2,7 +2,7 @@ call.cnas.with.pooled.normals <- function(
 	normalized.data,
 	phenodata,
 	per.chip = FALSE,
-	call.method = 0,
+	call.method = 1,
 	kd.values = c(0.85, 0.95),
 	use.sex.info = TRUE
 	) {
@@ -53,7 +53,7 @@ call.cnas.with.pooled.normals <- function(
 		);
 
 	# calculate tumour/normal ratios (for male sex chrom probes)
-	if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0) {
+	if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0 && length(is.ref.XY) > 0) {
 		cna.raw.XY <- NanoStringNormCNV::call.copy.number.state(
 			normalized.data = normalized.data.XY[use.genes.XY,],
 			reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
@@ -114,7 +114,7 @@ call.cnas.with.pooled.normals <- function(
 			);
 
 		# call CNAs in tumours (for male sex chrom probes)
-		if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0) {
+		if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0 && length(is.ref.XY) > 0) {
 			cna.rounded.XY <- NanoStringNormCNV::call.copy.number.state(
 				normalized.data = normalized.data.XY[use.genes.XY,],
 				reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
@@ -153,7 +153,7 @@ call.cnas.with.pooled.normals <- function(
 			);
 
 		# call CNAs in tumours (for male sex chrom probes)
-		if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0) {
+		if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0 && length(is.ref.XY) > 0) {
 			cna.rounded.XY <- NanoStringNormCNV::call.copy.number.state(
 				normalized.data = normalized.data.XY[use.genes.XY,],
 				reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
@@ -175,7 +175,7 @@ call.cnas.with.pooled.normals <- function(
 		}
 
 	# call CNAs in normals (for male sex chrom probes)
-	if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0) {
+	if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0 && length(is.ref.XY) > 0) {
 		cna.normals.unadj.XY <- NanoStringNormCNV::call.copy.number.state(
 			normalized.data = normalized.data.XY[, c(1:3, (is.ref.XY + 3))],
 			reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
