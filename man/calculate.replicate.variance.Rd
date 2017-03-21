@@ -13,4 +13,4 @@ calculate.replicate.variance(normalized.data.reps, phenodata.reps, var.function 
 \details{Determine the variance of normalized counts for each gene across replicate samples.}
 \value{A gene by sample name data-frame of variances}
 \author{Cindy Yao and Emilie Lalonde}
-\seealso{calculate.replicate.variance}
+\seealso{\code{\link{calculate.replicate.variance}}}

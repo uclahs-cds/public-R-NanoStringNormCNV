@@ -12,4 +12,4 @@ calculate.replicate.concordance(cna.rounded.reps, phenodata.reps)
 \details{Determine whether CNA calls for each gene are concordant between replicate samples.}
 \value{A gene by sample name data-frame where each cell contains either 1 for concordance or 0 for discordance}
 \author{Cindy Yao and Emilie Lalonde}
-\seealso{calculate.replicate.variance}
+\seealso{\code{\link{calculate.replicate.variance}}}

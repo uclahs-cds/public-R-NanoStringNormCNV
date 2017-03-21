@@ -16,10 +16,10 @@
   \item{oth}{Requested OtherNorm NSN normalization. Can be 'vsn', 'quant' and 'rank'.}
   \item{do.nsn}{Whether or not to even run NanoStringNorm (NSN). Should be inferred from 3 previous parameters}
   \item{do.rcc.inv}{Whether or not to run invariant probe normalization. This is run separately from NSN, and is the recommended method by NanoString.}
-  \item{covs}{A data-frame with covariates for which to assess batch effects in NanoStringNorm. Passed directly to NanoStringNorm::NanoStringNorm 'traits' argument, see function for more information.}
+  \item{covs}{A data-frame with covariates for which to assess batch effects in NanoStringNorm. Passed directly to NanoStringNorm::NanoStringNorm 'traits' argument (see function for more information).}
   \item{transform.data}{Whether to transform data so output does not contain negative values. Defaults to TRUE}
   \item{plot.types}{Which NSN plots to generate, if any, after normalization. Passed directly to NanoStringNorm::Plot.NanoStringNorm. Defaults to 'all'}
-  \item{phenodata}{A data-frame of sample annotation which includes the fields 'SampleID' and 'Type'. See output in \code{\link{load.phenodata}}. Defaults to NULL}
+  \item{phenodata}{A data-frame of sample annotation which includes the fields 'SampleID' and 'Type'. Recommended to use output of \code{\link{load.phenodata}}. Defaults to NULL}
 }
 \details{
   Normalizes all data in study together using NanoStringNorm and/or invariant probe normalizaiton. Normalization methods requested are performed in the following order: code count, background correction, sample content, invariant probe, and other. See individual normalization functions for details.
@@ -36,4 +36,4 @@
     Waggott, D., Chu, K., Yin, S., Wouters, B.G., Liu, F.F. & Boutros, P.C. NanoStringNorm: an extensible R package for the pre-processing of NanoString mRNA and miRNA data. Bioinformatics 28(11), 1546-1548 (2012).
 }
 \author{Cindy Yao and Emilie Lalonde}
-\seealso{NanoStringNorm::NanoStringNorm}
+\seealso{NanoStringNorm::NanoStringNorm, \code{\link{normalize.per.chip}}}

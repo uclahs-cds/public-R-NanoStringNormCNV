@@ -11,4 +11,4 @@
 \details{Collapse counts for probes belonging to the same gene (only performed on 'Endogenous' or 'Housekeeping' probes). Collapsing is done by taking the mean count.}
 \value{A gene by sample data-frame of collapsed counts, where first three columns contain 'CodeClass', 'Name', and 'Accession' information}
 \author{Cindy Yao}
-\seealso{collapse.replicate}
+\seealso{\code{\link{collapse.replicates}}}
