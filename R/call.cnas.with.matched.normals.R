@@ -154,7 +154,7 @@ call.cnas.with.matched.normals <- function(
 					)[, 4];
 				}
 		} else {
-			stop("Argument 'call.method' accepts only values 1 or 2! Please consult documentation!");
+			stop("Argument 'call.method' accepts only values 1 or 2! Please consult documentation.");
 			}
 		}
 
