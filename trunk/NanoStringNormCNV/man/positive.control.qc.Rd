@@ -20,4 +20,4 @@
 		Fortina, P. & Surrey, S. Digital mRNA profiling. Nature Biotechnology 26, 293-294 (2008).
 }
 \author{Cindy Yao and Emilie Lalonde}
-\seealso{make.positive.control.plot}
+\seealso{\code{\link{make.positive.control.plot}}}

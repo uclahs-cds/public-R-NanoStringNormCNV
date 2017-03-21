@@ -9,7 +9,7 @@
   	)
 }
 \arguments{
-  \item{phenodata}{A data-frame of sample annotation which includes the field 'Cartridge'. May include a 'Type' field (specifying whether Tumour or Reference) for plotting invariant probe data. See output in \code{\link{load.phenodata}}}
+  \item{phenodata}{A data-frame of sample annotation which includes the field 'Cartridge'. May include a 'Type' field (specifying whether Tumour or Reference) for plotting invariant probe data. Recommended to use output of \code{\link{load.phenodata}}}
   \item{raw.data}{A gene by sample data-frame of raw NanoString counts for all samples in experiment. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs}
   \item{cc}{Requested CodeCount NSN normalization. Can be 'none', 'sum', and 'geo.mean'.}
   \item{bc}{Requested Background NSN normalization. Can be 'none', 'mean', 'mean.2sd' and 'max'.}
@@ -36,4 +36,4 @@
     Waggott, D., Chu, K., Yin, S., Wouters, B.G., Liu, F.F. & Boutros, P.C. NanoStringNorm: an extensible R package for the pre-processing of NanoString mRNA and miRNA data. Bioinformatics 28(11), 1546-1548 (2012).
 }
 \author{Cindy Yao and Emilie Lalonde}
-\seealso{NanoStringNorm::NanoStringNorm}
+\seealso{NanoStringNorm::NanoStringNorm, \code{\link{normalize.global}}}
