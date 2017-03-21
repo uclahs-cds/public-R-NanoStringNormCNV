@@ -12,11 +12,15 @@ call.copy.number.state <- function (
 
 	# check input
 	if (! thresh.method %in% (unlist(strsplit("round KD kd none","\\s")))) {
-		stop("Sorry method isn't currently supported. Please try one of round, KD, or none.");
+		stop("Sorry method isn't currently supported. Please try one of 'round', 'KD', or 'none'.");
 		}
 
 	if (toupper(thresh.method) == 'KD' & (2 != length(kd.values) & 4 != length(kd.values))) {
-		stop("Please specify two or four values for KD thresholds.  The first should be for heterozygous and the second for homozygous if length 2. If length 4, the order should be hom deletion, het deletion, het gain, hom gain.");
+		stop(paste(
+			"Please specify two or four values for KD thresholds.",
+			"The first should be for heterozygous and the second for homozygous if length is 2.",
+			"If length is 4, the order should be hom deletion, het deletion, het gain, hom gain."
+			));
 		}
 
 	# make sure kd values make sense
@@ -24,11 +28,10 @@ call.copy.number.state <- function (
 		stop("Invalid KD thresholds -- the first should be for heterozygous and the second for homozygous.");
 		}
 	if (toupper(thresh.method) == 'KD' & 4 == length(kd.values) & (kd.values[1] < kd.values[2] | kd.values[3] > kd.values[4])) {
-		print(kd.values);
 		stop("Invalid KD thresholds -- the order should be hom deletion, het deletion, het gain, hom gain.");
 		}
 
-	# get tumour ratios
+	# get tumour/normal ratios
 	out.cna <- NanoStringNormCNV::get.tumour.normal.ratio(
 		normalized.data = normalized.data,
 		reference = reference,
