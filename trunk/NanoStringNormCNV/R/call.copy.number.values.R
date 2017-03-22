@@ -1,4 +1,4 @@
-call.copy.number.values <- function (
+call.copy.number.values <- function(
 	normalized.data,
 	reference,
 	per.chip = FALSE,
