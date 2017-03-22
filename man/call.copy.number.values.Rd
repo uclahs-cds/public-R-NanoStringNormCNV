@@ -1,9 +1,9 @@
-\name{call.copy.number.state}
-\alias{call.copy.number.state}
+\name{call.copy.number.values}
+\alias{call.copy.number.values}
 \title{Determine the copy number from counts}
 \description{Uses tumour/normal count ratios to determine segment copy number}
 \usage{
-call.copy.number.state(
+call.copy.number.values(
   normalized.data, reference, per.chip = FALSE, chip.info = NULL,
   thresh.method = 'round', cna.thresh = c(0.4, 1.5, 2.5, 3.5), kd.values = c(0.85, 0.95),
   multi.factor = 2, adjust = FALSE 
