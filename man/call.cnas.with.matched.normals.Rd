@@ -9,7 +9,7 @@ call.cnas.with.matched.normals(
   )
 }
 \arguments{
-  \item{normalized.data}{A gene by sample data-frame of normalized NanoString counts. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs. Sex chromosome probe names must include "chrX" and "chrY" labels.}
+  \item{normalized.data}{A gene by sample data-frame of normalized NanoString counts. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs. Sex chromosome probes are identified by containing "chrX" and "chrY" labels in their 'Name' and/or 'Accession' values.}
   \item{phenodata}{Data-frame containing phenotype information. Recommended to use output of \code{\link{load.phenodata}}}
   \item{per.chip}{Whether to use only reference sample(s) specific to each chip when calculating the tumour/normal ratios from which copy numbers are generated. Defaults to FALSE.}
   \item{call.method}{An integer specifying the CNA calling method passed on to \code{\link{call.copy.number.values}}:
