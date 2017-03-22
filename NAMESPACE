@@ -65,5 +65,6 @@ importFrom(
 	"utils",
 	"head",
 	"tail",
-	"read.csv"
+	"read.csv",
+	"read.delim"
 	);

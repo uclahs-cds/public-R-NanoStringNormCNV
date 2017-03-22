@@ -11,7 +11,7 @@ data.raw <- read.markup.RCC(
 	rcc.pattern = "*.RCC"
 	);
 nano.raw <- data.raw$x;
-test_value=positive.control.norm(nano.raw);
+test_value=positive.control.qc(nano.raw);
 
 
 # Pull expected values
