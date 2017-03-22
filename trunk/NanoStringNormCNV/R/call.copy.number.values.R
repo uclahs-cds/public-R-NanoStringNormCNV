@@ -51,7 +51,7 @@ call.copy.number.values <- function(
 	# round if specified (based on NS recommendataions)
 	if (thresh.method == 'round') {
 
-		# segment using set thresholds (outputs observed CN)
+		# segment using set thresholds
 		out.cna.final <- NanoStringNormCNV::apply.ns.cna.thresh(
 			ratio.data = out.cna,
 			cna.thresh = cna.thresh
@@ -59,18 +59,12 @@ call.copy.number.values <- function(
 
 	} else if (thresh.method == 'KD') {
 
-		# segment using kernel density (outputs CN state)
+		# segment using thresholds obtained through kernel density approach
 		out.cna.final <- NanoStringNormCNV::apply.kd.cna.thresh(
 			ratio.data = out.cna,
-			kd.values = kd.values
+			kd.values = kd.values,
+			neutral.cn = multi.factor
 			);
-
-		# sum CN state and neutral CN to get observed CN
-		out.cna.final <- multi.factor + out.cna.final;
-
-		# set any negative CN to zero
-		# this occurs when a male sex chromosome segment is identified as having a CN loss of > 1
-		out.cna.final[out.cna.final < 0 & !is.na(out.cna.final)] <- 0;
 
 	} else {
 
