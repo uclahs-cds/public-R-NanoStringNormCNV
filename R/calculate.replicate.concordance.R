@@ -13,7 +13,7 @@ calculate.replicate.concordance <- function(cna.rounded.reps, phenodata.reps) {
 
 	# loop over each unique sample name and create a difference matrix
 	for (this.sample in unique(phenodata.reps$Name)) {
-		# get the samples pertaining to the name
+		# identify the sample replicates
 		this.ID <- phenodata.reps[phenodata.reps$Name == this.sample, 'SampleID'];
 
 		# calculate the per-gene CN concordance of replicates
