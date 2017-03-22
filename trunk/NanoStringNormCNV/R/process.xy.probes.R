@@ -5,9 +5,16 @@ process.xy.probes <- function(normalized.data, sex.info) {
 		}
 
 	# identify xy probes by pattern
-	x.genes <- grep(x = tolower(normalized.data$Name), pattern = 'chrx');
-	y.genes <- grep(x = tolower(normalized.data$Name), pattern = 'chry');
+	x.genes <- sort(unique(c(
+		grep(x = tolower(normalized.data$Name), pattern = 'chrx'),
+		grep(x = tolower(normalized.data$Accession), pattern = 'chrx')
+		)));
 
+	y.genes <- sort(unique(c(
+		grep(x = tolower(normalized.data$Name), pattern = 'chry'),
+		grep(x = tolower(normalized.data$Accession), pattern = 'chry')
+		)));
+		
 	# notify user
 	if (length(x.genes) > 0 | length(y.genes) > 0) {
 		sex.probes <- c(as.vector(normalized.data$Name[x.genes]), as.vector(normalized.data$Name[y.genes]));

@@ -10,7 +10,7 @@ call.copy.number.values(
   )
 }
 \arguments{
-  \item{normalized.data}{A gene by sample data-frame of normalized NanoString counts. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs. Sex chromosome probe names must include "chrX" and "chrY" labels.}
+  \item{normalized.data}{A gene by sample data-frame of normalized NanoString counts. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs. Sex chromosome probes are identified by containing "chrX" and "chrY" labels in their 'Name' and/or 'Accession' values.}
   \item{reference}{A vector of name(s) of reference sample(s) to be used. Must match the column names of 'normalized.data'}
   \item{per.chip}{Whether to use the reference sample(s) specific to a given chip only. Defaults to FALSE.}
   \item{chip.info}{A data-frame of chip information for each sample in 'normalized.data' with columns 'Cartridge' and 'SampleID' or NULL (default). Required if 'per.chip' = TRUE. Recommended to use output of \code{\link{load.phenodata}}}
