@@ -1,4 +1,4 @@
-make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
+make.restriction.fragmentation.plot <- function(restr.data, low.ratio.samples = NULL){
 	# reformat for plotting
 	restr.df <- melt(data = t(restr.data));
 	colnames(restr.df) <- unlist(strsplit("sample site count","\\s"));
@@ -82,8 +82,8 @@ make.restr.digest.plot <- function(restr.data, low.ratio.samples = NULL){
 
 	BoutrosLab.plotting.general::create.multiplot(
 		plot.objects = list(bplot, splot),
-		filename = paste0(Sys.Date(), '_restriction-digestion-ratios_multiplot.tiff'),
-		main = 'Restriction Digestion Norm',
+		filename = paste0(Sys.Date(), '_restriction-fragmentation-ratios_multiplot.tiff'),
+		main = 'Restriction Fragmentation Norm',
 		main.cex = 2,
 		panel.heights = c(1, 2.5),
 		ylimits = list(
