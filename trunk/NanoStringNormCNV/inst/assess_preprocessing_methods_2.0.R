@@ -14,6 +14,7 @@ library(getopt);
 load_all("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV");
 
 # set options
+process.input <- 0;
 dropoutliers <- 0;
 drop.low.cnt.smp <- 1;
 writetables <- 1;
@@ -22,6 +23,8 @@ plotnorm <- 1;
 # proj.stem <- 'bartlett';
 # proj.stem <- 'bristow';
 proj.stem <- 'nsncnv';
+
+if (proj.stem != 'nsncnv') process.input <- 1;
 
 set.seed(12345);
 
@@ -145,7 +148,7 @@ if (interactive()) {
 	opts$scc 	 <- 1;
 	opts$oth 	 <- 1;
 	opts$matched <- 0;
-	opts$cnas 	 <- 2;
+	opts$cnas 	 <- 4;
 	opts$col 	 <- 1;
 	opts$vis 	 <- 0;
 } else {
@@ -220,186 +223,196 @@ if (proj.stem == 'nsncnv') {
 plot.dir <- paste0(out.dir, '/plots/');
 
 ### READ DATA ######################################################################################
-setwd(data.dir);
+if (process.input) {
+	setwd(data.dir);
+	
+	if (proj.stem == 'nsncnv') {
+		# read in raw data, deal with double header (sample name, fragmentation method)
+		nano.raw <- read.table('NSrawdata.txt', sep = "\t", skip = 1, stringsAsFactors = FALSE);
 
-if (proj.stem == 'nsncnv') {
-	# read in raw data, deal with double header (sample name, fragmentation method)
-	nano.raw <- read.table('NSrawdata.txt', sep = "\t", skip = 1, stringsAsFactors = FALSE);
+		# extract fragmentation methods from raw data (may not be necessary)
+		frag.method <- unlist(nano.raw[1,])[-(1:2)];
+		nano.raw <- nano.raw[-1,];
 
-	# extract fragmentation methods from raw data (may not be necessary)
-	frag.method <- unlist(nano.raw[1,])[-(1:2)];
-	nano.raw <- nano.raw[-1,];
+		# match Emilie's original NS data format
+		names(nano.raw)[1:2] <- c("Accession", "Name");
 
-	# match Emilie's original NS data format
-	names(nano.raw)[1:2] <- c("Accession", "Name");
+		nano.raw$CodeClass <- 'Endogenous';
+		nano.raw[grep("^POS_[A-Z]", nano.raw$Name),]$CodeClass <- "Positive";
+		nano.raw[grep("^NEG_[A-Z]", nano.raw$Name),]$CodeClass <- "Negative";
+		nano.raw[grep("^RESTRICTIONSITE", nano.raw$Name),]$CodeClass <- "RestrictionSite";
+		nano.raw[grep("_INVCONTROL", nano.raw$Accession),]$CodeClass <- "Invariant";
 
-	nano.raw$CodeClass <- 'Endogenous';
-	nano.raw[grep("^POS_[A-Z]", nano.raw$Name),]$CodeClass <- "Positive";
-	nano.raw[grep("^NEG_[A-Z]", nano.raw$Name),]$CodeClass <- "Negative";
-	nano.raw[grep("^RESTRICTIONSITE", nano.raw$Name),]$CodeClass <- "RestrictionSite";
-	nano.raw[grep("_INVCONTROL", nano.raw$Accession),]$CodeClass <- "Invariant";
+		# get columns in right order
+		nano.raw <- nano.raw[,c(ncol(nano.raw), 2, 1, 3:(ncol(nano.raw) - 1))];
 
-	# get columns in right order
-	nano.raw <- nano.raw[,c(ncol(nano.raw), 2, 1, 3:(ncol(nano.raw) - 1))];
+		# read in sample names separately
+		sample.names <- scan('NSrawdata.txt', nlines = 1, sep = "\t", what = character());
+		sample.names <- sample.names[-(1:2)];
 
-	# read in sample names separately
-	sample.names <- scan('NSrawdata.txt', nlines = 1, sep = "\t", what = character());
-	sample.names <- sample.names[-(1:2)];
+		# set names for consistency
+		names(nano.raw)[4:ncol(nano.raw)] <- sample.names;
+		names(frag.method) <- sample.names;
 
-	# set names for consistency
-	names(nano.raw)[4:ncol(nano.raw)] <- sample.names;
-	names(frag.method) <- sample.names;
+		# removing Roche samples for now
+		nano.raw <- nano.raw[,-grep("RocheRef", names(nano.raw), perl = TRUE)];
+		frag.method <- frag.method[-grep("RocheRef", names(frag.method), perl = TRUE)];
 
-	# removing Roche samples for now
-	nano.raw <- nano.raw[,-grep("RocheRef", names(nano.raw), perl = TRUE)];
+		# modify sample names
+		names(nano.raw) <- gsub(" |-",  ".", names(nano.raw));
+		names(nano.raw) <- gsub(".RCC", "",  names(nano.raw));
+		names(frag.method) <- gsub(" |-",  ".", names(frag.method));
+		names(frag.method) <- gsub(".RCC", "",  names(frag.method));
+	# } else if (proj.stem == 'bartlett') {
+		# nano.raw <- read.markup.RCC();
+		# nano.raw <- nano.raw$x;
+		# } 
+	} else if (proj.stem == 'bristow') {
+		nano.raw <- read.markup.RCC();
+		nano.raw <- nano.raw$x;
 
-	# modify sample names
-	names(nano.raw) <- gsub(" |-",  ".", names(nano.raw));
-	names(nano.raw) <- gsub(".RCC", "",  names(nano.raw));
-# } else if (proj.stem == 'bartlett') {
-	# nano.raw <- read.markup.RCC();
-	# nano.raw <- nano.raw$x;
-	# } 
-} else if (proj.stem == 'bristow') {
-	nano.raw <- read.markup.RCC();
-	nano.raw <- nano.raw$x;
-
-	# drop sample with all 0s
-	nano.raw <- nano.raw[, which(colnames(nano.raw) != 'X20140807_Boutros3_36_12')];
-	nano.raw <- nano.raw[, which(colnames(nano.raw) != 'X20140910_Boutros23_272_08')];
-	nano.raw <- nano.raw[, which(colnames(nano.raw) != 'X20140917_Boutros28_326_02')];
-	}
-
-# integerize it!
-nano.raw[,4:ncol(nano.raw)] <- apply(nano.raw[,4:ncol(nano.raw)], 2, as.integer);
-
-# fix chr X and Y 'Accession' so they are correctly identified as sex chr and don't get collapsed as single region
-chrXY <- grep("chr[XY]", nano.raw$Accession);
-nano.raw$Name[chrXY] <- paste0("chr", nano.raw$Name[chrXY]);
-
-if (proj.stem == 'nsncnv') {
-	nano.raw$Accession[chrXY] <- unlist(lapply(strsplit(nano.raw$Name[chrXY], split = '-'), function(x) x[1]));
-	}
-
-# get phenodata and match Emilie's formatting
-if (proj.stem == 'nsncnv') {
-	phenodata <- load.phenodata(fname = paste0(data.dir, "/NSannotation_reformatted.csv"));
-	phenodata <- phenodata[, c("SampleID", "Patient", "Name", "Cartridge", "Type", "ReferenceID", "HasReplicate", "Sex")];
-# } else if (proj.stem == 'bartlett') {
-	# phenodata <- read.delim('../phenodata.txt');
-	# }
-} else if (proj.stem == 'bristow') {
-	phenodata <- load.phenodata(paste0(root.dir, '/bristow_assessment/cartridge_annotations_updated_reformatted.txt'));
-	phenodata$Name <- gsub("\\.", "_", phenodata$Name);
-	}
-
-# match raw colnames to pheno Sample ID
-if (proj.stem == 'nsncnv') {
-	check.names <- gsub("_[0-9]+", "", names(nano.raw)[-(1:3)]);
-	check.names <- gsub("\\.", "", check.names);
-	check.names <- matrix(unlist(strsplit(check.names, "M")), ncol = 2, byrow = TRUE);
-	for (i in 1:nrow(check.names)) {
-		if (grepl("M[12]", phenodata$SampleID[i])) {
-			if (paste0(check.names[i,1], ".M", check.names[i,2]) != phenodata$SampleID[i]) stop("Sample order does not match!");
-		} else {
-			if (check.names[i,1] != phenodata$SampleID[i]) stop("Sample order does not match!");
-			}
-		}
-} else if (proj.stem == 'bristow') {
-	nano.raw <- nano.raw[, c(1:3, unlist(lapply(phenodata$Name, function(f) which(colnames(nano.raw) == f))))];
-	phenodata <- phenodata[match(colnames(nano.raw)[-(1:3)], phenodata$Name),];
-
-	# accounting for missing reference samples
-	phenodata[phenodata$SampleID == 'CPCG0050F1',]$ReferenceID <- 'missing';
-	phenodata[phenodata$SampleID == 'CPCG0339F1',]$ReferenceID <- 'missing';
-
-	for (i in which(!is.na(phenodata$ReferenceID) & phenodata$ReferenceID != 'missing')) {
-		if (!(phenodata$ReferenceID[i] %in% phenodata$SampleID)) {
-			stop(paste0(
-				"Cannot identify reference sample ", phenodata[i,]$ReferenceID,
-				" for tumour sample ", phenodata[i,]$SampleID, "!"
-				 ));
-			}
+		# drop sample with all 0s
+		nano.raw <- nano.raw[, which(colnames(nano.raw) != 'X20140807_Boutros3_36_12')];
+		nano.raw <- nano.raw[, which(colnames(nano.raw) != 'X20140910_Boutros23_272_08')];
+		nano.raw <- nano.raw[, which(colnames(nano.raw) != 'X20140917_Boutros28_326_02')];
 		}
 
-	if (! check.sample.order(phenodata$Name, colnames(nano.raw)[-c(1:3)])) {
-		stop("Sorry, sample order doesn't match, see above.");
+	# integerize it!
+	nano.raw[,4:ncol(nano.raw)] <- apply(nano.raw[,4:ncol(nano.raw)], 2, as.integer);
+
+	# fix chr X and Y 'Accession' so they are correctly identified as sex chr and don't get collapsed as single region
+	chrXY <- grep("chr[XY]", nano.raw$Accession);
+	nano.raw$Name[chrXY] <- paste0("chr", nano.raw$Name[chrXY]);
+
+	if (proj.stem == 'nsncnv') {
+		nano.raw$Accession[chrXY] <- unlist(lapply(strsplit(nano.raw$Name[chrXY], split = '-'), function(x) x[1]));
 		}
-	}
 
-# changing names so they match across tumour replicates
-for (i in unique(phenodata[phenodata$HasReplicate == 1,]$Patient)) {
-	phenodata[phenodata$HasReplicate == 1 & phenodata$Patient == i,]$Name <- paste0(i, "-F1");
-	}
+	# get phenodata and match Emilie's formatting
+	if (proj.stem == 'nsncnv') {
+		phenodata <- load.phenodata(fname = paste0(data.dir, "/NSannotation_reformatted.csv"));
+		phenodata <- phenodata[, c("SampleID", "Patient", "Name", "Cartridge", "Type", "ReferenceID", "HasReplicate", "Sex")];
+	# } else if (proj.stem == 'bartlett') {
+		# phenodata <- read.delim('../phenodata.txt');
+		# }
+	} else if (proj.stem == 'bristow') {
+		phenodata <- load.phenodata(paste0(root.dir, '/bristow_assessment/cartridge_annotations_updated_reformatted.txt'));
+		phenodata$Name <- gsub("\\.", "_", phenodata$Name);
+		}
 
-colnames(nano.raw)[-c(1:3)] <- phenodata$SampleID;
-
-# sort sample IDs so order matches after normalization
-phenodata <- phenodata[order(phenodata$SampleID),];
-nano.raw <- cbind(nano.raw[, 1:3], nano.raw[, sort(colnames(nano.raw)[-c(1:3)])]);
-
-# # Remove bad normals (low restriction frag ratios) from phenodata
-# if (dropoutliers == 1) {
-# 	bad.samples <- read.delim(
-# 		"../normalization_assessment/restriction-fragmentation_low-ratio.txt",
-# 		stringsAsFactors = FALSE,
-# 		header = FALSE
-# 		);
-# 	bad.samples <- bad.samples[,1];
-
-# 	phenodata <- phenodata[!(phenodata$SampleID %in% bad.samples),];
-# 	nano.raw  <- nano.raw[,!(colnames(nano.raw) %in% bad.samples)];
-
-# 	# check if any replicates are left
-# 	repls <- phenodata[phenodata$HasReplicate == 1,];
-# 	repls <- unique(repls[duplicated(repls$Patient) | duplicated(repls$Patient, fromLast = TRUE),]$Patient);
-# 	unlist(lapply(repls, function(x) { any(summary(factor(phenodata[phenodata$Patient == x,]$Type)) > 1) }));
-
-# 	# check that there are no missing references
-# 	if (any(grepl("CPCG", phenodata$ReferenceID[!(phenodata$ReferenceID %in% phenodata$SampleID)]))) {
-# 		stop("Sorry, reference samples are missing!");
-# 		}
-
-# 	# check sample order
-# 	if (! check.sample.order(phenodata$SampleID, colnames(nano.raw)[-c(1:3)])) {
-# 		stop("Sorry, sample order doesn't match after handling outliers.");
-# 		}
-# 	}
-
-# identifying housekeeping genes (all missing but one)
-nano.raw[nano.raw$Accession %in% qw("ZDHHC5 KIF27 MAGI3 PCDHA9 CPM TMX1 E2F6"), 'CodeClass'] <- 'Housekeeping';
-
-# simulating 3 new housekeeping genes by adding noise to original
-if (proj.stem == 'nsncnv') {
-	original.hk <- nano.raw[nano.raw$CodeClass == 'Housekeeping',];
-
-	# simulated HK genes also contain 3 probes
-	for (i in 1:nrow(original.hk)) {
-		for (j in 1:3) {
-			# create a bunch of randomnicity
-			randomness <- rnorm(
-				n = ncol(nano.raw) - 3,
-				mean = rpois(n = ncol(nano.raw) - 3, lambda = 25),
-				sd = rgamma(n = ncol(nano.raw) - 3, shape = 50, scale = 2)
-				);
-			noisy.counts <- original.hk[i, -(1:3)] + floor(randomness);
-			noisy.counts[noisy.counts < 1] <- 1;
-			nano.raw <- rbind(
-				nano.raw,
-				c(
-					CodeClass = "Housekeeping",
-					Name = paste0("SIM", j, "-", i),
-					Accession = paste0("SIM", j),
-					noisy.counts
-					)
-				);
+	# match raw colnames to pheno Sample ID
+	if (proj.stem == 'nsncnv') {
+		check.names <- gsub("_[0-9]+", "", names(nano.raw)[-(1:3)]);
+		check.names <- gsub("\\.", "", check.names);
+		check.names <- matrix(unlist(strsplit(check.names, "M")), ncol = 2, byrow = TRUE);
+		for (i in 1:nrow(check.names)) {
+			if (grepl("M[12]", phenodata$SampleID[i])) {
+				if (paste0(check.names[i,1], ".M", check.names[i,2]) != phenodata$SampleID[i]) stop("Sample order does not match!");
+			} else {
+				if (check.names[i,1] != phenodata$SampleID[i]) stop("Sample order does not match!");
+				}
 			}
-		}	
-	}
+	} else if (proj.stem == 'bristow') {
+		nano.raw <- nano.raw[, c(1:3, unlist(lapply(phenodata$Name, function(f) which(colnames(nano.raw) == f))))];
+		phenodata <- phenodata[match(colnames(nano.raw)[-(1:3)], phenodata$Name),];
 
-# fix gene names to prevent NSN crashing
-nano.raw$Name <- unlist(lapply(strsplit(x = nano.raw$Name, '\\|'), function(f) f[[1]][1]));
-nano.raw$Name <- gsub(x = nano.raw$Name, pattern = '\\.', '');
+		# accounting for missing reference samples
+		phenodata[phenodata$SampleID == 'CPCG0050F1',]$ReferenceID <- 'missing';
+		phenodata[phenodata$SampleID == 'CPCG0339F1',]$ReferenceID <- 'missing';
+
+		for (i in which(!is.na(phenodata$ReferenceID) & phenodata$ReferenceID != 'missing')) {
+			if (!(phenodata$ReferenceID[i] %in% phenodata$SampleID)) {
+				stop(paste0(
+					"Cannot identify reference sample ", phenodata[i,]$ReferenceID,
+					" for tumour sample ", phenodata[i,]$SampleID, "!"
+					 ));
+				}
+			}
+
+		if (! check.sample.order(phenodata$Name, colnames(nano.raw)[-c(1:3)])) {
+			stop("Sorry, sample order doesn't match, see above.");
+			}
+		}
+
+	# changing names so they match across tumour replicates
+	for (i in unique(phenodata[phenodata$HasReplicate == 1,]$Patient)) {
+		phenodata[phenodata$HasReplicate == 1 & phenodata$Patient == i,]$Name <- paste0(i, "-F1");
+		}
+
+	colnames(nano.raw)[-c(1:3)] <- phenodata$SampleID;
+	names(frag.method) <- phenodata$SampleID;
+
+	# sort sample IDs so order matches after normalization
+	phenodata <- phenodata[order(phenodata$SampleID),];
+	nano.raw <- cbind(nano.raw[, 1:3], nano.raw[, sort(colnames(nano.raw)[-c(1:3)])]);
+	phenodata$Fragmentation <- frag.method[match(names(frag.method), phenodata$SampleID)];
+
+	# # Remove bad normals (low restriction frag ratios) from phenodata
+	# if (dropoutliers == 1) {
+	# 	bad.samples <- read.delim(
+	# 		"../normalization_assessment/restriction-fragmentation_low-ratio.txt",
+	# 		stringsAsFactors = FALSE,
+	# 		header = FALSE
+	# 		);
+	# 	bad.samples <- bad.samples[,1];
+
+	# 	phenodata <- phenodata[!(phenodata$SampleID %in% bad.samples),];
+	# 	nano.raw  <- nano.raw[,!(colnames(nano.raw) %in% bad.samples)];
+
+	# 	# check if any replicates are left
+	# 	repls <- phenodata[phenodata$HasReplicate == 1,];
+	# 	repls <- unique(repls[duplicated(repls$Patient) | duplicated(repls$Patient, fromLast = TRUE),]$Patient);
+	# 	unlist(lapply(repls, function(x) { any(summary(factor(phenodata[phenodata$Patient == x,]$Type)) > 1) }));
+
+	# 	# check that there are no missing references
+	# 	if (any(grepl("CPCG", phenodata$ReferenceID[!(phenodata$ReferenceID %in% phenodata$SampleID)]))) {
+	# 		stop("Sorry, reference samples are missing!");
+	# 		}
+
+	# 	# check sample order
+	# 	if (! check.sample.order(phenodata$SampleID, colnames(nano.raw)[-c(1:3)])) {
+	# 		stop("Sorry, sample order doesn't match after handling outliers.");
+	# 		}
+	# 	}
+
+	# identifying housekeeping genes (all missing but one)
+	nano.raw[nano.raw$Accession %in% qw("ZDHHC5 KIF27 MAGI3 PCDHA9 CPM TMX1 E2F6"), 'CodeClass'] <- 'Housekeeping';
+
+	# simulating 3 new housekeeping genes by adding noise to original
+	if (proj.stem == 'nsncnv') {
+		original.hk <- nano.raw[nano.raw$CodeClass == 'Housekeeping',];
+
+		# simulated HK genes also contain 3 probes
+		for (i in 1:nrow(original.hk)) {
+			for (j in 1:3) {
+				# create a bunch of randomnicity
+				randomness <- rnorm(
+					n = ncol(nano.raw) - 3,
+					mean = rpois(n = ncol(nano.raw) - 3, lambda = 25),
+					sd = rgamma(n = ncol(nano.raw) - 3, shape = 50, scale = 2)
+					);
+				noisy.counts <- original.hk[i, -(1:3)] + floor(randomness);
+				noisy.counts[noisy.counts < 1] <- 1;
+				nano.raw <- rbind(
+					nano.raw,
+					c(
+						CodeClass = "Housekeeping",
+						Name = paste0("SIM", j, "-", i),
+						Accession = paste0("SIM", j),
+						noisy.counts
+						)
+					);
+				}
+			}	
+		}
+
+	# fix gene names to prevent NSN crashing
+	nano.raw$Name <- unlist(lapply(strsplit(x = nano.raw$Name, '\\|'), function(f) f[[1]][1]));
+	nano.raw$Name <- gsub(x = nano.raw$Name, pattern = '\\.', '');
+} else {
+	load("/u/dsendorek/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV/data/NanoString.rda");
+	load("/u/dsendorek/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV/data/PhenoData.rda");
+	}
 
 # prepare covariates to assess batch effects in NSN
 cartridge.n <- unique(phenodata$Cartridge);
