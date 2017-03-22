@@ -21,5 +21,12 @@ call.copy.number.values(
   \item{adjust}{Whether or not to center the data at neutral copy number (i.e. 2) prior to calling CNAs, default is FALSE}
 }
 \details{Determine the copy number values for each probe using the count differences between the test and reference sets.}
+\references{
+  See NanoString website for PDFs on analysis guidelines:
+    \url{http://www.nanostring.com/support/prod-lit/}
+
+  The NanoString assay is described in the paper:
+    Fortina, P. & Surrey, S. Digital mRNA profiling. Nature Biotechnology 26, 293-294 (2008).
+}
 \value{A gene by sample data-frame of copy number values}
 \author{Cindy Yao and Emilie Lalonde}

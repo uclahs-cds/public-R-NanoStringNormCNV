@@ -26,5 +26,12 @@ call.cnas.with.pooled.normals(
 \cr2) raw (not rounded) copy number values
 \cr3) rounded copy number values for normal samples only
 \cr4) raw copy number values for normal samples only, with final column containing average reference copy number}
+\references{
+  See NanoString website for PDFs on analysis guidelines:
+    \url{http://www.nanostring.com/support/prod-lit/}
+
+  The NanoString assay is described in the paper:
+    Fortina, P. & Surrey, S. Digital mRNA profiling. Nature Biotechnology 26, 293-294 (2008).
+}
 \author{Emilie Lalonde and Dorota Sendorek}
 \seealso{\code{\link{call.cnas.with.matched.normals}}}

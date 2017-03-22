@@ -21,5 +21,12 @@ call.cnas.with.matched.normals(
 }
 \details{Get copy number values for each probe using corresponding matched normal samples. Be aware that tumour samples without a matched normal get dropped.}
 \value{A list containing 2 items: 1) a gene by sample data frame of observed copy numbers rounded according to the method specified and 2) a gene by sample data frame of raw (not rounded) observed copy numbers}
+\references{
+  See NanoString website for PDFs on analysis guidelines:
+    \url{http://www.nanostring.com/support/prod-lit/}
+
+  The NanoString assay is described in the paper:
+    Fortina, P. & Surrey, S. Digital mRNA profiling. Nature Biotechnology 26, 293-294 (2008).
+}
 \author{Emilie Lalonde and Dorota Sendorek}
 \seealso{\code{\link{call.cnas.with.pooled.normals}}}
