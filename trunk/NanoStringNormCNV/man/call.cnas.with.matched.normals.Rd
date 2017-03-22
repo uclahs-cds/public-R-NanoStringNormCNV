@@ -12,7 +12,7 @@ call.cnas.with.matched.normals(
   \item{normalized.data}{A gene by sample data-frame of normalized NanoString counts. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs. Sex chromosome probe names must include "chrX" and "chrY" labels.}
   \item{phenodata}{Data-frame containing phenotype information. Recommended to use output of \code{\link{load.phenodata}}}
   \item{per.chip}{Whether to use only reference sample(s) specific to each chip when calculating the tumour/normal ratios from which copy numbers are generated. Defaults to FALSE.}
-  \item{call.method}{An integer specifying the CNA calling method passed on to \code{\link{call.copy.number.state}}:
+  \item{call.method}{An integer specifying the CNA calling method passed on to \code{\link{call.copy.number.values}}:
   \cr1: round tumour/normal ratios to CNA calls using pre-defined thresholds derived from NanoString recommendations (Default)
   \cr2: use kernel density method to calculate copy number thresholds for CNA calling (see 'kd.values' argument)
   }
