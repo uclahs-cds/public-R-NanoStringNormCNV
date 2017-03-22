@@ -40,7 +40,7 @@ export(
 	"process.xy.probes",
 	"restriction.digestion.qc",
 	"score.runs",
-	"tumour.normal.ratio.cn.state",
+	"tumour.normal.ratio.to.cn.state",
 	"visualize.results"
 	);
 importFrom(
