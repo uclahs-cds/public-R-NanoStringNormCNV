@@ -127,15 +127,25 @@ load.phenodata <- function(fname, separator = 'comma') {
 
 	# ensure 'SampleID' and 'Name' values don't contain special characters
 	pattern <- "[^a-zA-Z0-9\\.]";
+	old.ids   <- grep(pattern, phenodata$SampleID);
+	old.names <- grep(pattern, phenodata$Name);
 
-	if (any(grepl(pattern, phenodata$SampleID))) {
-		flog.info("'SampleID' values should only contain alphanumeric characters. Replacing non-alphanumeric with '.'");
+	if (length(old.ids) > 0) {
+		new.ids <- gsub(pattern, "\\.", phenodata$SampleID[old.ids]);
+
+		flog.info("'SampleID' values must only contain alphanumeric characters! Modifying the following:");
+		cat(paste(c("\t", paste(phenodata$SampleID[old.ids], new.ids, sep = " -> "), "\n"), collapse = "\n\t"));
+
+		phenodata$SampleID[old.ids] <- new.ids;
 		phenodata$ReferenceID[phenodata$ReferenceID %in% phenodata$SampleID] <- gsub(pattern, "\\.", phenodata$ReferenceID[phenodata$ReferenceID %in% phenodata$SampleID]);
-		phenodata$SampleID <- gsub(pattern, "\\.", phenodata$SampleID);
 		}
 
-	if (any(grepl(pattern, phenodata$Name))) {
-		flog.info("'Name' values should only contain alphanumeric characters. Replacing non-alphanumeric with '.'");
+	if (length(old.names) > 0) {
+		new.names <- unique(gsub(pattern, "\\.", phenodata$Name[old.names]));
+
+		flog.info("'Name' values must only contain alphanumeric characters! Modifying the following:");
+		cat(paste(c("\t", paste(unique(phenodata$Name[old.names]), new.names, sep = " -> "), "\n"), collapse = "\n\t"));
+		
 		phenodata$Name <- gsub(pattern, "\\.", phenodata$Name);
 		}
 
