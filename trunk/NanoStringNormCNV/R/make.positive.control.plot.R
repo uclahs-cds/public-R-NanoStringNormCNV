@@ -3,7 +3,14 @@ make.positive.control.plot <- function(correlations, covs = NULL, print.x.labels
 	correlations <- correlations[, order(correlations[1,])];
 
 	# set up covariates and legend
-	if (!is.null(covs)) {
+	if (! 'SampleID' %in% colnames(covs)) {
+		flog.warn("Unable to plot covariates with sample IDs!");
+		covs <- NULL;
+	} else {
+		covs <- covs[, colnames(covs) %in% c('SampleID', 'Type', 'Cartridge')];
+		}
+
+	if (!is.null(covs) & ncol(covs) > 1) {
 		# covariates
 		cov.objs <- NanoStringNormCNV::generate.plot.covariates(
 			plotting.data = correlations,
