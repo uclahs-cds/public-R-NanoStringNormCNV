@@ -1,6 +1,18 @@
 make.invariant.probe.plot <- function(inv.probe.counts, tissue.type = NULL) {
+	# process sample annotation
+	if (!is.null(tissue.type)) {
+		if (!all(c('SampleID', 'Type') %in% colnames(tissue.type))) {
+			flog.warn("Missing tissue type information!");
+			tissue.type <- NULL;
+		} else {
+			tissue.type <- tissue.type[, colnames(tissue.type) %in% c("SampleID", "Type")];
+			}
+		}
+
+	# get mean counts per gene
 	mean.counts <- apply(inv.probe.counts, 1, mean);
 
+	# set up and create scatterplot
 	splot.df <- melt(
 		cbind(probe = c(paste0('probe', 1:nrow(inv.probe.counts))), inv.probe.counts),
 		id.vars = 'probe'
@@ -48,6 +60,7 @@ make.invariant.probe.plot <- function(inv.probe.counts, tissue.type = NULL) {
 		resolution = 500
 		);
 
+	# set up and create barplot, if applicable
 	if (all(inv.probe.counts >= 100)) {
 		flog.info("All invariant probe counts pass minimum threshold of 100");
 	} else {
@@ -62,8 +75,6 @@ make.invariant.probe.plot <- function(inv.probe.counts, tissue.type = NULL) {
 		bar.cols   <- 'black';
 		bar.legend <- NULL;
 		if (!is.null(tissue.type)) {
-			colnames(tissue.type) <- c("SampleID", "Type");
-
 			if (all(bplot.df$samples %in% tissue.type$SampleID)) {
 				tissue.type <- tissue.type[tissue.type$SampleID %in% bplot.df$samples,];
 
@@ -85,8 +96,8 @@ make.invariant.probe.plot <- function(inv.probe.counts, tissue.type = NULL) {
 						);
 					}
 			} else {
-				flog.warn("Tissue type data sample IDs do not match invariant probe data sample IDs!")
-				} 
+				flog.warn("'Tissue type' sample IDs do not match 'invariant probe count' sample IDs!")
+				}
 			}
 			
 		BoutrosLab.plotting.general::create.barplot(
