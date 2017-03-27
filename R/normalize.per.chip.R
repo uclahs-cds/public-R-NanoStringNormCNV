@@ -9,6 +9,7 @@ normalize.per.chip <- function(phenodata, raw.data, cc, bc, sc, oth, do.nsn, do.
 	rownames(raw.data) <- raw.data$Name;
 
 	for (chip in 1:length(cartridges)) {
+		flog.info(paste("Normalizing cartridge", cartridges[chip]), "probes..");
 		cur.samples <- which(phenodata$cartridge == cartridges[chip]);
 
 		if (length(unique(covs[cur.samples, 'type'])) > 1) {
