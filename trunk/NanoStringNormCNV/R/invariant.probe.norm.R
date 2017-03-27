@@ -3,9 +3,7 @@ invariant.probe.norm <- function(nanostring.data, phenodata = NULL){
 	grep.cols <- colnames(nanostring.data)[!colnames(nanostring.data) %in% c('CodeClass', 'Name', 'Accession')];
 
 	# check if sample ID and tissue type info exists
-	if (!is.null(phenodata)) {
-		if (all(c('SampleID', 'Type') %in% colnames(phenodata))) { phenodata <- phenodata[,c('SampleID', 'Type')]; }
-	} else {
+	if (!is.null(phenodata) & !all(c('SampleID', 'Type') %in% colnames(phenodata))) {
 		phenodata <- NULL;
 		}
 
