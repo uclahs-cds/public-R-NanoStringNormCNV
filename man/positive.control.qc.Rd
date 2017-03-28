@@ -6,12 +6,12 @@
 	positive.control.qc(raw.data)
 }
 \arguments{
-  \item{raw.data}{A gene by sample data-frame of raw NanoString counts of positive control probes. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs}
+  \item{raw.data}{A gene by sample data-frame of raw NanoString counts for positive control probes. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs}
 }
 \description{
 	Positive control probes are compared to the expected positive control standard curve, as provided in the NanoString manual, y = 171.23x + 214.12. An R squared value of > 0.95 is expected for every sample and the user is warned if this is not satisfied.
 }
-\value{A data-frame of Pearson R squared values by sample ID}
+\value{A data-frame of R squared values by sample ID}
 \references{
 	See NanoString website for PDFs on analysis guidelines:
 		\url{http://www.nanostring.com/support/prod-lit/}
