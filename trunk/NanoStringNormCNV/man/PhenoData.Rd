@@ -3,7 +3,6 @@
 \docType{data}
 \title{Dataset of sample annotation and phenotype information for 65 prostate cancer samples}
 \description{Sample annotation and phenotype information describing 65 NanoString prostate cancer samples. The same NanoString samples are found in the \code{\link{NanoString}} dataset.}
-\usage{PhenoData}
 \format{
 	A data-frame with 9 columns and 65 rows. Each row indicates a different NanoString sample. The columns either annotate the sample or describe a feature of it:
 	\describe{
@@ -18,7 +17,9 @@
 		\item{Fragmentation}{The DNA fragmentation used: sonication or AluI restriction site digestion.}
 	}
 }
+\usage{PhenoData}
 \author{Dorota Sendorek}
 \examples{
 	data(PhenoData);
 }
+\keyword{datasets}
