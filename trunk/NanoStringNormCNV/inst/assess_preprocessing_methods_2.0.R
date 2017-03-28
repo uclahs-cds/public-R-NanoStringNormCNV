@@ -21,8 +21,8 @@ writetables <- 0;
 plotnorm <- 0;
 
 # proj.stem <- 'bartlett';
-proj.stem <- 'bristow';
-# proj.stem <- 'nsncnv';
+# proj.stem <- 'bristow';
+proj.stem <- 'nsncnv';
 
 if (proj.stem != 'nsncnv') process.input <- 1;
 
@@ -416,8 +416,11 @@ if (process.input) {
 		phenodata$Name <- gsub("\\..*", "", phenodata$Name);
 		}
 } else {
-	load("/u/dsendorek/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV/data/NanoString.rda");
-	load("/u/dsendorek/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV/data/PhenoData.rda");
+	data(NanoString);
+	data(PhenoData);
+
+	nano.raw <- NanoString;
+	phenodata <- PhenoData;
 	}
 
 # prepare covariates to assess batch effects in NSN
