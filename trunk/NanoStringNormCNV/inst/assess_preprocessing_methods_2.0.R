@@ -17,12 +17,12 @@ load_all("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV");
 process.input <- 0;
 dropoutliers <- 0;
 drop.low.cnt.smp <- 1;
-writetables <- 1;
-plotnorm <- 1;
+writetables <- 0;
+plotnorm <- 0;
 
 # proj.stem <- 'bartlett';
-# proj.stem <- 'bristow';
-proj.stem <- 'nsncnv';
+proj.stem <- 'bristow';
+# proj.stem <- 'nsncnv';
 
 if (proj.stem != 'nsncnv') process.input <- 1;
 
@@ -142,14 +142,14 @@ check.sample.order <- function(names1, names2) {
 ### SET PARAMETERS #################################################################################
 if (interactive()) {
 	opts <- list();
-	opts$perchip <- 1;
-	opts$ccn  	 <- 1;
-	opts$bc 	 <- 1;
-	opts$scc 	 <- 1;
-	opts$oth 	 <- 1;
-	opts$matched <- 0;
-	opts$cnas 	 <- 4;
-	opts$col 	 <- 1;
+	opts$perchip <- 0;
+	opts$ccn  	 <- 0;
+	opts$bc 	 <- 0;
+	opts$scc 	 <- 5;
+	opts$oth 	 <- 0;
+	opts$matched <- 1;
+	opts$cnas 	 <- 0;
+	opts$col 	 <- 0;
 	opts$vis 	 <- 0;
 } else {
 	params <- matrix(
@@ -340,12 +340,12 @@ if (process.input) {
 		}
 
 	colnames(nano.raw)[-c(1:3)] <- phenodata$SampleID;
-	names(frag.method) <- phenodata$SampleID;
+	if (proj.stem == 'nsncnv') names(frag.method) <- phenodata$SampleID;
 
 	# sort sample IDs so order matches after normalization
 	phenodata <- phenodata[order(phenodata$SampleID),];
 	nano.raw <- cbind(nano.raw[, 1:3], nano.raw[, sort(colnames(nano.raw)[-c(1:3)])]);
-	phenodata$Fragmentation <- frag.method[match(names(frag.method), phenodata$SampleID)];
+	if (proj.stem == 'nsncnv') phenodata$Fragmentation <- frag.method[match(names(frag.method), phenodata$SampleID)];
 
 	# # Remove bad normals (low restriction frag ratios) from phenodata
 	# if (dropoutliers == 1) {
@@ -409,6 +409,12 @@ if (process.input) {
 	# fix gene names to prevent NSN crashing
 	nano.raw$Name <- unlist(lapply(strsplit(x = nano.raw$Name, '\\|'), function(f) f[[1]][1]));
 	nano.raw$Name <- gsub(x = nano.raw$Name, pattern = '\\.', '');
+
+	# fixing 'Name' so that it is actually unique to a given sample..
+	if (proj.stem == 'bristow') {
+		phenodata$Name <- phenodata$SampleID;
+		phenodata$Name <- gsub("\\..*", "", phenodata$Name);
+		}
 } else {
 	load("/u/dsendorek/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV/data/NanoString.rda");
 	load("/u/dsendorek/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV/data/PhenoData.rda");
@@ -458,6 +464,7 @@ if (opts$oth == 3) oth.val <- 'quantile';
 # if (opts$oth == 4) oth.val <- 'zscore';# ignoring because it outputs NAs
 
 do.nsn.norm <- TRUE;
+if (opts$ccn == 0 & opts$bc == 0 & (opts$scc == 0 | opts$scc == 5)) do.nsn.norm <- FALSE;
 
 # set up kd values if required
 if (opts$cnas == 0) {cnas.name <- 'NS_default'; 	  	call.method <- 1; kd.vals <- NULL;} # 'round'; using NS-provided thresholds
@@ -475,7 +482,7 @@ corrs <- positive.control.qc(nano.raw);
 if (plotnorm == 1) {
 	make.positive.control.plot(
 		correlations = corrs,
-		covs = phenodata[, c('SampleID', 'Type', 'Cartridge')]
+		covs = phenodata
 		);
 	}
 
@@ -545,7 +552,7 @@ setwd(out.dir);
 # phenodata$outlier <- 0;
 if (opts$perchip == 1) {
 	norm.data <- normalize.per.chip(
-		pheno = phenodata,
+		phenodata = phenodata,
 		raw.data = nano.raw,
 		cc = cc.val,
 		bc = bc.val,
@@ -567,7 +574,8 @@ if (opts$perchip == 1) {
 		do.rcc.inv = do.rcc.inv.norm,
 		covs = pheno.df,
 		plot.types = qw('cv mean.sd norm.factors missing RNA.estimates positive.controls'),
-		pheno = phenodata[,c('SampleID', 'Type')]
+		phenodata = phenodata
+		# phenodata = phenodata[,c('SampleID', 'Type')]
 		);
 	}
 

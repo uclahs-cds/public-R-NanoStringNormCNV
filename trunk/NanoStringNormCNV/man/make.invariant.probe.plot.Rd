@@ -7,10 +7,10 @@
 }
 \arguments{
   \item{inv.probe.counts}{A gene by sample data-frame of counts from invariant probes}
-  \item{tissue.type}{A data-frame with fields 'SampleID' and 'Type' (specifying whether 'Tumour' or 'Reference'). Defaults to NULL}
+  \item{tissue.type}{A data-frame of sample annotation with columns 'SampleID' and 'Type' (specifying whether 'Tumour' or 'Reference'). Recommended to use output of \code{\link{load.phenodata}}. Defaults to NULL}
 }
 \details{
-	Creates a scatterplot showing the counts for each invariant probe and a barplot showing the number of probes with low coverage per sample (if applicable)
+	Creates a scatterplot showing the counts for each invariant probe and a barplot showing the number of probes with low coverage per sample (if any)
 }
 \value{None}
 \author{Cindy Yao and Emilie Lalonde}

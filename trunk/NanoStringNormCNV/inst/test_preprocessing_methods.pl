@@ -36,7 +36,8 @@ my $sge = HPCI->group(
 	);
 #my $sge = BoutrosLab::Utilities::SGE::JobGroup->new(collect_job_stats => 1);
 
-my @modules = ('R-BL/2017-01-06', 'Perl-BL/2017-01-06');
+my @modules = ('R-BL/2017-03-22', 'Perl-BL/2017-03-22');
+# my @modules = ('R-BL/2017-01-06', 'Perl-BL/2017-01-06');
 my $num_jobs = 0;
 
 my $vis = 0;

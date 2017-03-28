@@ -9,9 +9,8 @@
   \item{raw.data}{A gene by sample data-frame of raw NanoString counts of restriction fragmentation probes. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs}
 }
 \details{
-	Restriction fragmentation controls ensure proper denaturation and digestion of DNA in AluI digested samples. The following results are expected: a) probes C and D with counts of > 200 if DNA had correctly denatured prior to digestion and b) probe ratios (C+D / A+B) of > 10 if DNA digestion was complete. The user is warned if low count or low ratio samples are detected.}
-	\value{A data-frame containing 1) C and D probe mean counts, 2) A and B probe mean counts, and 3) C+D / A+B ratios
-}
+	Restriction fragmentation controls check for proper denaturation and digestion of DNA in AluI digested samples. The following results are expected: a) probes C and D with counts of > 200 if DNA had correctly denatured prior to digestion and b) probe ratios (C+D / A+B) of > 10 if DNA digestion was complete. The user is warned if low count or low ratio samples are detected.}
+\value{A data-frame containing 1) C and D probe mean counts, 2) A and B probe mean counts, and 3) C+D / A+B ratios}
 \references{
 	See NanoString website for PDFs on analysis guidelines:
 		\url{http://www.nanostring.com/support/prod-lit/}
