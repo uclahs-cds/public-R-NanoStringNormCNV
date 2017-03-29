@@ -20,8 +20,8 @@ source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/acces
 
 # set project!
 # proj.stem <- 'bristow';
-proj.stem <- 'nsncnv';
-# proj.stem <- 'nsncnv_col';
+# proj.stem <- 'nsncnv';
+proj.stem <- 'nsncnv_col';
 
 remove.any.na.runs <- TRUE;
 
@@ -44,8 +44,10 @@ score.and.sort <- rbind(
 	c('mean.f1score', TRUE, 1), 
 	c('mean.f1score.gain', TRUE, 1), 
 	c('mean.f1score.loss', TRUE, 1),
-	c('mean.ari', TRUE, 1),
-	c('sd.ari', NA, 1)
+	c('mean.ari.smp', TRUE, 1),
+	c('mean.ari.gene', TRUE, 1),
+	c('sd.ari.smp', NA, 1),
+	c('sd.ari.gene', NA, 1)
 	);
 score.and.sort <- as.data.frame(score.and.sort);
 colnames(score.and.sort) <- c('score', 'sort', 'oncoscan');
@@ -405,13 +407,13 @@ main.dir <- ("/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/
 if (grepl('nsncnv', proj.stem)) {
 	data.dir <- paste0(main.dir, "normalization_assessment/");
 	plot.dir <- paste0(main.dir, "plots/");
-	if (proj.stem == 'nsncnv_col') dates <- c('2017-01-20', '2017-03-17');
-	if (proj.stem == 'nsncnv') dates <- c('2017-01-20', '2017-02-13');
+	if (proj.stem == 'nsncnv_col') dates <- c('2017-03-28', '2017-03-29');
+	if (proj.stem == 'nsncnv') dates <- c('2017-03-28', '2017-03-29');
 	total.runs <- 12672;
 } else if (proj.stem == 'bristow') {
 	data.dir <- paste0(main.dir, "bristow_assessment/");
 	plot.dir <- paste0(main.dir, "bristow_plots/");
-	dates <- c('2017-03-14', '2017-03-17');
+	dates <- c('2017-03-28', '2017-03-29');
 	total.runs <- 12672;
 	}
 
@@ -780,7 +782,7 @@ run.legend <- list(
 		title = 'CNA Method',
 		border = border.col,
 		cex = 1,
-		labels = c('KD: 0.89, 0.69, 0.65, 0.87', 'KD: 0.98, 0.84, 0.92, 0.97', 'KD: 0.998, 0.79, 0.88, 0.989', 'KD (default): 0.85, 0.95', 'Normal Min/Max Thresholds', 'NS-inspired Thresholds')
+		labels = c('KD: 0.996, 0.695, 0.73, 0.956', 'KD: 0.983, 0.748, 0.727, 0.969', 'KD: 0.998, 0.79, 0.88, 0.989', 'KD (default): 0.85, 0.95', 'Normal Min/Max Thresholds', 'NS-inspired Thresholds')
 		),
 	oth = list(
 		colours = rev(colour.list[['oth']]),

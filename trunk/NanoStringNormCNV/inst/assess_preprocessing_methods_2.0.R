@@ -144,12 +144,12 @@ if (interactive()) {
 	opts <- list();
 	opts$perchip <- 0;
 	opts$ccn  	 <- 0;
-	opts$bc 	 <- 0;
-	opts$scc 	 <- 5;
-	opts$oth 	 <- 0;
-	opts$matched <- 1;
+	opts$bc 	 <- 2;
+	opts$scc 	 <- 0;
+	opts$oth 	 <- 2;
+	opts$matched <- 0;
 	opts$cnas 	 <- 0;
-	opts$col 	 <- 0;
+	opts$col 	 <- 1;
 	opts$vis 	 <- 0;
 } else {
 	params <- matrix(

@@ -27,7 +27,7 @@ score.runs <- function(replicate.eval, normalized.data, cna.rounded, phenodata, 
 	if (all(unlist(normalized.data) >= 0)) {
 		norm.data.clust <- log10(normalized.data[, -c(1:3)] + 1);
 	} else {
-		norm.data.clust <- normalized.data;
+		norm.data.clust <- normalized.data[, -c(1:3)];
 		}
 
 	### Check the adjusted rand index (ARI) of multiple parameters
