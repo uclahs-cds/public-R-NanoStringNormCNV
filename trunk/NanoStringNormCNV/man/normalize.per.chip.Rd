@@ -15,7 +15,7 @@
   \item{bc}{Requested Background NSN normalization. Can be 'none', 'mean', 'mean.2sd' and 'max'.}
   \item{sc}{Requested SampleContent NSN normalization. Can be 'none', 'housekeeping.geo.mean', 'total.sum', 'top.geo.mean' and 'low.cv.geo.mean'.}
   \item{oth}{Requested OtherNorm NSN normalization. Can be 'vsn', 'quant' and 'rank'.}
-  \item{do.nsn}{Whether or not to even run NanoStringNorm (NSN). Should be inferred from 3 previous parameters (cc, bc, sc)}
+  \item{do.nsn}{Whether or not to even run NanoStringNorm (NSN). Should be inferred from 4 previous parameters (cc, bc, sc, oth)}
   \item{do.rcc.inv}{Whether or not to run invariant probe normalization. This method corrects for sample content and can be used in place of 'sc'. It is run separately from NSN and is the technique recommended in NanoString guidelines.}
   \item{covs}{A data-frame of covariates with which to assess batch effects in NanoStringNorm. Passed directly to NanoStringNorm::NanoStringNorm 'traits' argument (see function for specifics).}
   \item{transform.data}{Whether to transform data so output does not contain negative values. Defaults to TRUE}
