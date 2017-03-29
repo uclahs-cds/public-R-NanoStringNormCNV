@@ -6,7 +6,7 @@
 	make.restriction.fragmentation.plot(restr.data, low.ratio.samples = NULL)
 }
 \arguments{
-  \item{restr.data}{A gene by sample data-frame of raw NanoString counts from restriction fragmentation probes. First three column names must be 'CodeClass', 'Name', and 'Accession', followed by sample IDs}
+  \item{restr.data}{A data-frame with raw counts of restriction fragmentation probes per sample. First row is mean count for probes A and B and second row is mean count for probes C and D.}
   \item{low.ratio.samples}{Samples previously identified as having low ratios}
 }
 \details{This function is called by \code{\link{restriction.fragmentation.qc}}.}
