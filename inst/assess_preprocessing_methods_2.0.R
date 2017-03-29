@@ -20,12 +20,6 @@ drop.low.cnt.smp <- 1;
 writetables <- 0;
 plotnorm <- 0;
 
-# proj.stem <- 'bartlett';
-# proj.stem <- 'bristow';
-proj.stem <- 'nsncnv';
-
-if (proj.stem != 'nsncnv') process.input <- 1;
-
 set.seed(12345);
 
 ### FUNCTIONS ######################################################################################
@@ -142,18 +136,21 @@ check.sample.order <- function(names1, names2) {
 ### SET PARAMETERS #################################################################################
 if (interactive()) {
 	opts <- list();
+	opts$group_name <- 'nsncnv';
+	# opts$group_name <- 'bristow';
 	opts$perchip <- 0;
-	opts$ccn  	 <- 0;
-	opts$bc 	 <- 2;
-	opts$scc 	 <- 0;
-	opts$oth 	 <- 2;
+	opts$ccn  	 <- 2;
+	opts$bc 	 <- 0;
+	opts$scc 	 <- 1;
+	opts$oth 	 <- 0;
 	opts$matched <- 0;
 	opts$cnas 	 <- 0;
-	opts$col 	 <- 1;
+	opts$col 	 <- 0;
 	opts$vis 	 <- 0;
 } else {
 	params <- matrix(
 		c(
+			'group_name', 'g', 1, 'character',
 			'perchip', 'c', 1, 'numeric',
 			'ccn', 	   'n', 1, 'numeric',
 			'bc', 	   'b', 1, 'numeric',
@@ -171,18 +168,22 @@ if (interactive()) {
 	}
 
 # verify arguments
-if(is.null(opts$perchip)) { cat(usage()); q(status = 1) }
-if(is.null(opts$ccn)) 	  { cat(usage()); q(status = 1) }
-if(is.null(opts$bc)) 	  { cat(usage()); q(status = 1) }
-if(is.null(opts$scc)) 	  { cat(usage()); q(status = 1) }
-if(is.null(opts$oth)) 	  { cat(usage()); q(status = 1) }
-if(is.null(opts$matched)) { cat(usage()); q(status = 1) }
-if(is.null(opts$cnas))    { cat(usage()); q(status = 1) }
-if(is.null(opts$vis))	  { cat(usage()); q(status = 1) }
+if(is.null(opts$group_name)) { cat(usage()); q(status = 1) }
+if(is.null(opts$perchip))    { cat(usage()); q(status = 1) }
+if(is.null(opts$ccn)) 	     { cat(usage()); q(status = 1) }
+if(is.null(opts$bc)) 	     { cat(usage()); q(status = 1) }
+if(is.null(opts$scc)) 	     { cat(usage()); q(status = 1) }
+if(is.null(opts$oth)) 	     { cat(usage()); q(status = 1) }
+if(is.null(opts$matched))    { cat(usage()); q(status = 1) }
+if(is.null(opts$cnas))       { cat(usage()); q(status = 1) }
+if(is.null(opts$vis))	     { cat(usage()); q(status = 1) }
 
 if (opts$matched == 1 & opts$cnas == 1) { cat(usage()); q(status = 1); }
 
-home.dir <- make_dir_name(opts);
+proj.stem <- opts$group_name;
+if (proj.stem != 'nsncnv') process.input <- 1;
+
+home.dir <- make_dir_name(opts[-1]);
 root.dir <- '/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV';
 
 setwd(root.dir);
@@ -467,7 +468,7 @@ if (opts$oth == 3) oth.val <- 'quantile';
 # if (opts$oth == 4) oth.val <- 'zscore';# ignoring because it outputs NAs
 
 do.nsn.norm <- TRUE;
-if (opts$ccn == 0 & opts$bc == 0 & (opts$scc == 0 | opts$scc == 5)) do.nsn.norm <- FALSE;
+if (opts$ccn == 0 & opts$bc == 0 & (opts$scc == 0 | opts$scc == 5) & opts$oth == 0) do.nsn.norm <- FALSE;
 
 # set up kd values if required
 if (opts$cnas == 0) {cnas.name <- 'NS_default'; 	  	call.method <- 1; kd.vals <- NULL;} # 'round'; using NS-provided thresholds
