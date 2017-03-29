@@ -7,7 +7,7 @@
 }
 \arguments{
   \item{restr.data}{A data-frame with raw counts of restriction fragmentation probes per sample. First row is mean count for probes A and B and second row is mean count for probes C and D.}
-  \item{low.ratio.samples}{Samples previously identified as having low ratios}
+  \item{low.ratio.samples}{Column numbers ('restr.data') of samples previously identified as having low ratios}
 }
 \details{This function is called by \code{\link{restriction.fragmentation.qc}}.}
 \value{None}
