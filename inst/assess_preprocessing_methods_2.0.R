@@ -14,7 +14,7 @@ library(getopt);
 load_all("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV");
 
 # set options
-process.input <- 0;
+process.input <- 1;
 dropoutliers <- 0;
 drop.low.cnt.smp <- 1;
 writetables <- 0;
@@ -144,7 +144,7 @@ if (interactive()) {
 	opts$scc 	 <- 1;
 	opts$oth 	 <- 0;
 	opts$matched <- 0;
-	opts$cnas 	 <- 0;
+	opts$cnas 	 <- 3;
 	opts$col 	 <- 0;
 	opts$vis 	 <- 0;
 } else {
@@ -633,9 +633,6 @@ if (! check.sample.order(phenodata$SampleID[has.ref][phenodata$SampleID[has.ref]
 	}
 # if (! check.sample.order(sub(x = phenodata$SampleID[has.ref], pattern = 'outlier', ''), colnames(cna.rounded))) {
 # 	stop("Sorry, sample order doesn't match after normalization, see above.");
-# 	}
-
-pheno.cna <- phenodata[has.ref,];
 
 {### Density plots ##################################################################################
 	# normal.for.plot <- norm.data[, phenodata[phenodata$Type == "Reference",]$SampleID];
@@ -931,6 +928,11 @@ summary.scores <- score.runs(
 	phenodata = phenodata,
 	cna.normals = score.run.normals
 	);
+replicate.eval = reps
+normalized.data = norm.data
+cna.rounded = cna.rounded
+phenodata = phenodata
+cna.normals = score.run.normals
 
 n.param <- length(summary.data);
 summary.data <- c(summary.data, summary.scores$scores);

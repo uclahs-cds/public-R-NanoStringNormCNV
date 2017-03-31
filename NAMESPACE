@@ -18,7 +18,6 @@ export(
 	"call.cnas.with.pooled.normals",
 	"call.copy.number.values",
 	"collapse.genes",
-	"collapse.replicates",
 	"evaluate.replicates",
 	"generate.plot.covariates",
 	"generate.plot.legend",
