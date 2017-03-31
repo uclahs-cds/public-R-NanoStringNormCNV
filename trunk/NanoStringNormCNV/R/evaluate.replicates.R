@@ -2,6 +2,10 @@ evaluate.replicates <- function(phenodata, normalized.data = NULL, cna.rounded =
 	# set up output variables
 	var.matrix <- conc.matrix <- conc.summary <- NULL;
 
+	# exclude positive, negative and restriction site controls
+	which.probes <- which(normalized.data$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"));
+	normalized.data <- normalized.data[which.probes,];
+
 	# extract samples with replicates
 	pheno.reps <- phenodata[which(phenodata$HasReplicate == 1),];
 
