@@ -19,8 +19,8 @@ use FindBin;
 #use File::ShareDir
 
 # # get args
-my $group_name = "run_all";
-# my $group_name = $ARGV[0];
+# my $group_name = "run_all";
+my $group_name = $ARGV[0];# nsncnv or bristow
 # my $matched = $ARGV[1];
 # my $cnas = $ARGV[2];
 
@@ -49,8 +49,8 @@ for (my $perchip = 0; $perchip <= 1; ++$perchip) {
 				for(my $matched = 0; $matched <= 1; ++$matched){
 					for(my $oth = 0; $oth <= 3; ++$oth){
 						for(my $cnas = 0; $cnas <= 5; ++$cnas){
-							my $col = 0;
-							# for(my $col = 0; $col <= 1; ++$col){
+							# my $col = 0;
+							for(my $col = 0; $col <= 1; ++$col){
 
 								# skipping because this option is not available for call.cnas.with.matched.normals
 								if ($matched == 1 && $cnas == 1) {
@@ -61,7 +61,7 @@ for (my $perchip = 0; $perchip <= 1; ++$perchip) {
 								my $job_name = "perchip${perchip}_ccn${ccn}_bc${bc}_scc${scc}_oth${oth}_matched${matched}_cnas${cnas}_col${col}_vis${vis}";
 								print $job_name . "\n";
 								$sge->stage(
-									command => "Rscript " . $script_file . " --perchip $perchip --ccn $ccn --bc $bc --scc $scc --oth $oth --matched $matched --cnas $cnas --col $col --vis $vis",
+									command => "Rscript " . $script_file . " --group_name $group_name --perchip $perchip --ccn $ccn --bc $bc --scc $scc --oth $oth --matched $matched --cnas $cnas --col $col --vis $vis",
 									name => $job_name,
 									modules_to_load => \@modules,
 									should_save_script => 0,
@@ -72,7 +72,7 @@ for (my $perchip = 0; $perchip <= 1; ++$perchip) {
 
 								}
 							}
-						# }
+						}
 					}
 				}
 			}

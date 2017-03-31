@@ -19,9 +19,22 @@ source("~/svn/Resources/code/R/BoutrosLab.statistics.general/R/get.pve.R")
 source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/accessory_functions.R")
 
 # set project!
-# proj.stem <- 'bristow';
-# proj.stem <- 'nsncnv';
-proj.stem <- 'nsncnv_col';
+if (interactive()) {
+	opts <- list();
+	opts$proj.stem <- 'bristow';
+#	opts$proj.stem <- 'nsncnv';
+	# opts$proj.stem <- 'nsncnv_col';
+} else {
+	params <- matrix(
+		c(
+			'proj.stem', 'p', 1, 'character'
+			),
+		  ncol = 4,
+		  byrow = TRUE
+  		);
+	opts <- getopt(params);
+	}
+proj.stem <- opts$proj.stem;
 
 remove.any.na.runs <- TRUE;
 
@@ -39,15 +52,17 @@ score.and.sort <- rbind(
 	c('normal.w.cnas', NA, 0),
 	c('normal.cnas', NA, 0),
 	c('total.cnas', NA, 0),
-	c('prop.disc.genes.oncoscan', FALSE, 1),
-	c('conc.mean.oncoscan', TRUE, 1),
-	c('mean.f1score', TRUE, 1), 
-	c('mean.f1score.gain', TRUE, 1), 
-	c('mean.f1score.loss', TRUE, 1),
-	c('mean.ari.smp', TRUE, 1),
-	c('mean.ari.gene', TRUE, 1),
-	c('sd.ari.smp', NA, 1),
-	c('sd.ari.gene', NA, 1)
+	c('prop.disc.genes.os', FALSE, 1),
+	c('conc.mean.os', TRUE, 1),
+	c('mean.f1score.os', TRUE, 1), 
+	c('mean.f1score.gain.os', TRUE, 1), 
+	c('mean.f1score.loss.os', TRUE, 1),
+	c('mean.ari.smp.os', TRUE, 1),
+# c('mean.ari', TRUE, 1),
+	c('mean.ari.gene.os', TRUE, 1),
+# c('sd.ari', NA, 1)
+	c('sd.ari.smp.os', NA, 1),
+	c('sd.ari.gene.os', NA, 1)
 	);
 score.and.sort <- as.data.frame(score.and.sort);
 colnames(score.and.sort) <- c('score', 'sort', 'oncoscan');
@@ -62,9 +77,11 @@ if (proj.stem == 'bristow' | proj.stem == 'nsncnv_col') {
 	}
 
 skip.scores <- c(
-	'mean.f1score', #'mean.f1score.gain', 'mean.f1score.loss',
+	'mean.ari.gene.os',
+# 'sd.ari',
+	'mean.f1score.os', #'mean.f1score.gain.os', 'mean.f1score.loss.os',
 	'normal.cnas', 'normal.w.cnas', 'total.cnas',
-	'sd.inv', 'sd.hk', 'sd.ari',
+	'sd.inv', 'sd.hk', 'sd.ari.smp.os', 'sd.ari.gene.os',
 	'prop.disc.genes'
 	);
 
@@ -405,16 +422,27 @@ cluster.param <- function(param, n.groups, decr) {
 main.dir <- ("/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/NanoStringNormCNV/");
 
 if (grepl('nsncnv', proj.stem)) {
+	# if (proj.stem == 'nsncnv_col') dates <- c('2017-01-20', '2017-03-30');
+	if (proj.stem == 'nsncnv_col') dates <- c('2017-03-29', '2017-03-31');
+	if (proj.stem == 'nsncnv') dates <- c('2017-03-29', '2017-03-31');
+	total.runs <- 12672;
+
 	data.dir <- paste0(main.dir, "normalization_assessment/");
-	plot.dir <- paste0(main.dir, "plots/");
-	if (proj.stem == 'nsncnv_col') dates <- c('2017-03-28', '2017-03-29');
-	if (proj.stem == 'nsncnv') dates <- c('2017-03-28', '2017-03-29');
-	total.runs <- 12672;
+
+	plot.dir <- paste0(main.dir, "plots/total_comparison/");
+	if (!file.exists(plot.dir)) dir.create(plot.dir);
+	plot.dir <- paste0(plot.dir, paste(dates, collapse = "_"));
+	if (!file.exists(plot.dir)) dir.create(plot.dir);
 } else if (proj.stem == 'bristow') {
-	data.dir <- paste0(main.dir, "bristow_assessment/");
-	plot.dir <- paste0(main.dir, "bristow_plots/");
-	dates <- c('2017-03-28', '2017-03-29');
+	dates <- c('2017-03-28', '2017-03-31');
 	total.runs <- 12672;
+
+	data.dir <- paste0(main.dir, "bristow_assessment/");
+
+	plot.dir <- paste0(main.dir, "bristow_plots/total_comparison/");
+	if (!file.exists(plot.dir)) dir.create(plot.dir);
+	plot.dir <- paste0(plot.dir, paste(dates, collapse = "_"));
+	if (!file.exists(plot.dir))	dir.create(plot.dir);
 	}
 
 # collect results data
@@ -434,9 +462,9 @@ results$params <- results$params[, match(names(colour.list), names(results$param
 if (proj.stem == 'bristow') {
 	remove.params <- which(apply(results$params, 1, function(x) all(is.na(x))));
 } else if (proj.stem == 'nsncnv') {
-	remove.params <- which(is.na(results$scores$ari.pts) | is.na(results$scores$prop.disc.genes.oncoscan));
+	remove.params <- which(is.na(results$scores$ari.pts) | is.na(results$scores$prop.disc.genes.os));
 } else if (proj.stem == 'nsncnv_col') {
-	remove.params <- which(is.na(results$scores$prop.disc.genes.oncoscan));
+	remove.params <- which(is.na(results$scores$prop.disc.genes.os));
 	}
 
 if (length(remove.params) > 0) {
@@ -444,7 +472,7 @@ if (length(remove.params) > 0) {
 	results$scores <- results$scores[-remove.params,];	
 	}
 
-### removing runs where mean.f1score.gain or mean.f1score.loss is NA
+### removing runs where mean.f1score.gain or mean.f1score.loss is NA  ***BE CAREFUL***
 if (remove.any.na.runs) {
 	to.remove <- which(apply(results$scores, 1, function(x) any(is.na(x))));
 	if (length(to.remove) > 0) {
@@ -453,42 +481,44 @@ if (remove.any.na.runs) {
 		}
 	}
 
-# #temp
-# results$scores <- results$scores[which(results$params$cnas < 4),];
-# results$params <- results$params[which(results$params$cnas < 4),];
-# rownames(results$scores) <- rownames(results$params) <- NULL;
+{
+	# #temp
+	# results$scores <- results$scores[which(results$params$cnas < 4),];
+	# results$params <- results$params[which(results$params$cnas < 4),];
+	# rownames(results$scores) <- rownames(results$params) <- NULL;
 
-# ### Run k-means on params with many ties *** can decide to re-introduce if needed ***
-# sd.clusters <- cluster.param(
-# 	results$scores$sd.inv.and.hk,
-# 	n.groups = 4,
-# 	decr = FALSE
-# 	);	# have NAs here due to lm so skip this one
+	# ### Run k-means on params with many ties *** can decide to re-introduce if needed ***
+	# sd.clusters <- cluster.param(
+	# 	results$scores$sd.inv.and.hk,
+	# 	n.groups = 4,
+	# 	decr = FALSE
+	# 	);	# have NAs here due to lm so skip this one
 
-# ari.pts.normcor.clusters <- cluster.param(
-# 	results$scores$ari.pts.normcor,
-# 	n.groups = 8,
-# 	decr = TRUE
-# 	);
+	# ari.pts.normcor.clusters <- cluster.param(
+	# 	results$scores$ari.pts.normcor,
+	# 	n.groups = 8,
+	# 	decr = TRUE
+	# 	);
 
-# ari.chip.clusters <- cluster.param(
-# 	results$scores$ari.chip,
-# 	n.groups = 6,
-# 	decr = FALSE
-# 	);
+	# ari.chip.clusters <- cluster.param(
+	# 	results$scores$ari.chip,
+	# 	n.groups = 6,
+	# 	decr = FALSE
+	# 	);
 
-# if (!'ari.pts.clusters' %in% names(results$scores)) {
-# 	ari.pts.clusters <- cluster.param(
-# 		results$scores$ari.pts,
-# 		n.groups = 8,
-# 		decr = TRUE
-# 		);
+	# if (!'ari.pts.clusters' %in% names(results$scores)) {
+	# 	ari.pts.clusters <- cluster.param(
+	# 		results$scores$ari.pts,
+	# 		n.groups = 8,
+	# 		decr = TRUE
+	# 		);
 
-# 	results$scores <- cbind(
-# 		results$scores,
-# 		ari.pts.clusters
-# 		);
-# 	}
+	# 	results$scores <- cbind(
+	# 		results$scores,
+	# 		ari.pts.clusters
+	# 		);
+	# 	}
+}
 
 ### Evalute which parameters are associated with each criteria
 kw.out  <- matrix(nrow = ncol(results$scores), ncol = ncol(results$params));
@@ -561,34 +591,35 @@ for (r in 1:ncol(ranks)) {
 
 ### Specify 'important' criteria
 # DS: originally, EL selected these by taking the top 2 criteria for 'increasing node purity'
-imp.vars <- qw('ari.pts', '');
 if (grepl('nsncnv', proj.stem)) {
-	imp.vars <- c('mean.f1score.gain', 'ari.pts', 'conc.mean.oncoscan');
+	# imp.vars <- c('ari.chip', 'sd.inv.and.hk', 'conc.mean.os', 'mean.ari.smp.os', 'mean.f1score.gain.os');
+	imp.vars <- c('ari.pts', 'conc.mean.os', 'mean.ari.smp.os', 'replicates.conc', 'mean.f1score.loss.os', 'mean.f1score.gain.os');
 } else if (proj.stem == 'bristow') {
-	imp.vars <- c('mean.f1score.loss', 'ari.pts', 'replicates.conc', 'mean.ari');
+	# imp.vars <- c('mean.f1score.loss.os', 'ari.pts', 'ari.pts.normcor', 'mean.ari.smp.os', 'mean.f1score.gain.os');
+	imp.vars <- c('ari.pts.normcor', 'ari.pts', 'replicates.conc', 'conc.mean.os', 'mean.f1score.loss.os');
 	}
 # imp.vars <- c('replicates.conc', 'ari.pts');
 # imp.vars <- c('replicates.conc', 'ari.pts.normcor.clusters');
 # imp.vars <- c('replicates.conc', 'prop.disc.genes', 'ari.pts');
 # imp.vars <- qw('ari.chip ari.type');
-# imp.vars <- qw('conc.mean.oncoscan prop.disc.genes.oncoscan');
-# imp.vars <- qw('ari.chip ari.pts.normcor ari.type replicates.conc ari.pts ari.pts.clusters conc.mean.oncoscan prop.disc.genes.oncoscan');
+# imp.vars <- qw('conc.mean.os prop.disc.genes.os');
+# imp.vars <- qw('ari.chip ari.pts.normcor ari.type replicates.conc ari.pts ari.pts.clusters conc.mean.os prop.disc.genes.os');
 # imp.vars <- qw('ari.chip ari.pts.normcor ari.type replicates.conc ari.pts');
 
 # DS: when matched param is not excluded (see above) all top ranking runs correspond to matched = 1 and ari.pts is NA 
 # geometric mean
+# used when running glm and rf below
+overall.rank <- apply(
+	X = ranks,
+	MARGIN = 1,
+	FUN = function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); }
+	);
+
 overall.rank <- apply(
 	X = ranks[, imp.vars, drop = FALSE],
 	MARGIN = 1,
 	FUN = function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); }
 	);
-
-# # used when running glm and rf below
-# overall.rank <- apply(
-# 	X = ranks,
-# 	MARGIN = 1,
-# 	FUN = function(f) { prod(na.omit(f)) ^ (1 / length(na.omit(f))); }
-# 	);
 
 ranks$overall <- rank(overall.rank);
 run.orders    <- order(ranks$overall);
@@ -698,6 +729,10 @@ glm.df.criteria$rank.prod <- overall.rank;
 
 if (!remove.any.na.runs & proj.stem == 'nsncnv_col') {
 	glm.df.criteria <- glm.df.criteria[apply(glm.df.criteria, 1, function(x) !any(is.na(x))),];
+	}
+
+if (any(apply(glm.df.criteria, 1, function(x) any(is.na(x))))) {
+	stop("Problem with glm.df.criteria!");
 	}
 
 rf.criteria <- run.rf(glm.df.criteria, stem.name = criteria.stem);# won't run with missing values
