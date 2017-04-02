@@ -39,6 +39,7 @@ export(
 	"process.xy.probes",
 	"restriction.fragmentation.qc",
 	"score.runs",
+	"score.runs2",
 	"tumour.normal.ratio.to.cn.state",
 	"visualize.results"
 	);
