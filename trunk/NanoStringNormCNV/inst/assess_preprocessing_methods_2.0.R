@@ -139,12 +139,12 @@ if (interactive()) {
 	opts$group_name <- 'nsncnv';
 	# opts$group_name <- 'bristow';
 	opts$perchip <- 0;
-	opts$ccn  	 <- 2;
+	opts$ccn  	 <- 0;
 	opts$bc 	 <- 0;
-	opts$scc 	 <- 1;
+	opts$scc 	 <- 0;
 	opts$oth 	 <- 0;
 	opts$matched <- 0;
-	opts$cnas 	 <- 3;
+	opts$cnas 	 <- 0;
 	opts$col 	 <- 0;
 	opts$vis 	 <- 0;
 } else {
@@ -337,7 +337,15 @@ if (process.input) {
 
 	# changing names so they match across tumour replicates
 	for (i in unique(phenodata[phenodata$HasReplicate == 1,]$Patient)) {
-		phenodata[phenodata$HasReplicate == 1 & phenodata$Patient == i,]$Name <- paste0(i, "-F1");
+		rep.ref <- phenodata[phenodata$Patient == i & phenodata$Type == 'Reference',];
+		rep.tum <- phenodata[phenodata$Patient == i & phenodata$Type == 'Tumour',];
+
+		if (nrow(rep.ref) > 1) {
+			phenodata[phenodata$Patient == i & phenodata$Type == 'Reference',]$Name <- paste0(i, ".B1");
+			}
+		if (nrow(rep.tum) > 1) {
+			phenodata[phenodata$Patient == i & phenodata$Type == 'Tumour'   ,]$Name <- paste0(i, ".F1");
+			}
 		}
 
 	colnames(nano.raw)[-c(1:3)] <- phenodata$SampleID;
@@ -532,7 +540,8 @@ if (drop.low.cnt.smp & length(low.count.samples) > 0) {
 	print("WARNING: must manually update phenodata to account for changes!");
 
 	if (proj.stem == 'nsncnv') {
-		phenodata[phenodata$SampleID == "CPCG0248F1",]$ReferenceID <- "CPCG0248B.M1";
+		phenodata[phenodata$SampleID == "CPCG0248F1",]$ReferenceID <- "missing";
+		# phenodata[phenodata$SampleID == "CPCG0248F1",]$ReferenceID <- "CPCG0248B.M1";
 		
 		# setting HasReplicate for replicates to 0
 		phenodata[phenodata$SampleID %in% c("CPCG0266B.M2", "CPCG0248B.M1"),]$HasReplicate <- 0;
@@ -928,16 +937,21 @@ summary.scores <- score.runs(
 	phenodata = phenodata,
 	cna.normals = score.run.normals
 	);
-replicate.eval = reps
-normalized.data = norm.data
-cna.rounded = cna.rounded
-phenodata = phenodata
-cna.normals = score.run.normals
-
 n.param <- length(summary.data);
 summary.data <- c(summary.data, summary.scores$scores);
 summary.data <- melt(summary.data);
 summary.data <- cbind(summary.data, c(rep(NA, n.param), unlist(summary.scores$sample.size)));
+
+summary.scores2 <- score.runs2(
+	normalized.data = norm.data,
+	cna.rounded = cna.rounded,
+	phenodata = phenodata,
+	cna.normals = score.run.normals
+	); 
+alu1.summary <- melt(summary.scores2$scores.alu1);
+soni.summary <- melt(summary.scores2$scores.soni);
+alu1.summary <- paste0('alu1.', alu1.summary[,2]);
+soni.summary <- paste0('soni.', soni.summary[,2]);
 
 ### print to file
 setwd(out.dir);
