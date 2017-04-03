@@ -43,6 +43,7 @@ score.runs2 <- function(normalized.data, cna.rounded, phenodata, cna.normals = N
 		);
 	scores.alu1 <- scores;
 	scores.soni <- scores;
+	scores.frag <- list(counts = NA, cnas = NA);
 
 	### Check the adjusted rand index (ARI) of multiple parameters
 	## using normalized counts
@@ -75,12 +76,12 @@ score.runs2 <- function(normalized.data, cna.rounded, phenodata, cna.normals = N
 	scores.alu1$cnas.chip <- NanoStringNormCNV::get.ari(
 		data.to.cluster = cnas.alu1,
 		feature = phenodata.alu1$Cartridge,
-		is.discrete = FALSE
+		is.discrete = TRUE
 		);
 	scores.soni$cnas.chip <- NanoStringNormCNV::get.ari(
 		data.to.cluster = cnas.soni,
 		feature = phenodata.soni$Cartridge,
-		is.discrete = FALSE
+		is.discrete = TRUE
 		);
 
 	# evaluate using tissue type information
@@ -88,14 +89,29 @@ score.runs2 <- function(normalized.data, cna.rounded, phenodata, cna.normals = N
 		scores.alu1$cnas.type <- NanoStringNormCNV::get.ari(
 			data.to.cluster = cnas.alu1,
 			feature = phenodata.alu1$Type,
-			is.discrete = FALSE
+			is.discrete = TRUE
 			);
 		scores.soni$cnas.type <- NanoStringNormCNV::get.ari(
 			data.to.cluster = cnas.soni,
 			feature = phenodata.soni$Type,
-			is.discrete = FALSE
+			is.discrete = TRUE
 			);
 		}
 
-	return(list(scores.alu1 = scores.alu1, scores.soni = scores.soni));
+	# fragmentation method!
+	norm.data.frag <- normalized.data[, order(colnames(normalized.data))];
+	scores.frag$counts <- NanoStringNormCNV::get.ari(
+		data.to.cluster = norm.data.frag,
+		feature = phenodata$Fragmentation[match(phenodata$SampleID, colnames(norm.data.frag))],
+		is.discrete = FALSE
+		);
+
+	cnas.frag <- cnas[, order(colnames(cnas))];
+	scores.frag$cnas <- NanoStringNormCNV::get.ari(
+		data.to.cluster = cnas.frag,
+		feature = phenodata$Fragmentation[match(phenodata$SampleID, colnames(cnas.frag))],
+		is.discrete = TRUE
+		);
+
+	return(list(scores.alu1 = scores.alu1, scores.soni = scores.soni, scores.frag = scores.frag));
 	}
