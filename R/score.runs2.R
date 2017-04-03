@@ -17,10 +17,10 @@ score.runs2 <- function(normalized.data, cna.rounded, phenodata, cna.normals = N
 	pheno.alu1 <- phenodata[phenodata$Fragmentation == 'Alu1',];
 	pheno.soni <- phenodata[phenodata$Fragmentation == 'Sonicate',];
 
-	norm.alu1 <- normalized.data[, phenodata.alu1$SampleID, drop = FALSE];
-	norm.soni <- normalized.data[, phenodata.soni$SampleID, drop = FALSE];
-	cnas.alu1 <- cnas[, colnames(cnas) %in% phenodata.alu1$SampleID, drop = FALSE];
-	cnas.soni <- cnas[, colnames(cnas) %in% phenodata.soni$SampleID, drop = FALSE];
+	norm.alu1 <- normalized.data[, pheno.alu1$SampleID, drop = FALSE];
+	norm.soni <- normalized.data[, pheno.soni$SampleID, drop = FALSE];
+	cnas.alu1 <- cnas[, colnames(cnas) %in% pheno.alu1$SampleID, drop = FALSE];
+	cnas.soni <- cnas[, colnames(cnas) %in% pheno.soni$SampleID, drop = FALSE];
 
 	pheno.alu1.norm <- pheno.alu1[(pheno.alu1$SampleID %in% names(norm.alu1)),];
 	pheno.soni.norm <- pheno.soni[(pheno.soni$SampleID %in% names(norm.soni)),];
