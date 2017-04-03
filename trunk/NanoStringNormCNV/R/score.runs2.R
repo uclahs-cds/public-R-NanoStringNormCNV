@@ -1,6 +1,7 @@
 score.runs2 <- function(normalized.data, cna.rounded, phenodata, cna.normals = NULL) {
 	# remove unnecessary probes
-	normalized.data <- normalized.data[normalized.data$CodeClass %in% c("Endogenous", "Housekeeping", "Invariant"),];
+	probe.class <- c("Endogenous", "Housekeeping", "Invariant");
+	normalized.data <- normalized.data[normalized.data$CodeClass %in% probe.class,];
 
 	# log normalized counts, if possible
 	if (all(unlist(normalized.data) >= 0)) {
@@ -10,29 +11,27 @@ score.runs2 <- function(normalized.data, cna.rounded, phenodata, cna.normals = N
 		}
 
 	# set up data
-	phenodata.alu1 <- phenodata[phenodata$Fragmentation == 'Alu1',];
-	phenodata.soni <- phenodata[phenodata$Fragmentation == 'Sonicate',];
+	if (is.null(cna.normals))  cnas <- cna.rounded;
+	if (!is.null(cna.normals)) cnas <- cbind(cna.rounded, cna.normals);
+	
+	pheno.alu1 <- phenodata[phenodata$Fragmentation == 'Alu1',];
+	pheno.soni <- phenodata[phenodata$Fragmentation == 'Sonicate',];
 
-	norm.data.alu1 <- normalized.data[, phenodata.alu1$SampleID];
-	norm.data.soni <- normalized.data[, phenodata.soni$SampleID];
+	norm.alu1 <- normalized.data[, phenodata.alu1$SampleID, drop = FALSE];
+	norm.soni <- normalized.data[, phenodata.soni$SampleID, drop = FALSE];
+	cnas.alu1 <- cnas[, colnames(cnas) %in% phenodata.alu1$SampleID, drop = FALSE];
+	cnas.soni <- cnas[, colnames(cnas) %in% phenodata.soni$SampleID, drop = FALSE];
 
-	if (is.null(cna.normals)) {
-		cnas <- cna.rounded;
-	} else {
-		cnas <- cbind(cna.rounded, cna.normals);
-		}
-
-	cnas.alu1 <- cnas[, colnames(cnas) %in% phenodata.alu1$SampleID];
-	cnas.soni <- cnas[, colnames(cnas) %in% phenodata.soni$SampleID];
+	pheno.alu1.norm <- pheno.alu1[(pheno.alu1$SampleID %in% names(norm.alu1)),];
+	pheno.soni.norm <- pheno.soni[(pheno.soni$SampleID %in% names(norm.soni)),];
+	pheno.alu1.cnas <- pheno.alu1[(pheno.alu1$SampleID %in% colnames(cnas.alu1)),];
+	pheno.soni.cnas <- pheno.soni[(pheno.soni$SampleID %in% colnames(cnas.soni)),];
 
 	# order everything
-	phenodata.alu1 <- phenodata.alu1[order(phenodata.alu1$SampleID),];
-	norm.data.alu1 <- norm.data.alu1[, order(colnames(norm.data.alu1))];
-	cnas.alu1 <- cnas.alu1[, order(colnames(cnas.alu1))];
-
-	phenodata.soni <- phenodata.soni[order(phenodata.soni$SampleID),];
-	norm.data.soni <- norm.data.soni[, order(colnames(norm.data.soni))];
-	cnas.soni <- cnas.soni[, order(colnames(cnas.soni))];
+	pheno.alu1.norm <- pheno.alu1.norm[match(pheno.alu1.norm$SampleID, names(norm.alu1)),];
+	pheno.soni.norm <- pheno.soni.norm[match(pheno.soni.norm$SampleID, names(norm.soni)),];
+	pheno.alu1.cnas <- pheno.alu1.cnas[match(pheno.alu1.cnas$SampleID, colnames(cnas.alu1)),];
+	pheno.soni.cnas <- pheno.soni.cnas[match(pheno.soni.cnas$SampleID, colnames(cnas.soni)),];
 
 	# initialize output variables
 	scores <- list(
@@ -49,25 +48,25 @@ score.runs2 <- function(normalized.data, cna.rounded, phenodata, cna.normals = N
 	## using normalized counts
 	# evaluate using cartridge information
 	scores.alu1$counts.chip <- NanoStringNormCNV::get.ari(
-		data.to.cluster = norm.data.alu1,
-		feature = phenodata.alu1$Cartridge,
+		data.to.cluster = norm.alu1,
+		feature = pheno.alu1.norm$Cartridge,
 		is.discrete = FALSE
 		);
 	scores.soni$counts.chip <- NanoStringNormCNV::get.ari(
-		data.to.cluster = norm.data.soni,
-		feature = phenodata.soni$Cartridge,
+		data.to.cluster = norm.soni,
+		feature = pheno.soni.norm$Cartridge,
 		is.discrete = FALSE
 		);
 
 	# evaluate using tissue type information
 	scores.alu1$counts.type <- NanoStringNormCNV::get.ari(
-		data.to.cluster = norm.data.alu1,
-		feature = phenodata.alu1$Type,
+		data.to.cluster = norm.alu1,
+		feature = pheno.alu1.norm$Type,
 		is.discrete = FALSE
 		);
 	scores.soni$counts.type <- NanoStringNormCNV::get.ari(
-		data.to.cluster = norm.data.soni,
-		feature = phenodata.soni$Type,
+		data.to.cluster = norm.soni,
+		feature = pheno.soni.norm$Type,
 		is.discrete = FALSE
 		);
 
@@ -75,12 +74,12 @@ score.runs2 <- function(normalized.data, cna.rounded, phenodata, cna.normals = N
 	# evaluate using cartridge information
 	scores.alu1$cnas.chip <- NanoStringNormCNV::get.ari(
 		data.to.cluster = cnas.alu1,
-		feature = phenodata.alu1$Cartridge,
+		feature = pheno.alu1.cnas$Cartridge,
 		is.discrete = TRUE
 		);
 	scores.soni$cnas.chip <- NanoStringNormCNV::get.ari(
 		data.to.cluster = cnas.soni,
-		feature = phenodata.soni$Cartridge,
+		feature = pheno.soni.cnas$Cartridge,
 		is.discrete = TRUE
 		);
 
@@ -88,28 +87,32 @@ score.runs2 <- function(normalized.data, cna.rounded, phenodata, cna.normals = N
 	if (!is.null(cna.normals)) {
 		scores.alu1$cnas.type <- NanoStringNormCNV::get.ari(
 			data.to.cluster = cnas.alu1,
-			feature = phenodata.alu1$Type,
+			feature = pheno.alu1.cnas$Type,
 			is.discrete = TRUE
 			);
 		scores.soni$cnas.type <- NanoStringNormCNV::get.ari(
 			data.to.cluster = cnas.soni,
-			feature = phenodata.soni$Type,
+			feature = pheno.soni.cnas$Type,
 			is.discrete = TRUE
 			);
 		}
 
 	# fragmentation method!
-	norm.data.frag <- normalized.data[, order(colnames(normalized.data))];
+	norm.frag <- normalized.data[, order(colnames(normalized.data)), drop = FALSE];
+	pheno.frag.norm <- phenodata[phenodata$SampleID %in% colnames(norm.frag),];
+	pheno.frag.norm <- pheno.frag.norm[order(pheno.frag.norm$SampleID),];
 	scores.frag$counts <- NanoStringNormCNV::get.ari(
-		data.to.cluster = norm.data.frag,
-		feature = phenodata$Fragmentation[match(phenodata$SampleID, colnames(norm.data.frag))],
+		data.to.cluster = norm.frag,
+		feature = pheno.frag.norm$Fragmentation,
 		is.discrete = FALSE
 		);
 
-	cnas.frag <- cnas[, order(colnames(cnas))];
+	cnas.frag <- cnas[, order(colnames(cnas)), drop = FALSE];
+	pheno.frag.cnas <- phenodata[phenodata$SampleID %in% colnames(cnas.frag),];
+	pheno.frag.cnas <- pheno.frag.cnas[order(pheno.frag.cnas$SampleID),];
 	scores.frag$cnas <- NanoStringNormCNV::get.ari(
 		data.to.cluster = cnas.frag,
-		feature = phenodata$Fragmentation[match(phenodata$SampleID, colnames(cnas.frag))],
+		feature = pheno.frag.cnas$Fragmentation,
 		is.discrete = TRUE
 		);
 
