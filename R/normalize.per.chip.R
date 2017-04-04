@@ -1,4 +1,4 @@
-normalize.per.chip <- function(phenodata, raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, transform.data = TRUE, plot.types = 'all'){
+normalize.per.chip <- function(phenodata, raw.data, cc, bc, sc, oth, do.rcc.inv, covs, transform.data = TRUE, plot.types = 'all'){
 	# modify header to NanoStringNorm standard
 	colnames(phenodata)[colnames(phenodata) == 'Cartridge'] <- 'cartridge';
 	colnames(phenodata)[colnames(phenodata) == 'Type'] 		<- 'type';
@@ -19,7 +19,7 @@ normalize.per.chip <- function(phenodata, raw.data, cc, bc, sc, oth, do.nsn, do.
 			}
 
 		# normalization using code count, background noise, sample content
-		if (do.nsn) {
+		if (cc != 'none' | bc != 'none' | sc != 'none') {
 			nano.parts[[chip]] <- NanoStringNorm::NanoStringNorm(
 				x = raw.data[,(cur.samples + 3), drop = FALSE],
 				CodeCount = cc,
@@ -57,7 +57,7 @@ normalize.per.chip <- function(phenodata, raw.data, cc, bc, sc, oth, do.nsn, do.
 			}
 
 		# perform 'other' normalization last
-		if (do.nsn & oth != 'none') {
+		if (oth != 'none') {
 			nano.parts[[chip]] <- NanoStringNorm::NanoStringNorm(
 				x = nano.parts[[chip]][, -(1:3)],
 				OtherNorm = oth,

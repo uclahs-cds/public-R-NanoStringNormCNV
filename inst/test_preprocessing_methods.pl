@@ -36,11 +36,13 @@ my $sge = HPCI->group(
 	);
 #my $sge = BoutrosLab::Utilities::SGE::JobGroup->new(collect_job_stats => 1);
 
-my @modules = ('R-BL/2017-03-22', 'Perl-BL/2017-03-22');
+my @modules = ('R-BL/2017-04-02', 'Perl-BL/2017-04-02');
 # my @modules = ('R-BL/2017-01-06', 'Perl-BL/2017-01-06');
 my $num_jobs = 0;
 
 my $vis = 0;
+
+# my ($perchip, $ccn, $bc, $scc, $matched, $oth, $cnas, $col) = qw(0 0 0 0 0 0 0 0 0);
 
 for (my $perchip = 0; $perchip <= 1; ++$perchip) {
 	for(my $ccn = 0; $ccn <= 2; ++$ccn){

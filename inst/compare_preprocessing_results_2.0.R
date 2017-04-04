@@ -21,9 +21,9 @@ source("~/svn/Collaborators/RobBristow/nanostring_validation/normalization/acces
 # set project!
 if (interactive()) {
 	opts <- list();
-	opts$proj.stem <- 'bristow';
+	# opts$proj.stem <- 'bristow';
 #	opts$proj.stem <- 'nsncnv';
-	# opts$proj.stem <- 'nsncnv_col';
+	opts$proj.stem <- 'nsncnv_col';
 } else {
 	params <- matrix(
 		c(
@@ -62,7 +62,17 @@ score.and.sort <- rbind(
 	c('mean.ari.gene.os', TRUE, 1),
 # c('sd.ari', NA, 1)
 	c('sd.ari.smp.os', NA, 1),
-	c('sd.ari.gene.os', NA, 1)
+	c('sd.ari.gene.os', NA, 1),
+	c('soni.counts.chip', FALSE, 2),
+	c('alu1.counts.chip', FALSE, 2),
+	c('soni.cnas.chip', FALSE, 2),
+	c('alu1.cnas.chip', FALSE, 2),
+	c('soni.counts.type', TRUE, 2),
+	c('alu1.counts.type', TRUE, 2),
+	c('soni.cnas.type', TRUE, 2),
+	c('alu1.cnas.type', TRUE, 2),
+	c('frag.counts', FALSE, 2),
+	c('frag.cnas', FALSE, 2)
 	);
 score.and.sort <- as.data.frame(score.and.sort);
 colnames(score.and.sort) <- c('score', 'sort', 'oncoscan');
@@ -78,6 +88,7 @@ if (proj.stem == 'bristow' | proj.stem == 'nsncnv_col') {
 
 skip.scores <- c(
 	'mean.ari.gene.os',
+	# 'frag.counts', 'frag.cnas',
 # 'sd.ari',
 	'mean.f1score.os', #'mean.f1score.gain.os', 'mean.f1score.loss.os',
 	'normal.cnas', 'normal.w.cnas', 'total.cnas',
@@ -119,21 +130,18 @@ load.data  <- function(
 	patterns = c('global_*', 'perchip_*'),
 	scores = score.and.sort,
 	params = parameters,
-	use.oncoscan = TRUE
+	use.oncoscan = TRUE,
+	use.scores2 = TRUE
 	){
 
 	if (total.runs < 2) { stop("Need at least two samples or results will be wonky!"); }
 
-	if (use.oncoscan) {
-		oncoscan.date <- dates[length(dates)];
-		dates <- dates[-length(dates)];
-		}
-
 	n.params <- length(parameters);
 	n.scores <- length(which(score.and.sort[, 3] == 0));
 	os.n.scores <- length(which(score.and.sort[, 3] == 1));
+	s2.n.scores <- length(which(score.and.sort[, 3] == 2));
 
-	results <- matrix(nrow = total.runs, ncol = (n.scores + os.n.scores));
+	results <- matrix(nrow = total.runs, ncol = (n.scores + os.n.scores + s2.n.scores));
 	params 	<- matrix(nrow = total.runs, ncol = n.params);
 	genes	<- list(length = total.runs);
 	file.n 	<- 1;
@@ -147,26 +155,35 @@ load.data  <- function(
 			);
 
 		for (run in 1:length(result.patterns)) {
-			if (any(file.exists(paste0(result.patterns[run], '/', dates, '_summary_statistics.txt')))) {
-				the.date <- which(file.exists(paste0(result.patterns[run], '/', dates, '_summary_statistics.txt')));
+			if (any(file.exists(paste0(result.patterns[run], '/', dates[['scores']], '_summary_statistics.txt')))) {
+				# read in scores
 				cur.results <- read.table(
-					paste0(result.patterns[run], '/', dates[the.date], '_summary_statistics.txt'),
+					paste0(result.patterns[run], '/', dates[['scores']], '_summary_statistics.txt'),
 					header = FALSE
 					);
 				cur.results <- cur.results[,1:2];
 			
 				# read in OncoScan comparison results, if available
-				if (use.oncoscan & file.exists(paste0(result.patterns[run], '/', oncoscan.date, '_oncoscan_comparison.txt'))) {
+				if (use.oncoscan & file.exists(paste0(result.patterns[run], '/', dates[['os']], '_oncoscan_comparison.txt'))) {
 					oncoscan.results <- read.table(
-						paste0(result.patterns[run], '/', oncoscan.date, '_oncoscan_comparison.txt'),
+						paste0(result.patterns[run], '/', dates[['os']], '_oncoscan_comparison.txt'),
 						header = FALSE
 						);
 					cur.results <- rbind(cur.results, oncoscan.results, stringsAsFactors = FALSE);
 					}
 
+				# read in scores2, if available
+				if (use.scores2 & file.exists(paste0(result.patterns[run], '/', dates[['scores2']], '_summary_statistics2.txt'))) {
+					scores2.results <- read.table(
+						paste0(result.patterns[run], '/', dates[['scores2']], '_summary_statistics2.txt'),
+						header = FALSE
+						);
+					cur.results <- rbind(cur.results, scores2.results, stringsAsFactors = FALSE);
+					}
+
 				params[file.n, ]  <- cur.results[match(parameters, cur.results[,2]), 1];
 				results[file.n, ] <- cur.results[match(score.and.sort[,1], cur.results[,2]), 1];#  cur.results[, 2] %in% score.and.sort[, 1], 1];
-				genes[[file.n]]   <- read.delim(paste0(result.patterns[run], '/', dates[the.date], '_tmr2ref_rounded_counts.txt'));
+				genes[[file.n]]   <- read.delim(paste0(result.patterns[run], '/', dates[['scores']], '_tmr2ref_rounded_counts.txt'));
 			} else {
 				print(paste("Missing file for", patterns[p], result.patterns[run]));
 				}
@@ -423,8 +440,8 @@ main.dir <- ("/.mounts/labs/boutroslab/private/AlgorithmEvaluations/microarrays/
 
 if (grepl('nsncnv', proj.stem)) {
 	# if (proj.stem == 'nsncnv_col') dates <- c('2017-01-20', '2017-03-30');
-	if (proj.stem == 'nsncnv_col') dates <- c('2017-03-29', '2017-03-31');
-	if (proj.stem == 'nsncnv') dates <- c('2017-03-29', '2017-03-31');
+	if (proj.stem == 'nsncnv_col') dates <- list(scores = '2017-03-29', os = '2017-03-31', scores2 = '2017-04-03');
+	if (proj.stem == 'nsncnv') dates <- list(scores = '2017-03-29', os = '2017-03-31');
 	total.runs <- 12672;
 
 	data.dir <- paste0(main.dir, "normalization_assessment/");
@@ -448,12 +465,47 @@ if (grepl('nsncnv', proj.stem)) {
 # collect results data
 setwd(data.dir);
 
-# load.data will read in the score files from each directory ** probably very specific to my data **
+if (length(dates) == 1) { os <- s2 <- FALSE; }
+if (length(dates) == 2) { os <- TRUE; s2 <- FALSE; }
+if (length(dates) == 3) { os <- s2 <- TRUE; }
+
 results <- load.data(
 	dir.name = data.dir,
 	dates = dates,
-	total.runs = total.runs
-	);
+	total.runs = total.runs,
+	use.oncoscan = os,
+	use.scores2 = s2
+	);# load.data will read in the score files from each directory ** probably very specific to my data **
+
+# # get frag method ARIs and plot
+# subdirs <- list.files();
+# subdirs <- subdirs[grep("^(global|perchip)", subdirs)];
+
+# frag.aris <- as.data.frame(matrix(
+# 	NA,
+# 	nrow = length(subdirs),
+# 	ncol = 2,
+# 	dimnames = list(subdirs, c('counts', 'cnas'))
+# 	));
+
+# for (i in 1:length(subdirs)) {
+# 	f <- paste0(data.dir, subdirs[i], "/2017-04-03_summary_statistics2.txt");
+# 	if (file.exists(f)) {
+# 		s2 <- read.table(f);
+# 		frag.aris[i,] <- s2[9:10, 1];
+# 	} else {
+# 		print(paste0("No scores2 for ", subdirs[i]));
+# 		}
+# 	}
+
+# create.densityplot(
+# 	x = list(counts = as.numeric(frag.aris$counts)),
+# 	filename = paste0(plot.dir, "/frag_method_counts_densityplot.png")
+# 	);
+# create.densityplot(
+# 	x = list(cnas = as.numeric(frag.aris$cnas)),
+# 	filename = paste0(plot.dir, "/frag_method_cnas_densityplot.png")
+# 	);
 
 # order param results by colour list names
 results$params <- results$params[, match(names(colour.list), names(results$params))];
@@ -520,6 +572,36 @@ if (remove.any.na.runs) {
 	# 	}
 }
 
+### collapsing certain criteria by mean
+score.and.sort$score <- as.character(score.and.sort$score);
+
+results$scores$ari.type.counts <- apply(results$scores[, c('alu1.counts.type', 'soni.counts.type')], 1, mean, na.rm = TRUE);
+results$scores <- results$scores[, !colnames(results$scores) %in% c('alu1.counts.type', 'soni.counts.type')];
+score.and.sort <- score.and.sort[!score.and.sort$score %in% c('alu1.counts.type', 'soni.counts.type'),];
+score.and.sort <- rbind(score.and.sort, c('ari.type.counts', TRUE, 2));
+
+results$scores$ari.type.cnas <- apply(results$scores[, c('alu1.cnas.type', 'soni.cnas.type')], 1, mean, na.rm = TRUE);
+results$scores <- results$scores[, !colnames(results$scores) %in% c('alu1.cnas.type', 'soni.cnas.type')];
+score.and.sort <- score.and.sort[!score.and.sort$score %in% c('alu1.cnas.type', 'soni.cnas.type'),];
+score.and.sort <- rbind(score.and.sort, c('ari.type.cnas', TRUE, 2));
+
+results$scores$ari.chip.counts <- apply(results$scores[, c('alu1.counts.chip', 'soni.counts.chip')], 1, mean, na.rm = TRUE);
+results$scores <- results$scores[, !colnames(results$scores) %in% c('alu1.counts.chip', 'soni.counts.chip')];
+score.and.sort <- score.and.sort[!score.and.sort$score %in% c('alu1.counts.chip', 'soni.counts.chip'),];
+score.and.sort <- rbind(score.and.sort, c('ari.chip.counts', FALSE, 2));
+
+results$scores$ari.chip.cnas <- apply(results$scores[, c('alu1.cnas.chip', 'soni.cnas.chip')], 1, mean, na.rm = TRUE);
+results$scores <- results$scores[, !colnames(results$scores) %in% c('alu1.cnas.chip', 'soni.cnas.chip')];
+score.and.sort <- score.and.sort[!score.and.sort$score %in% c('alu1.cnas.chip', 'soni.cnas.chip'),];
+score.and.sort <- rbind(score.and.sort, c('ari.chip.cnas', FALSE, 2));
+
+results$scores$mean.f1.score.os <- apply(results$scores[, c('mean.f1score.gain.os', 'mean.f1score.loss.os')], 1, mean, na.rm = TRUE);
+results$scores <- results$scores[, !colnames(results$scores) %in% c('mean.f1score.gain.os', 'mean.f1score.loss.os')];
+score.and.sort <- score.and.sort[!score.and.sort$score %in% c('mean.f1score.gain.os', 'mean.f1score.loss.os'),];
+score.and.sort <- rbind(score.and.sort, c('mean.f1.score.os', TRUE, 1));
+
+score.and.sort$score <- as.factor(score.and.sort$score);
+
 ### Evalute which parameters are associated with each criteria
 kw.out  <- matrix(nrow = ncol(results$scores), ncol = ncol(results$params));
 aov.out <- matrix(nrow = ncol(results$scores), ncol = ncol(results$params));
@@ -578,6 +660,11 @@ if (proj.stem == 'nsncnv_col') {
 # determine ranks for each variable
 setwd(data.dir);
 
+# removing ari.chip, ari.type, ari.pts.normcor
+to.remove <- qw('ari.chip ari.type ari.pts.normcor');
+results$scores <- results$scores[, !names(results$scores) %in% to.remove];
+score.and.sort <- score.and.sort[!score.and.sort$score %in% to.remove,];
+
 ranks <- results$scores;
 sort.decr <- as.vector(score.and.sort$sort[match(names(ranks), as.vector(score.and.sort$score))]);
 
@@ -593,7 +680,8 @@ for (r in 1:ncol(ranks)) {
 # DS: originally, EL selected these by taking the top 2 criteria for 'increasing node purity'
 if (grepl('nsncnv', proj.stem)) {
 	# imp.vars <- c('ari.chip', 'sd.inv.and.hk', 'conc.mean.os', 'mean.ari.smp.os', 'mean.f1score.gain.os');
-	imp.vars <- c('ari.pts', 'conc.mean.os', 'mean.ari.smp.os', 'replicates.conc', 'mean.f1score.loss.os', 'mean.f1score.gain.os');
+	# imp.vars <- c('ari.pts', 'conc.mean.os', 'mean.ari.smp.os', 'replicates.conc', 'mean.f1score.loss.os', 'mean.f1score.gain.os');
+	imp.vars <- qw('conc.mean.os replicates.conc mean.f1.score.os frag.cnas');
 } else if (proj.stem == 'bristow') {
 	# imp.vars <- c('mean.f1score.loss.os', 'ari.pts', 'ari.pts.normcor', 'mean.ari.smp.os', 'mean.f1score.gain.os');
 	imp.vars <- c('ari.pts.normcor', 'ari.pts', 'replicates.conc', 'conc.mean.os', 'mean.f1score.loss.os');
@@ -742,61 +830,61 @@ rf.criteria <- run.rf(glm.df.criteria, stem.name = criteria.stem);# won't run wi
 # # glm.criteria.unmatched <- run.glm(glm.df.criteria.unmatched, stem.name = 'criteria_unmatched');
 # rf.criteria.unmatched  <- run.rf(glm.df.criteria.unmatched, stem.name = 'criteria_unmatched');
 
-# {
-# 	glm.df.binomial <- apply(glm.df.unmatched,2,as.numeric);
-# 	cols.to.transform <- which(!colnames(glm.df.binomial) %in% c('cnas', 'rank.prod'));
-# 	glm.df.binomial[, cols.to.transform][glm.df.binomial[, cols.to.transform] > 0] <- 1;
-# 	glm.df.binomial <- as.data.frame(glm.df.binomial);
-# 	glm.df.binomial[,-ncol(glm.df.binomial)] <- apply(glm.df.binomial[,-ncol(glm.df.binomial)],2,as.factor);
+{
+	# 	glm.df.binomial <- apply(glm.df.unmatched,2,as.numeric);
+	# 	cols.to.transform <- which(!colnames(glm.df.binomial) %in% c('cnas', 'rank.prod'));
+	# 	glm.df.binomial[, cols.to.transform][glm.df.binomial[, cols.to.transform] > 0] <- 1;
+	# 	glm.df.binomial <- as.data.frame(glm.df.binomial);
+	# 	glm.df.binomial[,-ncol(glm.df.binomial)] <- apply(glm.df.binomial[,-ncol(glm.df.binomial)],2,as.factor);
 
-# 	glm.binomial <- glm(
-# 		log10(rank.prod)/10 ~ perchip + bc + ccn + scc + oth + cnas + col + 
-# 			perchip*bc + perchip*ccn + perchip*scc + perchip*oth + perchip*cnas + perchip*col +
-# 			bc*ccn + bc*scc + bc*oth + bc*cnas + bc*col + 
-# 			ccn*scc + ccn*oth + ccn*cnas + ccn*col + 
-# 			scc*oth + scc*cnas + scc*col + 
-# 			oth*cnas + oth*col + 
-# 			cnas*col,
-# 		data = glm.df.binomial,
-# 		family = 'binomial'
-# 		);
+	# 	glm.binomial <- glm(
+	# 		log10(rank.prod)/10 ~ perchip + bc + ccn + scc + oth + cnas + col + 
+	# 			perchip*bc + perchip*ccn + perchip*scc + perchip*oth + perchip*cnas + perchip*col +
+	# 			bc*ccn + bc*scc + bc*oth + bc*cnas + bc*col + 
+	# 			ccn*scc + ccn*oth + ccn*cnas + ccn*col + 
+	# 			scc*oth + scc*cnas + scc*col + 
+	# 			oth*cnas + oth*col + 
+	# 			cnas*col,
+	# 		data = glm.df.binomial,
+	# 		family = 'binomial'
+	# 		);
 
-# 	pve.binomial 	 <- get.pve(glm.binomial);
-# 	pve.binomial$pve <- pve.full$pve * 100;
-# 	pve.binomial$ind <- seq(1:nrow(pve.binomial));
-		
-# 	glm.binomial.reduced 	 <- step(glm.binomial, direction = 'backward');
-# 	pve.binomial.reduced 	 <- get.pve(glm.reduced);
-# 	pve.binomial.reduced$pve <- pve$pve * 100;
-# 	pve.binomial.reduced$ind <- seq(1:nrow(pve));
+	# 	pve.binomial 	 <- get.pve(glm.binomial);
+	# 	pve.binomial$pve <- pve.full$pve * 100;
+	# 	pve.binomial$ind <- seq(1:nrow(pve.binomial));
+			
+	# 	glm.binomial.reduced 	 <- step(glm.binomial, direction = 'backward');
+	# 	pve.binomial.reduced 	 <- get.pve(glm.reduced);
+	# 	pve.binomial.reduced$pve <- pve$pve * 100;
+	# 	pve.binomial.reduced$ind <- seq(1:nrow(pve));
 
-# 	pdf(file = paste0(plot.dir, generate.filename(stem.name, 'glm_plots', 'pdf')));
-# 	plot(glm.binomial.reduced);
-# 	dev.off();
+	# 	pdf(file = paste0(plot.dir, generate.filename(stem.name, 'glm_plots', 'pdf')));
+	# 	plot(glm.binomial.reduced);
+	# 	dev.off();
 
-# 	plot.df <- data.frame(
-# 		resids = stdres(glm.binomial.reduced),
-# 		fitted.vals = glm.binomial.reduced$fitted.values
-# 		);
+	# 	plot.df <- data.frame(
+	# 		resids = stdres(glm.binomial.reduced),
+	# 		fitted.vals = glm.binomial.reduced$fitted.values
+	# 		);
 
-# 	create.scatterplot(
-# 		resids ~ fitted.vals,
-# 		data = plot.df,
-# 		# filename = paste0(plot.dir, generate.filename(stem.name, 'glm_bwelim_resid_vs_fitted', 'png')),
-# 		xlab.label = 'fitted values',
-# 		ylab.label = 'Standardized residuals',
-# 		xlimits = c(min(plot.df$fitted.vals) * 0.9, max(plot.df$fitted.vals) * 1.05),
-# 		xlab.cex = 2,
-# 		ylab.cex = 2,
-# 		abline.h = 0,
-# 		abline.col = 'red',
-# 		abline.lty = 2
-# 		);
+	# 	create.scatterplot(
+	# 		resids ~ fitted.vals,
+	# 		data = plot.df,
+	# 		# filename = paste0(plot.dir, generate.filename(stem.name, 'glm_bwelim_resid_vs_fitted', 'png')),
+	# 		xlab.label = 'fitted values',
+	# 		ylab.label = 'Standardized residuals',
+	# 		xlimits = c(min(plot.df$fitted.vals) * 0.9, max(plot.df$fitted.vals) * 1.05),
+	# 		xlab.cex = 2,
+	# 		ylab.cex = 2,
+	# 		abline.h = 0,
+	# 		abline.col = 'red',
+	# 		abline.lty = 2
+	# 		);
 
-# 	# model reduction as shown in http://www.stat.columbia.edu/~martin/W2024/R11.pdf
-# 	glm.binomial.reduced2 <- glm(log10(rank.prod) ~ 1, data = glm.df.binomial);
-# 	anova(glm.binomial.reduced2, glm.binomial, test = "Chisq");
-# }
+	# 	# model reduction as shown in http://www.stat.columbia.edu/~martin/W2024/R11.pdf
+	# 	glm.binomial.reduced2 <- glm(log10(rank.prod) ~ 1, data = glm.df.binomial);
+	# 	anova(glm.binomial.reduced2, glm.binomial, test = "Chisq");
+}
 
 ### Plotting ################################################################
 setwd(plot.dir);

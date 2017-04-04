@@ -1,10 +1,10 @@
-normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs, transform.data = TRUE, plot.types = 'all', phenodata = NULL){
+normalize.global <- function(raw.data, cc, bc, sc, oth, do.rcc.inv, covs, transform.data = TRUE, plot.types = 'all', phenodata = NULL){
 	# modify header to NanoStringNorm standard
 	colnames(phenodata)[colnames(phenodata) == 'Cartridge'] <- 'cartridge';
 	colnames(phenodata)[colnames(phenodata) == 'Type'] 		<- 'type';
 
 	# normalization using code count, background noise, sample content
-	if (do.nsn) {
+	if (cc != 'none' | bc != 'none' | sc != 'none') {
 		nano.norm <- NanoStringNorm::NanoStringNorm(
 			x = raw.data[, -c(1:3)],
 			CodeCount = cc,
@@ -36,7 +36,7 @@ normalize.global <- function(raw.data, cc, bc, sc, oth, do.nsn, do.rcc.inv, covs
 		}
 
 	# perform 'other' normalization last
-	if (do.nsn & oth != 'none') {
+	if (oth != 'none') {
 		nano.norm <- NanoStringNorm::NanoStringNorm(
 			x = normalized.data[, -(1:3)],
 			OtherNorm = oth,

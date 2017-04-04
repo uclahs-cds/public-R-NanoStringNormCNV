@@ -138,14 +138,14 @@ if (interactive()) {
 	opts <- list();
 	opts$group_name <- 'nsncnv';
 	# opts$group_name <- 'bristow';
-	opts$perchip <- 0;
+	opts$perchip <- 1;
 	opts$ccn  	 <- 0;
-	opts$bc 	 <- 0;
+	opts$bc 	 <- 2;
 	opts$scc 	 <- 0;
-	opts$oth 	 <- 0;
-	opts$matched <- 0;
-	opts$cnas 	 <- 0;
-	opts$col 	 <- 0;
+	opts$oth 	 <- 2;
+	opts$matched <- 1;
+	opts$cnas 	 <- 4;
+	opts$col 	 <- 1;
 	opts$vis 	 <- 0;
 } else {
 	params <- matrix(
@@ -176,6 +176,7 @@ if(is.null(opts$scc)) 	     { cat(usage()); q(status = 1) }
 if(is.null(opts$oth)) 	     { cat(usage()); q(status = 1) }
 if(is.null(opts$matched))    { cat(usage()); q(status = 1) }
 if(is.null(opts$cnas))       { cat(usage()); q(status = 1) }
+if(is.null(opts$col))        { cat(usage()); q(status = 1) }
 if(is.null(opts$vis))	     { cat(usage()); q(status = 1) }
 
 if (opts$matched == 1 & opts$cnas == 1) { cat(usage()); q(status = 1); }
@@ -571,7 +572,7 @@ if (opts$perchip == 1) {
 		bc = bc.val,
 		sc = sc.val,
 		oth = oth.val,
-		do.nsn = do.nsn.norm,
+		# do.nsn = do.nsn.norm,
 		do.rcc.inv = do.rcc.inv.norm,
 		covs = pheno.df,
 		plot.types = qw('cv mean.sd norm.factors missing RNA.estimates positive.controls')
@@ -583,7 +584,7 @@ if (opts$perchip == 1) {
 		bc = bc.val,
 		sc = sc.val,
 		oth = oth.val,
-		do.nsn = do.nsn.norm,
+		# do.nsn = do.nsn.norm,
 		do.rcc.inv = do.rcc.inv.norm,
 		covs = pheno.df,
 		plot.types = qw('cv mean.sd norm.factors missing RNA.estimates positive.controls'),
@@ -950,14 +951,25 @@ summary.scores2 <- score.runs2(
 	); 
 alu1.summary <- melt(summary.scores2$scores.alu1);
 soni.summary <- melt(summary.scores2$scores.soni);
-alu1.summary <- paste0('alu1.', alu1.summary[,2]);
-soni.summary <- paste0('soni.', soni.summary[,2]);
+frag.summary <- melt(summary.scores2$scores.frag);
+alu1.summary[,2] <- paste0('alu1.', alu1.summary[,2]);
+soni.summary[,2] <- paste0('soni.', soni.summary[,2]);
+frag.summary[,2] <- paste0('frag.', frag.summary[,2]);
+summary.data2 <- rbind(alu1.summary, soni.summary, frag.summary)
 
 ### print to file
 setwd(out.dir);
 write.table(
 	summary.data,
 	generate.filename('summary', 'statistics', 'txt'),
+	sep = "\t",
+	quote = FALSE,
+	col.names = FALSE,
+	row.names = FALSE
+	);
+write.table(
+	summary.data2,
+	generate.filename('summary', 'statistics2', 'txt'),
 	sep = "\t",
 	quote = FALSE,
 	col.names = FALSE,
