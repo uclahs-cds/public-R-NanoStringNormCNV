@@ -54,5 +54,8 @@ normalize.global <- function(raw.data, cc, bc, sc, oth, do.rcc.inv, covs, transf
 		normalized.data[, -(1:3)] <- (normalized.data[, -(1:3)] - min(normalized.data[, -(1:3)])) + 0.1;
 		}
 
+	# ensure row names are probe names
+	rownames(normalized.data) <- raw.data[, colnames(raw.data) == 'Name'];
+
 	return(normalized.data);
 	}
