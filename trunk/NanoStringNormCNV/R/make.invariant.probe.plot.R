@@ -6,6 +6,8 @@ make.invariant.probe.plot <- function(inv.probe.counts, tissue.type = NULL) {
 			tissue.type <- NULL;
 		} else {
 			tissue.type <- tissue.type[, colnames(tissue.type) %in% c("SampleID", "Type")];
+			tissue.type <- tissue.type[order(tissue.type$SampleID),];
+			inv.probe.counts <- inv.probe.counts[, colnames(inv.probe.counts)];
 			}
 		}
 
