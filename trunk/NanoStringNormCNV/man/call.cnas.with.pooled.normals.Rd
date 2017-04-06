@@ -14,7 +14,7 @@ call.cnas.with.pooled.normals(
   \item{per.chip}{Whether to use reference samples specific to each chip when calculating the tumour-normal ratios from which copy numbers are generated. Defaults to FALSE.}
   \item{call.method}{The CNA calling method passed on to \code{\link{call.copy.number.values}}. Options are:
   \cr1: round tumour/normal ratios to CNA calls using pre-defined thresholds derived from NanoString recommendations (Default)
-  \cr2: use kernel density method to calculate copy number thresholds for CNA calling (see 'kd.values' argument)
+  \cr2: use kernel density method to calculate cohort copy number thresholds for CNA calling (see 'kd.values' argument)
   \cr3: round tumour/normal ratios to CNA calls using thresholds calculated from min/max values of normal sample counts (offset = (median max - median min) * 0.15)
   }
   \item{kd.values}{A 2- or 4-element vector containing the kernel density values (between 0 and 1) to be used to calculate copy number thresholds (when 'call.method' 2 is requested). Order is important. For 4 elements, values define homozygous deletion, heterozygous deletion, single copy gain, and multi-copy gain. For 2 elements, values define heterozygous deletion/gain and homozygous deletion/gain. For probes identified as belonging to male sex chromosomes (neutral CN = 1), deletions will be determined using the heterozygous threshold. Default values are: 0.85, 0.95 (alternatively, this could be written as: 0.95, 0.85, 0.85, 0.95). However, it is **strongly recommended** to tune this parameter to any given dataset.}
