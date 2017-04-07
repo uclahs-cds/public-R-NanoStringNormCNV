@@ -10,5 +10,5 @@
   \item{cna.normals}{A gene by sample data-frame of CNA calls for normal samples only. See 'cna.normals' in output of \code{\link{call.cnas.with.pooled.normals}}. Defaults to NULL}
 }
 \details{Produces summary statistics of the given NanoStringNormCNV run}
-\value{A list of three sublists: one for 'Alu1' sample scores, the second for 'Sonicate' sample scores and the third for fragmentation ARIs (normalized data and counts). The first two sublists hold ARIs for sample chip info and sample type from both normalized count data and copy number calls.}
+\value{A list of three sublists: one for 'AluI' sample scores, the second for 'Sonicate' sample scores and the third for fragmentation ARIs (normalized data and counts). The first two sublists hold ARIs for sample chip info and sample type from both normalized count data and copy number calls.}
 \author{Dorota Sendorek}
