@@ -14,23 +14,23 @@ score.runs2 <- function(normalized.data, cna.rounded, phenodata, cna.normals = N
 	if (is.null(cna.normals))  cnas <- cna.rounded;
 	if (!is.null(cna.normals)) cnas <- cbind(cna.rounded, cna.normals);
 	
-	pheno.alu1 <- phenodata[phenodata$Fragmentation == 'Alu1',];
+	pheno.alui <- phenodata[phenodata$Fragmentation == 'Alui',];
 	pheno.soni <- phenodata[phenodata$Fragmentation == 'Sonicate',];
 
-	norm.alu1 <- normalized.data[, pheno.alu1$SampleID, drop = FALSE];
+	norm.alui <- normalized.data[, pheno.alui$SampleID, drop = FALSE];
 	norm.soni <- normalized.data[, pheno.soni$SampleID, drop = FALSE];
-	cnas.alu1 <- cnas[, colnames(cnas) %in% pheno.alu1$SampleID, drop = FALSE];
+	cnas.alui <- cnas[, colnames(cnas) %in% pheno.alui$SampleID, drop = FALSE];
 	cnas.soni <- cnas[, colnames(cnas) %in% pheno.soni$SampleID, drop = FALSE];
 
-	pheno.alu1.norm <- pheno.alu1[(pheno.alu1$SampleID %in% names(norm.alu1)),];
+	pheno.alui.norm <- pheno.alui[(pheno.alui$SampleID %in% names(norm.alui)),];
 	pheno.soni.norm <- pheno.soni[(pheno.soni$SampleID %in% names(norm.soni)),];
-	pheno.alu1.cnas <- pheno.alu1[(pheno.alu1$SampleID %in% colnames(cnas.alu1)),];
+	pheno.alui.cnas <- pheno.alui[(pheno.alui$SampleID %in% colnames(cnas.alui)),];
 	pheno.soni.cnas <- pheno.soni[(pheno.soni$SampleID %in% colnames(cnas.soni)),];
 
 	# order everything
-	pheno.alu1.norm <- pheno.alu1.norm[match(pheno.alu1.norm$SampleID, names(norm.alu1)),];
+	pheno.alui.norm <- pheno.alui.norm[match(pheno.alui.norm$SampleID, names(norm.alui)),];
 	pheno.soni.norm <- pheno.soni.norm[match(pheno.soni.norm$SampleID, names(norm.soni)),];
-	pheno.alu1.cnas <- pheno.alu1.cnas[match(pheno.alu1.cnas$SampleID, colnames(cnas.alu1)),];
+	pheno.alui.cnas <- pheno.alui.cnas[match(pheno.alui.cnas$SampleID, colnames(cnas.alui)),];
 	pheno.soni.cnas <- pheno.soni.cnas[match(pheno.soni.cnas$SampleID, colnames(cnas.soni)),];
 
 	# initialize output variables
@@ -40,16 +40,16 @@ score.runs2 <- function(normalized.data, cna.rounded, phenodata, cna.normals = N
 		counts.type = NA,
 		cnas.type = NA
 		);
-	scores.alu1 <- scores;
+	scores.alui <- scores;
 	scores.soni <- scores;
 	scores.frag <- list(counts = NA, cnas = NA);
 
 	### Check the adjusted rand index (ARI) of multiple parameters
 	## using normalized counts
 	# evaluate using cartridge information
-	scores.alu1$counts.chip <- NanoStringNormCNV::get.ari(
-		data.to.cluster = norm.alu1,
-		feature = pheno.alu1.norm$Cartridge,
+	scores.alui$counts.chip <- NanoStringNormCNV::get.ari(
+		data.to.cluster = norm.alui,
+		feature = pheno.alui.norm$Cartridge,
 		is.discrete = FALSE
 		);
 	scores.soni$counts.chip <- NanoStringNormCNV::get.ari(
@@ -59,9 +59,9 @@ score.runs2 <- function(normalized.data, cna.rounded, phenodata, cna.normals = N
 		);
 
 	# evaluate using tissue type information
-	scores.alu1$counts.type <- NanoStringNormCNV::get.ari(
-		data.to.cluster = norm.alu1,
-		feature = pheno.alu1.norm$Type,
+	scores.alui$counts.type <- NanoStringNormCNV::get.ari(
+		data.to.cluster = norm.alui,
+		feature = pheno.alui.norm$Type,
 		is.discrete = FALSE
 		);
 	scores.soni$counts.type <- NanoStringNormCNV::get.ari(
@@ -72,9 +72,9 @@ score.runs2 <- function(normalized.data, cna.rounded, phenodata, cna.normals = N
 
 	## using copy number calls
 	# evaluate using cartridge information
-	scores.alu1$cnas.chip <- NanoStringNormCNV::get.ari(
-		data.to.cluster = cnas.alu1,
-		feature = pheno.alu1.cnas$Cartridge,
+	scores.alui$cnas.chip <- NanoStringNormCNV::get.ari(
+		data.to.cluster = cnas.alui,
+		feature = pheno.alui.cnas$Cartridge,
 		is.discrete = TRUE
 		);
 	scores.soni$cnas.chip <- NanoStringNormCNV::get.ari(
@@ -85,9 +85,9 @@ score.runs2 <- function(normalized.data, cna.rounded, phenodata, cna.normals = N
 
 	# evaluate using tissue type information
 	if (!is.null(cna.normals)) {
-		scores.alu1$cnas.type <- NanoStringNormCNV::get.ari(
-			data.to.cluster = cnas.alu1,
-			feature = pheno.alu1.cnas$Type,
+		scores.alui$cnas.type <- NanoStringNormCNV::get.ari(
+			data.to.cluster = cnas.alui,
+			feature = pheno.alui.cnas$Type,
 			is.discrete = TRUE
 			);
 		scores.soni$cnas.type <- NanoStringNormCNV::get.ari(
@@ -116,5 +116,5 @@ score.runs2 <- function(normalized.data, cna.rounded, phenodata, cna.normals = N
 		is.discrete = TRUE
 		);
 
-	return(list(scores.alu1 = scores.alu1, scores.soni = scores.soni, scores.frag = scores.frag));
+	return(list(scores.alui = scores.alui, scores.soni = scores.soni, scores.frag = scores.frag));
 	}

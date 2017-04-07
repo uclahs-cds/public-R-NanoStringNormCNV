@@ -64,13 +64,13 @@ score.and.sort <- rbind(
 	c('sd.ari.smp.os', NA, 1),
 	c('sd.ari.gene.os', NA, 1),
 	c('soni.counts.chip', FALSE, 2),
-	c('alu1.counts.chip', FALSE, 2),
+	c('alui.counts.chip', FALSE, 2),
 	c('soni.cnas.chip', FALSE, 2),
-	c('alu1.cnas.chip', FALSE, 2),
+	c('alui.cnas.chip', FALSE, 2),
 	c('soni.counts.type', TRUE, 2),
-	c('alu1.counts.type', TRUE, 2),
+	c('alui.counts.type', TRUE, 2),
 	c('soni.cnas.type', TRUE, 2),
-	c('alu1.cnas.type', TRUE, 2),
+	c('alui.cnas.type', TRUE, 2),
 	c('frag.counts', FALSE, 2),
 	c('frag.cnas', FALSE, 2)
 	);
@@ -477,35 +477,37 @@ results <- load.data(
 	use.scores2 = s2
 	);# load.data will read in the score files from each directory ** probably very specific to my data **
 
-# # get frag method ARIs and plot
-# subdirs <- list.files();
-# subdirs <- subdirs[grep("^(global|perchip)", subdirs)];
+{
+	# # get frag method ARIs and plot
+	# subdirs <- list.files();
+	# subdirs <- subdirs[grep("^(global|perchip)", subdirs)];
 
-# frag.aris <- as.data.frame(matrix(
-# 	NA,
-# 	nrow = length(subdirs),
-# 	ncol = 2,
-# 	dimnames = list(subdirs, c('counts', 'cnas'))
-# 	));
+	# frag.aris <- as.data.frame(matrix(
+	# 	NA,
+	# 	nrow = length(subdirs),
+	# 	ncol = 2,
+	# 	dimnames = list(subdirs, c('counts', 'cnas'))
+	# 	));
 
-# for (i in 1:length(subdirs)) {
-# 	f <- paste0(data.dir, subdirs[i], "/2017-04-03_summary_statistics2.txt");
-# 	if (file.exists(f)) {
-# 		s2 <- read.table(f);
-# 		frag.aris[i,] <- s2[9:10, 1];
-# 	} else {
-# 		print(paste0("No scores2 for ", subdirs[i]));
-# 		}
-# 	}
+	# for (i in 1:length(subdirs)) {
+	# 	f <- paste0(data.dir, subdirs[i], "/2017-04-03_summary_statistics2.txt");
+	# 	if (file.exists(f)) {
+	# 		s2 <- read.table(f);
+	# 		frag.aris[i,] <- s2[9:10, 1];
+	# 	} else {
+	# 		print(paste0("No scores2 for ", subdirs[i]));
+	# 		}
+	# 	}
 
-# create.densityplot(
-# 	x = list(counts = as.numeric(frag.aris$counts)),
-# 	filename = paste0(plot.dir, "/frag_method_counts_densityplot.png")
-# 	);
-# create.densityplot(
-# 	x = list(cnas = as.numeric(frag.aris$cnas)),
-# 	filename = paste0(plot.dir, "/frag_method_cnas_densityplot.png")
-# 	);
+	# create.densityplot(
+	# 	x = list(counts = as.numeric(frag.aris$counts)),
+	# 	filename = paste0(plot.dir, "/frag_method_counts_densityplot.png")
+	# 	);
+	# create.densityplot(
+	# 	x = list(cnas = as.numeric(frag.aris$cnas)),
+	# 	filename = paste0(plot.dir, "/frag_method_cnas_densityplot.png")
+	# 	);
+}
 
 # order param results by colour list names
 results$params <- results$params[, match(names(colour.list), names(results$params))];
@@ -575,24 +577,24 @@ if (remove.any.na.runs) {
 ### collapsing certain criteria by mean
 score.and.sort$score <- as.character(score.and.sort$score);
 
-results$scores$ari.type.counts <- apply(results$scores[, c('alu1.counts.type', 'soni.counts.type')], 1, mean, na.rm = TRUE);
-results$scores <- results$scores[, !colnames(results$scores) %in% c('alu1.counts.type', 'soni.counts.type')];
-score.and.sort <- score.and.sort[!score.and.sort$score %in% c('alu1.counts.type', 'soni.counts.type'),];
+results$scores$ari.type.counts <- apply(results$scores[, c('alui.counts.type', 'soni.counts.type')], 1, mean, na.rm = TRUE);
+results$scores <- results$scores[, !colnames(results$scores) %in% c('alui.counts.type', 'soni.counts.type')];
+score.and.sort <- score.and.sort[!score.and.sort$score %in% c('alui.counts.type', 'soni.counts.type'),];
 score.and.sort <- rbind(score.and.sort, c('ari.type.counts', TRUE, 2));
 
-results$scores$ari.type.cnas <- apply(results$scores[, c('alu1.cnas.type', 'soni.cnas.type')], 1, mean, na.rm = TRUE);
-results$scores <- results$scores[, !colnames(results$scores) %in% c('alu1.cnas.type', 'soni.cnas.type')];
-score.and.sort <- score.and.sort[!score.and.sort$score %in% c('alu1.cnas.type', 'soni.cnas.type'),];
+results$scores$ari.type.cnas <- apply(results$scores[, c('alui.cnas.type', 'soni.cnas.type')], 1, mean, na.rm = TRUE);
+results$scores <- results$scores[, !colnames(results$scores) %in% c('alui.cnas.type', 'soni.cnas.type')];
+score.and.sort <- score.and.sort[!score.and.sort$score %in% c('alui.cnas.type', 'soni.cnas.type'),];
 score.and.sort <- rbind(score.and.sort, c('ari.type.cnas', TRUE, 2));
 
-results$scores$ari.chip.counts <- apply(results$scores[, c('alu1.counts.chip', 'soni.counts.chip')], 1, mean, na.rm = TRUE);
-results$scores <- results$scores[, !colnames(results$scores) %in% c('alu1.counts.chip', 'soni.counts.chip')];
-score.and.sort <- score.and.sort[!score.and.sort$score %in% c('alu1.counts.chip', 'soni.counts.chip'),];
+results$scores$ari.chip.counts <- apply(results$scores[, c('alui.counts.chip', 'soni.counts.chip')], 1, mean, na.rm = TRUE);
+results$scores <- results$scores[, !colnames(results$scores) %in% c('alui.counts.chip', 'soni.counts.chip')];
+score.and.sort <- score.and.sort[!score.and.sort$score %in% c('alui.counts.chip', 'soni.counts.chip'),];
 score.and.sort <- rbind(score.and.sort, c('ari.chip.counts', FALSE, 2));
 
-results$scores$ari.chip.cnas <- apply(results$scores[, c('alu1.cnas.chip', 'soni.cnas.chip')], 1, mean, na.rm = TRUE);
-results$scores <- results$scores[, !colnames(results$scores) %in% c('alu1.cnas.chip', 'soni.cnas.chip')];
-score.and.sort <- score.and.sort[!score.and.sort$score %in% c('alu1.cnas.chip', 'soni.cnas.chip'),];
+results$scores$ari.chip.cnas <- apply(results$scores[, c('alui.cnas.chip', 'soni.cnas.chip')], 1, mean, na.rm = TRUE);
+results$scores <- results$scores[, !colnames(results$scores) %in% c('alui.cnas.chip', 'soni.cnas.chip')];
+score.and.sort <- score.and.sort[!score.and.sort$score %in% c('alui.cnas.chip', 'soni.cnas.chip'),];
 score.and.sort <- rbind(score.and.sort, c('ari.chip.cnas', FALSE, 2));
 
 results$scores$mean.f1.score.os <- apply(results$scores[, c('mean.f1score.gain.os', 'mean.f1score.loss.os')], 1, mean, na.rm = TRUE);

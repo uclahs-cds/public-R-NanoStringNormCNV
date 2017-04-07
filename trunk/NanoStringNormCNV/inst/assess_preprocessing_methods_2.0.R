@@ -138,12 +138,12 @@ if (interactive()) {
 	opts <- list();
 	opts$group_name <- 'nsncnv';
 	# opts$group_name <- 'bristow';
-	opts$perchip <- 1;
+	opts$perchip <- 0;
 	opts$ccn  	 <- 0;
 	opts$bc 	 <- 2;
-	opts$scc 	 <- 0;
+	opts$scc 	 <- 1;
 	opts$oth 	 <- 2;
-	opts$matched <- 1;
+	opts$matched <- 0;
 	opts$cnas 	 <- 4;
 	opts$col 	 <- 1;
 	opts$vis 	 <- 0;
@@ -949,13 +949,13 @@ summary.scores2 <- score.runs2(
 	phenodata = phenodata,
 	cna.normals = score.run.normals
 	); 
-alu1.summary <- melt(summary.scores2$scores.alu1);
+alui.summary <- melt(summary.scores2$scores.alui);
 soni.summary <- melt(summary.scores2$scores.soni);
 frag.summary <- melt(summary.scores2$scores.frag);
-alu1.summary[,2] <- paste0('alu1.', alu1.summary[,2]);
+alui.summary[,2] <- paste0('alui.', alui.summary[,2]);
 soni.summary[,2] <- paste0('soni.', soni.summary[,2]);
 frag.summary[,2] <- paste0('frag.', frag.summary[,2]);
-summary.data2 <- rbind(alu1.summary, soni.summary, frag.summary)
+summary.data2 <- rbind(alui.summary, soni.summary, frag.summary)
 
 ### print to file
 setwd(out.dir);

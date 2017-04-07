@@ -365,7 +365,7 @@ if(opts$matched == 1){
 
 			# copy over pheno data, just need for chip info
 			pheno.normals  <-  phenodata[unlist(lapply(substr(ref.names, 1, 8), function(f) which(phenodata$Patient == f)[1])) , ];
-#			# Call CNAs in normals
+			# Call CNAs in normals
 			cna.normals <- call.copy.number.state(norm.data.full[use.genes,c(1:3, is.ref)], ref.names, per.chip = FALSE, chip.info = pheno.normals, thresh.method = 'KD', kd.vals, adjust = T)[,-c(1:3)];
 			}
 
