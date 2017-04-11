@@ -7,7 +7,9 @@ import(
 	"NanoStringNorm",
 	"futile.logger",
 	"mclust",
-	"reshape2"
+	"reshape2",
+	"gdata",
+	"vsn"
 	);
 export(
 	"apply.kd.cna.thresh",
