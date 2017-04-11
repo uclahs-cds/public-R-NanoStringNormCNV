@@ -14,7 +14,7 @@
 		\item{ReferenceID}{The sample ID of the sample's matched normal. This only applies to tumour samples so for reference samples this value is NA. For tumour samples with no matched normal, 'missing' is used.}
 		\item{HasReplicate}{Whether the sample has replicates (1) or not (0).}
 		\item{Sex}{The sex of the patient that provided the sample. The following notation is used: 'M' for male, 'F' for female, NA for unknown. Sample sex is required to perform CNA calling on sex chromosome probes.}
-		\item{Fragmentation}{The DNA fragmentation used: sonication or AluI restriction site digestion.}
+		\item{Fragmentation}{The DNA fragmentation used: sonication or AluI restriction site digestion. This column is optional. The information is only used when selecting samples for a quality check using restriction fragmentation controls.}
 	}
 }
 \usage{PhenoData}
