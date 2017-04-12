@@ -12,9 +12,20 @@ normalize.per.chip <- function(phenodata, raw.data, cc, bc, sc, oth, do.rcc.inv,
 		flog.info(paste("Normalizing cartridge", cartridges[chip]), "probes..");
 		cur.samples <- which(phenodata$cartridge == cartridges[chip]);
 
+		# only include covariates with more than one unique value
 		use.covs <- NA;
-		if (!all(is.na(covs)) && length(unique(covs[cur.samples, 'type'])) > 1) {
-			use.covs <- covs[cur.samples, 'type', drop = FALSE];
+		if (!all(is.na(covs))) {
+			use.covs <- covs[cur.samples, , drop = FALSE];
+
+			keep.covs <- as.vector(which(
+				apply(use.covs, 2, function(f) { length(unique(f)) > 1; })
+				));
+
+			if (length(keep.covs) > 0) {
+				use.covs <- use.covs[, keep.covs, drop = FALSE];		
+			} else {
+				use.covs <- NA;
+				}
 			}
 
 		# normalization using code count, background noise, sample content
