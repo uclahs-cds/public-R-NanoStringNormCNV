@@ -177,7 +177,7 @@ A new option not implemented in NanoStringNorm is invariant probe normalization.
 \\ \\
 The final option is for additional normalization methods, alternative to those proposed by NanoString, including 'vsn', 'rank.normal', and 'quantile'. To skip, specify 'none'.
 
-<<eg.normalization>>=
+<<eg.norm1>>=
 # example 1
 # perform invariant probe normalization only --cartridges combined
 NanoString.norm <- normalize.global(
@@ -190,10 +190,12 @@ NanoString.norm <- normalize.global(
 	covs = NA,
 	phenodata = PhenoData
 	);
+@
 
+<<eg.norm2>>=
 # example 2
 # perform invariant probe normalization only --cartridges individually
-NanoString.norm <- normalize.global(
+NanoString.norm <- normalize.per.chip(
 	raw.data = NanoString,
 	cc = 'none',
 	bc = 'none',
@@ -203,7 +205,9 @@ NanoString.norm <- normalize.global(
 	covs = NA,
 	phenodata = PhenoData
 	);
+@
 
+<<eg.norm3>>=
 # example 3
 # include covariates for sample cartridge and sample type --passed directly to NanoStringNorm 'traits'
 covs <- as.data.frame(matrix(
@@ -223,6 +227,19 @@ for (n in 1:nrow(PhenoData)) {
 covs$Type <- ifelse(PhenoData$Type == 'Reference', 1, 2);
 
 NanoString.norm <- normalize.global(
+	raw.data = NanoString,
+	cc = 'none',
+	bc = 'none',
+	sc = 'none',
+	oth = 'none',
+	do.rcc.inv = TRUE,
+	covs = covs,
+	phenodata = PhenoData
+	);
+@
+
+<<eg.norm4>>=
+NanoString.norm <- normalize.per.chip(
 	raw.data = NanoString,
 	cc = 'none',
 	bc = 'none',
