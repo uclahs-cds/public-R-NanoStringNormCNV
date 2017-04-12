@@ -12,10 +12,9 @@ normalize.per.chip <- function(phenodata, raw.data, cc, bc, sc, oth, do.rcc.inv,
 		flog.info(paste("Normalizing cartridge", cartridges[chip]), "probes..");
 		cur.samples <- which(phenodata$cartridge == cartridges[chip]);
 
-		if (length(unique(covs[cur.samples, 'type'])) > 1) {
+		use.covs <- NA;
+		if (!all(is.na(covs)) && length(unique(covs[cur.samples, 'type'])) > 1) {
 			use.covs <- covs[cur.samples, 'type', drop = FALSE];
-		} else {
-			use.covs  <- NA;
 			}
 
 		# normalization using code count, background noise, sample content
