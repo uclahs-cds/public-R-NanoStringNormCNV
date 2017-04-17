@@ -65,8 +65,8 @@ make.restriction.fragmentation.plot <- function(restr.data, low.ratio.samples = 
 		cex = 1,
 		col = splot.df$cols,
 		points.col = splot.df$cols,
-		xlimits = c(1, col(restr.data)),
-		abline.h = log10(55),
+		xlimits = c(0, col(restr.data)),
+		abline.h = log10(10),
 		abline.lty = 2
 		);
 	
@@ -88,7 +88,8 @@ make.restriction.fragmentation.plot <- function(restr.data, low.ratio.samples = 
 		panel.heights = c(1, 2.5),
 		ylimits = list(
 			c(pretty.bplot[1], pretty.bplot[2]),
-			c(pretty.splot[1], pretty.splot[2])
+			c(0, pretty.splot[2])
+			# c(pretty.splot[1], pretty.splot[2])
 			),
 		xlab.label = 'Samples',
 		ylab.label = c(expression('\t    log'[10]*'(ratio)'), '\t\tCount'),
@@ -98,7 +99,8 @@ make.restriction.fragmentation.plot <- function(restr.data, low.ratio.samples = 
 		yaxis.cex = c(1, 1),
 		yat = list(
 			pretty(restr.df$count),
-			c(pretty.splot[1]:pretty.splot[2])
+			c(0:pretty.splot[2])
+			# c(pretty.splot[1]:pretty.splot[2])
 			),
 		xaxis.alternating = 1,
 		x.relation = 'same',
