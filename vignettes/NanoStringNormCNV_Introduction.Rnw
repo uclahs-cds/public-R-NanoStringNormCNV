@@ -13,6 +13,7 @@
 \usepackage{cite}
 \usepackage{flafter}
 \usepackage{afterpage}
+\usepackage{caption}
 \definecolor{darkblue}{rgb}{0.0,0.0,0.75}
 \definecolor{ns.green}{rgb}{0.0,0.0,0.75}
 \definecolor{ns.orange}{rgb}{0.0,0.0,0.75}
@@ -84,7 +85,7 @@ load_all('~/cluster/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormC
 \section{Setting Up Data}\label{sec:setup}
 %------------------------------------------------------------
 
-Raw NanoString data is often provided in RCC files. If so, one can import the files using NanoStringNorm::read.markup.RCC or NanoStringNorm::read.xls.RCC. 
+Raw NanoString data is often provided in RCC files. If so, one can import the files using \Rfunction{NanoStringNorm::read.markup.RCC} or \Rfunction{NanoStringNorm::read.xls.RCC}. 
 \\ \\
 Otherwise, read in the raw text file and ensure the data frame is formatted correctly for NanoStringNormCNV usage. The first three columns must be 'CodeClass' (probe type), 'Name' (unique probe name), and 'Accession' (name of corresponding gene or genomic segment). The following columns must hold sample raw counts and are named using sample IDs. An example dataset for NanoString raw counts is provided here.
 
@@ -115,8 +116,10 @@ print(head(PhenoData));
 \section{Quality Control Metrics}\label{sec:qc}
 %------------------------------------------------------------
 
-There are three quality controls metrics available each utilizing one of the three control probe types included with NanoString CodeSets.
-\\ \\
+There are three quality controls metrics available each utilizing one of the three control probe types included with NanoString CNV CodeSets.
+
+\subsection{Positive controls}
+
 Positive control probe counts are correlated with expected concentrations (obtained from NanoString guidelines). Samples with R squared values that fall below 0.95 are flagged. Diagnostic plots can also be generated to visualize results.
 
 <<eg.positive.control.qc, eval = FALSE>>=
@@ -127,31 +130,70 @@ r.squared <- positive.control.qc(raw.data = NanoString);
 make.positive.control.plot(correlations = r.squared, covs = PhenoData);
 @
 
+\vspace{5mm}
+
+\begin{center}
+	\includegraphics[width=0.7\textwidth]{positive-control-correlations_zoomed-in.png}  
+	\captionof{figure}{R squared values across all samples. All samples are well above the 0.95 cutoff.}
+\end{center}
+
+\vspace{5mm}
+
+\subsection{Restriction fragmentation controls}
+
 Restriction fragmentation controls are used to determine whether DNA denaturation and digestion has occured. This is metric applies to AluI digested samples. Probes that contain AluI restriction sites (A+B) are compared to those that do not (C+D). Complete denaturation is signified by mean probe counts from C+D of over 200. Complete restriction enzyme digestion is signified by a C+D/A+B ratio of more than 10. Samples with low counts or low ratios are identified and visualized.
 
 <<eg.restriction.fragmentation.control.qc, eval = FALSE>>=
-# checking restriction fragmentation probes (AluI-digested samples
-# only); plots results
+# checking AluI-digested samples only
 excl.samples <- PhenoData$SampleID[PhenoData$Fragmentation != "AluI"];
 probe.ratios <- restriction.fragmentation.qc(
 	raw.data = NanoString[, ! names(NanoString) %in% excl.samples]
 	);
 @
 
-The final quality control step involves plotting invariant control probes. Samples found to have mean invariant counts of less than 100 are considered low quality. This is especially problematic in normal reference samples as it will result in calling exaggerated copy numbers. In this example, these samples are removed from the raw count and annotation datasets.
+\vspace{5mm}
 
-<<eg.invariant.control.qc>>=
+\begin{center}
+	\includegraphics[width=0.9\textwidth]{restriction-fragmentation-ratios_multiplot.png}
+	\captionof{figure}{Top plot displays restriction fragmentation probe ratios. All sample ratios are well above the minimum of 10 (as denoted by the dashed line). The bottom plot displays raw restriction fragmentation probe counts. Yellow bars are not visible indicating that enzyme digestion was successful.}
+\end{center}
+
+\vspace{5mm}
+
+\subsection{Invariant controls}
+
+The final quality control step involves plotting invariant control probes. Samples found to have mean invariant counts of less than 100 are considered low quality. This is especially problematic in normal reference samples as it will result in calling exaggerated copy numbers.
+
+<<eg.invariant.control.qc, eval = FALSE>>=
 # plotting invariant probes
 make.invariant.probe.plot(
 	inv.probe.counts = NanoString[NanoString$CodeClass == 'Invariant', -(1:3)],
 	tissue.type = PhenoData
 	);
+@
 
-# removing 2 low quality reference samples identified above (see plot)
+\vspace{5mm}
+
+\begin{center}
+	\includegraphics[width=0.6\textwidth]{low-invariant-probe-counts_barplot.png}  
+	\captionof{figure}{The number of probes with low counts per sample. Red bars for normal reference samples and black bars for tumour samples. Low counts are most problematic in reference samples when calling copy number downstream.}
+\end{center}
+
+\vspace{5mm}
+
+If there are low count invariant probes, two diagnostic plots are produced. One of these is a barplot showing samples with invariant probe counts of less than 100.
+
+In this example, samples CPCG0266B.M1 and CPCG0248B.M2 are found to have an unusually large number of low count probes. These poor quality reference samples are removed from both the raw count and annotation datasets.
+
+<<eg.remove.low.qual>>=
 low.quality <- c('CPCG0266B.M1', 'CPCG0248B.M2');
-NanoString <- NanoString[, !names(NanoString) %in% low.quality];
-PhenoData  <- PhenoData[!PhenoData$SampleID %in% low.quality,];
+NanoString  <- NanoString[, !names(NanoString) %in% low.quality];
+PhenoData   <- PhenoData[!PhenoData$SampleID %in% low.quality,];
+@
 
+Any sample removal must be accounted for where it affects other samples. Since CPCG0248B.M2 was the matched normal for tumour sample CPCG0248F1, the reference ID for CPCG0248F1 must be set to 'missing'. Additionally, the 'HasReplicate' column must be updated since both removed samples had replicates.    
+
+<<eg.update.data>>==
 # update matched normal and replicate information, as necessary
 PhenoData[PhenoData$SampleID == 'CPCG0248F1',]$ReferenceID <- 'missing';
 PhenoData[PhenoData$SampleID %in% c('CPCG0266B.M2', 'CPCG0248B.M1'),]$HasReplicate <- 0;
@@ -161,7 +203,7 @@ PhenoData[PhenoData$SampleID %in% c('CPCG0266B.M2', 'CPCG0248B.M1'),]$HasReplica
 \section{Normalization Methods}\label{sec:normalization}
 %------------------------------------------------------------
 
-Most of the normalization options available in NanoStringNormCNV are implemented in NanoStringNorm. These are briefly outlined below but for full details please see the NanoStringNorm vignette 'Introduction to analyzing NanoString nCounter data using the NanoStringNorm package'. 
+Most of the normalization options available in NanoStringNormCNV are accessed fromls NanoStringNorm. These are briefly outlined below but for full details please see the NanoStringNorm vignette 'Introduction to analyzing NanoString nCounter data using the NanoStringNorm package'. 
 \\ \\
 To maximize flexbility, cartridges can either be processed independently or combined (recommended). Two wrapper functions are provided for this purpose: \Rfunction{normalize.global} and \Rfunction{normalize.per.chip}.
 \\ \\
@@ -171,7 +213,7 @@ The second option is background correction ('bc'). Negative controls are used to
 \\ \\
 The third option is sample content correction ('sc'). Housekeeping genes are used to normalize for any genomic DNA input (e.g. due to pipetting fluctuations). NanoStringNorm requires probes of code class 'Housekeeping' to perform this step and will throw out an error if they are not provided. A number of options are available: 'housekeeping.geo.mean', 'total.sum', 'top.geo.mean', 'low.cv.geo.mean'. To skip, specify 'none'.
 \\ \\
-Please note that in the provided dataset, housekeeping genes are either a) 'Endogenous' probes that were found to show little variability in counts across data or b) simulated counts created by adding noise to existing housekeeping genes (these can be identified by their name prefix 'SIM').
+Please note that in the provided dataset, housekeeping genes are either a) 'Endogenous' probes that were found to show little variability in counts across data or b) simulated counts created by adding noise to existing housekeeping genes (these can be identified by their name prefix 'SIM'). Code class of these genes must be 'Housekeeping'.
 \\ \\
 A new option not implemented in NanoStringNorm is invariant probe normalization. This can be run directly with \Rfunction{invariant.probe.norm} or in combination with the other techniques listed using one of the wrapper functions. This is the method outlined in NanoString guidelines for CNV analysis and, therefore, recommended here for sample content correction.
 \\ \\
@@ -209,7 +251,8 @@ NanoString.norm <- normalize.per.chip(
 
 <<eg.norm3>>=
 # example 3
-# include covariates for sample cartridge and sample type --passed directly to NanoStringNorm 'traits'
+# include covariates for sample cartridge and sample type 
+# must be binary as these are passed directly to NanoStringNorm 'traits'
 covs <- as.data.frame(matrix(
 	1,
 	nrow = nrow(PhenoData),
@@ -239,6 +282,7 @@ NanoString.norm <- normalize.global(
 @
 
 <<eg.norm4>>=
+# same as above but per chip
 NanoString.norm <- normalize.per.chip(
 	raw.data = NanoString,
 	cc = 'none',
@@ -254,7 +298,6 @@ NanoString.norm <- normalize.per.chip(
 Post-normalization, one may choose to collapse probes to get a single count value per gene/genome segment. Probes with matching 'Accession' values are collapsed by taking their mean count. Unique probe 'Name' values are substituted with 'Accession' values.
 
 <<eg.collapse.genes>>=
-# optional step
 NanoString.norm.col <- collapse.genes(normalized.data = NanoString.norm);
 print(NanoString.norm.col[1:6, 1:6]);
 @
@@ -292,6 +335,14 @@ cnas <- call.cnas.with.pooled.normals(
 	call.method = 3,
 	use.sex.info = TRUE
 	);
+# Option 3: call using a pooled normals reference
+cnas <- call.cnas.with.pooled.normals(
+	normalized.data = NanoString.norm,
+	phenodata = PhenoData,
+	per.chip = FALSE,
+	call.method = 1,
+	use.sex.info = TRUE
+	);
 @
 
 %------------------------------------------------------------
@@ -310,7 +361,7 @@ evaluation <- evaluate.replicates(
 	);
 @
 
-Another option is to calculate adjusted Rand indexes (ARI) which measure to what extent data clusters according to some feature (e.g. tissue type). This can be performed on both continuous (i.e. normalized counts) and discrete data (copy number calls).
+Another option is to calculate adjusted Rand indexes (ARI) which measure to what extent data clusters according to some feature (e.g. tissue type). This can be performed on either continuous (i.e. normalized counts) or discrete data (i.e. copy number calls).
 
 <<eg.ari1>>=
 # how well does the data cluster around the patients from which samples were obtained
@@ -355,4 +406,107 @@ visualize.results(
     max.cn = 5
     );
 @
+
+\clearpage
+
+\begin{center}
+	\includegraphics[width=0.6\textwidth]{raw_counts-heatmap.png}
+	\captionof{figure}{Raw NanoString counts}
+\end{center}
+
+\vspace{5mm}
+
+\begin{center}
+	\includegraphics[width=0.6\textwidth]{normalized_counts-heatmap.png}
+	\captionof{figure}{Normalized NanoString counts}
+\end{center}
+
+\clearpage
+
+\begin{center}
+	\includegraphics[width=0.6\textwidth]{raw-count_inter-sample-correlation-heatmap.png}
+	\captionof{figure}{Raw NanoString count inter-sample correlations}
+\end{center}
+
+\vspace{5mm}
+
+\begin{center}
+	\includegraphics[width=0.6\textwidth]{norm-count_inter-sample-correlation-heatmap.png}
+	\captionof{figure}{Normalized NanoString count inter-sample correlations}
+\end{center}
+
+\clearpage
+
+\begin{center}
+	\includegraphics[width=0.6\textwidth]{raw-cna-calls_cna-heatmap.png}
+	\captionof{figure}{Raw CNA calls}
+\end{center}
+
+\vspace{5mm}
+
+\begin{center}
+	\includegraphics[width=0.6\textwidth]{rounded-cna-calls_cna-heatmap.png}
+	\captionof{figure}{Rounded CNA calls}
+\end{center}
+
+\clearpage
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.4\textwidth]{raw-cna-calls_gene-densityplot.png}
+	\includegraphics[width=0.4\textwidth]{rounded-cna-calls_gene-densityplot.png}
+	\caption{Raw (left) and rounded (right) CNA call densities, per gene}
+\end{figure}
+
+\vspace{5mm}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.4\textwidth]{raw-cna-calls_sample-densityplot.png}
+	\includegraphics[width=0.4\textwidth]{rounded-cna-calls_sample-densityplot.png}
+	\caption{Raw (left) and rounded (right) CNA call densities, per sample}
+\end{figure}
+
+\clearpage
+
+\begin{center}
+	\includegraphics[width=0.6\textwidth]{replicate_raw_counts-heatmap.png}
+	\captionof{figure}{Raw counts for replicate samples}
+\end{center}
+
+\vspace{5mm}
+
+\begin{center}
+	\includegraphics[width=0.6\textwidth]{replicate_norm_counts-heatmap.png}
+	\captionof{figure}{Normalized counts for replicate samples}
+\end{center}
+
+\clearpage
+
+\begin{center}
+	\includegraphics[width=0.6\textwidth]{replicate_norm-count_inter-sample-correlation-heatmap.png}
+	\captionof{figure}{Normalized count inter-sample correlations for replicate samples}
+\end{center}
+
+\vspace{5mm}
+
+\begin{center}
+	\includegraphics[width=0.6\textwidth]{replicate_tumour-only_norm-count_inter-sample-correlation-heatmap.png}
+	\captionof{figure}{Normalized count inter-sample correlations for replicate samples, tumour only}
+\end{center}
+
+\clearpage
+
+\begin{center}
+	\includegraphics[width=0.6\textwidth]{replicate_cna-calls_cna-heatmap.png}
+	\captionof{figure}{CNA calls for replicate samples}
+\end{center}
+
+\vspace{5mm}
+
+\begin{center}
+	\includegraphics[width=0.6\textwidth]{replicate_cna-concordance_counts-heatmap.png}
+	\captionof{figure}{Copy number concordance across replicate samples}
+\end{center}
+
 \end{document}
