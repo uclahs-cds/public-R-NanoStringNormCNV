@@ -10,10 +10,12 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 	if (max(nano.counts, na.rm = TRUE) > 5000) {
 		nano.counts <- log10(nano.counts + 1);
 		split.by 	<- 0.1;
+		fname.stem2 <- '-logged_counts-heatmap.tiff';
 	} else if (max(nano.counts, na.rm = TRUE) == 1) {
 		split.by 	  <- 0.5;
 		key.labels.at <- c(0.25, 0.75);
 		key.labels 	  <- c(0, 1);
+		fname.stem2 <- '_counts-heatmap.tiff';
 		}
 
 	# allow for single sample
@@ -61,7 +63,7 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 	# plot
 	BoutrosLab.plotting.general::create.heatmap(
 		x = nano.counts,
-		filename = paste0(Sys.Date(), fname.stem, '_counts-heatmap.tiff'),
+		filename = paste0(Sys.Date(), fname.stem, fname.stem2),
 		cluster.dimensions = clust.dim,
 		rows.distance.method = clust.method,
 		cols.distance.method = clust.method,
