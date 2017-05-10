@@ -17,8 +17,8 @@ load_all("~/svn/Resources/code/R/NanoStringNormCNV/trunk/NanoStringNormCNV");
 process.input <- 1;
 dropoutliers <- 0;
 drop.low.cnt.smp <- 1;
-writetables <- 0;
-plotnorm <- 0;
+writetables <- 1;
+plotnorm <- 1;
 
 set.seed(12345);
 
@@ -140,13 +140,13 @@ if (interactive()) {
 	# opts$group_name <- 'bristow';
 	opts$perchip <- 0;
 	opts$ccn  	 <- 0;
-	opts$bc 	 <- 2;
-	opts$scc 	 <- 1;
-	opts$oth 	 <- 2;
+	opts$bc 	 <- 0;
+	opts$scc 	 <- 5;
+	opts$oth 	 <- 0;
 	opts$matched <- 0;
-	opts$cnas 	 <- 4;
-	opts$col 	 <- 1;
-	opts$vis 	 <- 0;
+	opts$cnas 	 <- 0;
+	opts$col 	 <- 0;
+	opts$vis 	 <- 1;
 } else {
 	params <- matrix(
 		c(
@@ -432,6 +432,12 @@ if (process.input) {
 	nano.raw <- NanoString;
 	phenodata <- PhenoData;
 	}
+
+# ### FOR MANUSCRIPT FIGURE PURPOSES ###
+# phenodata <- phenodata[phenodata$Fragmentation == 'Alu1',];
+# phenodata$HasReplicate <- 0;
+# nano.raw <- nano.raw[, c(1:3, which(names(nano.raw) %in% phenodata$SampleID))];
+# ### FOR MANUSCRIPT FIGURE PURPOSES ###
 
 # prepare covariates to assess batch effects in NSN
 cartridge.n <- unique(phenodata$Cartridge);
@@ -906,6 +912,14 @@ if (opts$vis == 1) {
 		max.cn = 10
 		);
 	}
+
+raw.data = nano.raw
+normalized.data = norm.data
+phenodata = phenodata
+cna.rounded = cna.rounded
+cna.raw = cna.raw
+replicate.eval = reps
+max.cn = 10
 
 ### Save items to compare runs ####################################################################
 summary.data <- list();
