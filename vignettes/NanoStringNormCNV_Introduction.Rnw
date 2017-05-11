@@ -170,6 +170,11 @@ make.invariant.probe.plot(
 \vspace{5mm}
 
 \begin{center}
+	\includegraphics[width=0.7\textwidth]{all-invariant-probe-counts_scatterplot.png}  
+	\captionof{figure}{Invariant counts per probe across all samples. Counts that fall under 100, the recommended minimum, are in red.}
+\end{center}
+
+\begin{center}
 	\includegraphics[width=0.6\textwidth]{low-invariant-probe-counts_barplot.png}  
 	\captionof{figure}{The number of probes with low counts per sample. Red bars for normal reference samples and black bars for tumour samples. Low counts are most problematic in reference samples when calling copy number downstream.}
 \end{center}
@@ -405,14 +410,14 @@ visualize.results(
 \clearpage
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{raw_counts-heatmap.png}
+	\includegraphics[width=0.6\textwidth]{raw-logged_counts-heatmap.png}
 	\captionof{figure}{Raw NanoString counts}
 \end{center}
 
 \vspace{5mm}
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{normalized_counts-heatmap.png}
+	\includegraphics[width=0.6\textwidth]{normalized-logged_counts-heatmap.png}
 	\captionof{figure}{Normalized NanoString counts}
 \end{center}
 
