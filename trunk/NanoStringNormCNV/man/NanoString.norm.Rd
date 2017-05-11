@@ -2,7 +2,7 @@
 \alias{NanoString.norm}
 \docType{data}
 \title{Dataset of normalized NanoString counts from prostate cancer patients}
-\description{Normalized NanoString counts from 349 probes across 63 NanoString samples. The NanoString samples are the same as those found in the \code{\link{NanoString}} dataset, minus two poor quality samples.For additional sample information, refer to the \code{\link{PhenoData}} dataset.}
+\description{Normalized NanoString counts from 349 probes across 63 NanoString samples. The NanoString samples are the same as those found in the \code{\link{NanoString}} dataset, minus two poor quality samples. Invariant probe normalization was applied using \code{\link{normalize.global}}. For additional sample information, refer to the \code{\link{PhenoData}} dataset.}
 \format{
 	A data-frame with 66 columns and 349 rows. The first three columns provide probe information:
 	\describe{
