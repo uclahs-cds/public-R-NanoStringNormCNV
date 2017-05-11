@@ -470,14 +470,14 @@ visualize.results(
 \clearpage
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{replicate_raw_counts-heatmap.png}
+	\includegraphics[width=0.6\textwidth]{replicate_raw-logged_counts-heatmap.png}
 	\captionof{figure}{Raw counts for replicate samples}
 \end{center}
 
 \vspace{5mm}
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{replicate_norm_counts-heatmap.png}
+	\includegraphics[width=0.6\textwidth]{replicate_norm-logged_counts-heatmap.png}
 	\captionof{figure}{Normalized counts for replicate samples}
 \end{center}
 
