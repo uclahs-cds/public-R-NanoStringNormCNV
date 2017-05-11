@@ -128,7 +128,7 @@ make.positive.control.plot(correlations = r.squared, covs = PhenoData);
 \vspace{5mm}
 
 \begin{center}
-	\includegraphics[width=0.7\textwidth]{positive-control-correlations_zoomed-in.png}  
+	\includegraphics[width=0.6\textwidth]{positive-control-correlations_zoomed-in.png}  
 	\captionof{figure}{R squared values across all samples. All samples are well above the 0.95 cutoff.}
 \end{center}
 
@@ -149,7 +149,7 @@ probe.ratios <- restriction.fragmentation.qc(
 \vspace{5mm}
 
 \begin{center}
-	\includegraphics[width=0.9\textwidth]{restriction-fragmentation-ratios_multiplot.png}
+	\includegraphics[width=0.75\textwidth]{restriction-fragmentation-ratios_multiplot.png}
 	\captionof{figure}{Top plot displays restriction fragmentation probe ratios. All sample ratios are well above the minimum of 10 (as denoted by the dashed line). The bottom plot displays raw restriction fragmentation probe counts. Yellow bars are not visible indicating that enzyme digestion was successful.}
 \end{center}
 
@@ -170,7 +170,7 @@ make.invariant.probe.plot(
 \vspace{5mm}
 
 \begin{center}
-	\includegraphics[width=0.7\textwidth]{all-invariant-probe-counts_scatterplot.png}  
+	\includegraphics[width=0.6\textwidth]{all-invariant-probe-counts_scatterplot.png}  
 	\captionof{figure}{Invariant counts per probe across all samples. Counts that fall under 100, the recommended minimum, are in red.}
 \end{center}
 
@@ -410,42 +410,42 @@ visualize.results(
 \clearpage
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{raw-logged_counts-heatmap.png}
+	\includegraphics[width=0.5\textwidth]{raw-logged_counts-heatmap.png}
 	\captionof{figure}{Raw NanoString counts}
 \end{center}
 
 \vspace{5mm}
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{normalized-logged_counts-heatmap.png}
+	\includegraphics[width=0.5\textwidth]{normalized-logged_counts-heatmap.png}
 	\captionof{figure}{Normalized NanoString counts}
 \end{center}
 
 \clearpage
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{raw-count_inter-sample-correlation-heatmap.png}
+	\includegraphics[width=0.5\textwidth]{raw-count_inter-sample-correlation-heatmap.png}
 	\captionof{figure}{Raw NanoString count inter-sample correlations}
 \end{center}
 
 \vspace{5mm}
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{norm-count_inter-sample-correlation-heatmap.png}
+	\includegraphics[width=0.5\textwidth]{norm-count_inter-sample-correlation-heatmap.png}
 	\captionof{figure}{Normalized NanoString count inter-sample correlations}
 \end{center}
 
 \clearpage
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{raw-cna-calls_cna-heatmap.png}
+	\includegraphics[width=0.5\textwidth]{raw-cna-calls_cna-heatmap.png}
 	\captionof{figure}{Raw CNA calls}
 \end{center}
 
 \vspace{5mm}
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{rounded-cna-calls_cna-heatmap.png}
+	\includegraphics[width=0.5\textwidth]{rounded-cna-calls_cna-heatmap.png}
 	\captionof{figure}{Rounded CNA calls}
 \end{center}
 
@@ -470,42 +470,42 @@ visualize.results(
 \clearpage
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{replicate_raw-logged_counts-heatmap.png}
+	\includegraphics[width=0.5\textwidth]{replicate_raw-logged_counts-heatmap.png}
 	\captionof{figure}{Raw counts for replicate samples}
 \end{center}
 
 \vspace{5mm}
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{replicate_norm-logged_counts-heatmap.png}
+	\includegraphics[width=0.5\textwidth]{replicate_norm-logged_counts-heatmap.png}
 	\captionof{figure}{Normalized counts for replicate samples}
 \end{center}
 
 \clearpage
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{replicate_norm-count_inter-sample-correlation-heatmap.png}
+	\includegraphics[width=0.5\textwidth]{replicate_norm-count_inter-sample-correlation-heatmap.png}
 	\captionof{figure}{Normalized count inter-sample correlations for replicate samples}
 \end{center}
 
 \vspace{5mm}
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{replicate_tumour-only_norm-count_inter-sample-correlation-heatmap.png}
+	\includegraphics[width=0.5\textwidth]{replicate_tumour-only_norm-count_inter-sample-correlation-heatmap.png}
 	\captionof{figure}{Normalized count inter-sample correlations for replicate samples, tumour only}
 \end{center}
 
 \clearpage
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{replicate_cna-calls_cna-heatmap.png}
+	\includegraphics[width=0.5\textwidth]{replicate_cna-calls_cna-heatmap.png}
 	\captionof{figure}{CNA calls for replicate samples}
 \end{center}
 
 \vspace{5mm}
 
 \begin{center}
-	\includegraphics[width=0.6\textwidth]{replicate_cna-concordance_counts-heatmap.png}
+	\includegraphics[width=0.5\textwidth]{replicate_cna-concordance_counts-heatmap.png}
 	\captionof{figure}{Copy number concordance across replicate samples}
 \end{center}
 
