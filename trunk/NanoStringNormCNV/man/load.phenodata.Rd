@@ -14,3 +14,10 @@
 	}
 \value{A data-frame including the following column headers: 'SampleID', 'Name', 'Patient', 'Cartridge', 'Type', 'ReferenceID', 'HasReplicate', 'Sex'}
 \author{Dorota Sendorek and Emilie Lalonde}
+\examples{
+	# read in and check sample annotation
+	PhenoData <- load.phenodata(
+		fname = system.file("extdata", "PhenoData.tsv", package = "NanoStringNormCNV"),
+		separator = "tab"
+		);
+}

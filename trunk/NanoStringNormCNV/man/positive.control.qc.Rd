@@ -21,3 +21,17 @@
 }
 \author{Cindy Yao and Emilie Lalonde}
 \seealso{\code{\link{make.positive.control.plot}}}
+\examples{\dontrun{
+	#load raw data
+	data(NanoString);
+	data(PhenoData);
+
+	# run QC
+	r.squared <- positive.control.qc(raw.data = NanoString);
+
+	# plot results
+	make.positive.control.plot(
+		correlations = r.squared,
+		covs = PhenoData
+		);
+}}

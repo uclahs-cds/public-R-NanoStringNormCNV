@@ -24,3 +24,14 @@ invariant.probe.norm(nanostring.data, phenodata = NULL)
 }
 \author{Cindy Yao and Emilie Lalonde}
 \seealso{NanoStringNorm::sample.content.normalization}
+\examples{\dontrun{
+	# load raw data
+	data(NanoString);
+	data(PhenoData)
+
+	# normalize
+	normalized.data <- invariant.probe.norm(
+		nanostring.data = NanoString,
+		phenodata = PhenoData
+		);	
+}}

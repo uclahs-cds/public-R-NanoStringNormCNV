@@ -28,5 +28,28 @@ call.cnas.with.matched.normals(
   The NanoString assay is described in the paper:
     Fortina, P. & Surrey, S. Digital mRNA profiling. Nature Biotechnology 26, 293-294 (2008).
 }
+
 \author{Emilie Lalonde and Dorota Sendorek}
 \seealso{\code{\link{call.cnas.with.pooled.normals}}}
+\examples{\dontrun{
+  # load data
+  data(NanoString.norm);
+  data(PhenoData);
+
+  # call CNAs by rounding ratios to thresholds derived from NanoString recommendations
+  cnas <- call.cnas.with.matched.normals(
+    normalized.data = NanoString.norm,
+    phenodata = PhenoData,
+    call.method = 1,
+    use.sex.info = TRUE    
+    );
+
+  # call CNAs using kernel density method
+  cnas <- call.cnas.with.matched.normals(
+    normalized.data = NanoString.norm,
+    phenodata = PhenoData,
+    call.method = 2,
+    kd.values = c(0.99, 0.87, 0.89, 0.96),
+    use.sex.info = TRUE
+    );
+}}
