@@ -13,8 +13,8 @@ call.cnas.with.matched.normals(
   \item{phenodata}{A data-frame of sample annotation. Recommended to use output of \code{\link{load.phenodata}}}
   \item{per.chip}{Whether to use reference samples specific to each chip when calculating the tumour/normal ratios from which copy numbers are generated. If TRUE, will skip CNA calling for matched tumour-normal samples that were processed on different chips. Defaults to FALSE.}
   \item{call.method}{The CNA calling method passed on to \code{\link{call.copy.number.values}}. Options are:
-  \cr1: round tumour/normal ratios to CNA calls using pre-defined thresholds derived from NanoString recommendations (Default)
-  \cr2: use kernel density method to calculate sample-specific copy number thresholds for CNA calling (see 'kd.values' argument)
+  \cr- 1 to round tumour/normal ratios to CNA calls using pre-defined thresholds derived from NanoString recommendations (Default)
+  \cr- 2 to use the kernel density method to calculate sample-specific copy number thresholds for CNA calling (see 'kd.values' argument)
   }
   \item{kd.values}{A 2- or 4-element vector containing the kernel density values (between 0 and 1) to be used to calculate copy number thresholds (when 'call.method' 2 is requested). Order is important. For 4 elements, values define homozygous deletion, heterozygous deletion, single copy gain, and multi-copy gain. For 2 elements, values define heterozygous deletion/gain and homozygous deletion/gain. For probes identified as belonging to male sex chromosomes (neutral CN = 1), deletions will be determined using the heterozygous threshold. Default values are: 0.85, 0.95 (alternatively, this could be written as: 0.95, 0.85, 0.85, 0.95). However, it is **strongly recommended** to tune this parameter to any given dataset.}
   \item{use.sex.info}{Whether to process sex chromosome probes separately (recommended). If TRUE (default), uses sample sex information in determining how to call copy number with these probes. If the number of chrX/chrY probes per sample is low, male sex chromosome CNAs should be interpreted with caution. See \code{\link{process.xy.probes}} for more information.}
