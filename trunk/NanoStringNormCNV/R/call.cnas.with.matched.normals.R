@@ -87,7 +87,7 @@ call.cnas.with.matched.normals <- function(
 			cna.raw[, tmr] <- raw.ratios[, tmr];
 			}
 
-		# calculate tumour/normal ratios (for male sex chrom probes, if any)
+		# calculate tumour:normal ratios (for male sex chrom probes, if any)
 		if (!is.null(sex.probes) && tmr %in% has.ref.XY && length(use.genes.XY) > 0) {
 			raw.ratios.xy <- NanoStringNormCNV::call.copy.number.values(
 				normalized.data = input.data.XY,

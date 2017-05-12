@@ -31,7 +31,7 @@ call.copy.number.values <- function(
 		stop("Invalid KD thresholds -- the order should be hom deletion, het deletion, het gain, hom gain.");
 		}
 
-	# get tumour/normal ratios
+	# get tumour:normal ratios
 	out.cna <- NanoStringNormCNV::get.tumour.normal.ratio(
 		normalized.data = normalized.data,
 		reference = reference,

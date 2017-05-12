@@ -41,7 +41,7 @@ call.cnas.with.pooled.normals <- function(
 
 	use.genes <- which(normalized.data$CodeClass %in% use.codeclass);
 
-	# calculate tumour/normal ratios (for autosome and female sex chrom probes)
+	# calculate tumour:normal ratios (for autosome and female sex chrom probes)
 	cna.raw <- NanoStringNormCNV::call.copy.number.values(
 		normalized.data = normalized.data[use.genes,],
 		reference = phenodata$SampleID[is.ref],
@@ -52,7 +52,7 @@ call.cnas.with.pooled.normals <- function(
 		adjust = TRUE
 		);
 
-	# calculate tumour/normal ratios (for male sex chrom probes)
+	# calculate tumour:normal ratios (for male sex chrom probes)
 	if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0 && length(is.ref.XY) > 0) {
 		cna.raw.XY <- NanoStringNormCNV::call.copy.number.values(
 			normalized.data = normalized.data.XY[use.genes.XY,],
