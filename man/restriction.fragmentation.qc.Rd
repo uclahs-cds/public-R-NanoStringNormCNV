@@ -13,18 +13,16 @@
 \value{A data-frame containing 1) C and D probe mean counts, 2) A and B probe mean counts, and 3) C+D / A+B ratios}
 \references{
 	See NanoString website for PDFs on analysis guidelines:
-		\url{http://www.nanostring.com/support/prod-lit/}
+		\url{https://www.nanostring.com/support/product-support/support-documentation}
 
 	The NanoString assay is described in the paper:
 		Fortina, P. & Surrey, S. Digital mRNA profiling. Nature Biotechnology 26, 293-294 (2008).
 }
 \author{Cindy Yao and Emilie Lalonde}
-\examples{
+\examples{\dontrun{
 	# load raw data
 	data(NanoString);
 
 	# run QC
-	\dontrun{
-		qc.results <- restriction.fragmentation.qc(raw.data = NanoString);
-		}
-}
+	qc.results <- restriction.fragmentation.qc(raw.data = NanoString);
+}}
