@@ -46,6 +46,10 @@ import(
 	"vsn"
 	);
 importFrom(
+	"vegan",
+	"vegdist"
+	);
+importFrom(
 	"grDevices",
 	"dev.off",
 	"pdf",
