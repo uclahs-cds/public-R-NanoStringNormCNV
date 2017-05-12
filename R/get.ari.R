@@ -4,7 +4,7 @@ get.ari <- function(data.to.cluster, feature, is.discrete = TRUE){
 		ari <- NA;
 	} else if (is.discrete) {
 		# if data is discrete, use Jaccard and Ward
-		dist.matrix <- BoutrosLab.dist.overload::dist(x = t(data.to.cluster), method = 'jaccard');
+		dist.matrix     <- dist.mat<-vegdist(t(data.to.cluster), method="jaccard");
 		corr.hc 	<- hclust(dist.matrix, method = 'ward.D');
 		prediction 	<- cutree(corr.hc, length(unique(feature)));
 		ari			<- adjustedRandIndex(prediction, factor(feature, levels = unique(feature)));
