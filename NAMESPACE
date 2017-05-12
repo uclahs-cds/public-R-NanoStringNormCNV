@@ -1,16 +1,4 @@
 exportPattern("^[[:alpha:]]+")
-import(
-	"testthat",
-	"lattice",
-	"BoutrosLab.dist.overload",
-	"BoutrosLab.plotting.general", 
-	"NanoStringNorm",
-	"futile.logger",
-	"mclust",
-	"reshape2",
-	"gdata",
-	"vsn"
-	);
 export(
 	"apply.kd.cna.thresh",
 	"apply.ns.cna.thresh",
@@ -44,6 +32,18 @@ export(
 	"score.runs2",
 	"tumour.normal.ratio.to.cn.state",
 	"visualize.results"
+	);
+import(
+	"testthat",
+	"lattice",
+	"BoutrosLab.dist.overload",
+	"BoutrosLab.plotting.general", 
+	"NanoStringNorm",
+	"futile.logger",
+	"mclust",
+	"reshape2",
+	"gdata",
+	"vsn"
 	);
 importFrom(
 	"grDevices",
