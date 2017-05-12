@@ -13,12 +13,12 @@ call.cnas.with.pooled.normals(
   \item{phenodata}{A data-frame of sample annotation. Recommended to use output of \code{\link{load.phenodata}}}
   \item{per.chip}{Whether to use reference samples specific to each chip when calculating the tumour-normal ratios from which copy numbers are generated. Defaults to FALSE.}
   \item{call.method}{The CNA calling method passed on to \code{\link{call.copy.number.values}}. Options are:
-  \cr- 1 to round tumour/normal ratios to CNA calls using pre-defined thresholds derived from NanoString recommendations (Default)
+  \cr- 1 to round tumour:normal ratios to CNA calls using pre-defined thresholds derived from NanoString recommendations (Default)
   \cr- 2 to use the kernel density method to calculate cohort copy number thresholds for CNA calling (see 'kd.values' argument)
-  \cr- 3 to round tumour/normal ratios to CNA calls using thresholds calculated from min/max values of normal sample counts (offset = (median max - median min) * 0.15)
+  \cr- 3 to round tumour:normal ratios to CNA calls using thresholds calculated from min/max values of normal sample counts (offset = (median max - median min) * 0.15)
   }
   \item{kd.values}{A 2- or 4-element vector containing the kernel density values (between 0 and 1) to be used to calculate copy number thresholds (when 'call.method' 2 is requested). Order is important. For 4 elements, values define homozygous deletion, heterozygous deletion, single copy gain, and multi-copy gain. For 2 elements, values define heterozygous deletion/gain and homozygous deletion/gain. For probes identified as belonging to male sex chromosomes (neutral CN = 1), deletions will be determined using the heterozygous threshold. Default values are: 0.85, 0.95 (alternatively, this could be written as: 0.95, 0.85, 0.85, 0.95). However, it is **strongly recommended** to tune this parameter to any given dataset.}
-  \item{use.sex.info}{Whether to process sex chromosome probes separately (recommended). If TRUE (default), uses sample sex information in determining how to call copy number with these probes. If the number of chrX/chrY probes per sample is low, male sex chromosome CNAs should be interpreted with caution. See \code{\link{process.xy.probes}} for more information.}
+  \item{use.sex.info}{Whether to process sex chromosome probes separately (recommended). If TRUE (default), uses sample sex information in determining how to call copy number with these probes. If the number of chrX and chrY probes per sample is low, male sex chromosome CNAs should be interpreted with caution. See \code{\link{process.xy.probes}} for more information.}
 }
 \details{Get copy number values for each probe using a reference of pooled normal samples. Preferable when most tumour samples do not have a matched normal. Pooled reference is created by taking the mean count of normal sample probes. Please note that results are re-centered around the neutral copy number (2 for autosomes and female sex chromosomes, and 1 for male sex chromosomes).}
 \value{A list containing 4 items (each being a gene by sample matrix):
@@ -57,8 +57,7 @@ call.cnas.with.pooled.normals(
     use.sex.info = TRUE
     );
 
-  # call CNAs by rounding to thresholds calculated from the copy number range of
-  # the reference samples
+  # call CNAs by rounding to thresholds calculated from the copy number range of the reference samples
   cnas <- call.cnas.with.pooled.normals(
     normalized.data = NanoString.norm,
     phenodata = PhenoData,
