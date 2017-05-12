@@ -55,7 +55,8 @@ call.cnas.with.pooled.normals(
     use.sex.info = TRUE
     );
 
-  # call CNAs by rounding to thresholds calculated from the copy number range of the reference samples
+  # call CNAs by rounding to thresholds calculated from the copy number range of
+  # the reference samples
   cnas <- call.cnas.with.pooled.normals(
     normalized.data = NanoString.norm,
     phenodata = PhenoData,
