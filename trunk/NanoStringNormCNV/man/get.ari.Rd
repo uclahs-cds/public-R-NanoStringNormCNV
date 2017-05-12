@@ -35,7 +35,12 @@ get.ari(data.to.cluster, feature, is.discrete = TRUE)
 	# determine how well the copy number calls cluster by sample patient
 	patient.ari <- get.ari(
 		data.to.cluster = evaluation$cna.calls,
-		feature = PhenoData[match(colnames(evaluation$cna.calls), PhenoData$SampleID),]$Patient,
+		feature = PhenoData[
+			match(
+				colnames(evaluation$cna.calls),
+				PhenoData$SampleID
+				),
+			]$Patient,
 		is.discrete = TRUE
 		);
 
@@ -50,7 +55,12 @@ get.ari(data.to.cluster, feature, is.discrete = TRUE)
 
 	cartridge.ari <- get.ari(
 	    data.to.cluster = count.data,
-	    feature = PhenoData$Cartridge[match(colnames(NanoString.norm[, -(1:3)]), PhenoData$SampleID)],
+	    feature = PhenoData$Cartridge[
+	    	match(
+	    		colnames(NanoString.norm[, -(1:3)]),
+	    		PhenoData$SampleID
+	    		)
+	    	],
 	    is.discrete = FALSE
 	    );
 }}
