@@ -18,6 +18,36 @@ visualize.results(
   \item{replicate.eval}{A list of replicate evaluation results. Use output of \code{\link{evaluate.replicates}}}
   \item{exclude.covs}{Whether to exclude covariate information (provided in 'phenodata') from plots. Defaults to FALSE}
 }
-\details{Plots are saved in tiff files to working directory}
+\details{Plots are saved as tiff files to working directory}
 \value{None}
 \author{Emilie Lalonde and Dorota Sendorek}
+\examples{\dontrun{
+  # load data
+  data(NanoString);
+  data(NanoString.norm);
+  data(PhenoData);
+
+  # call CNAs
+  cnas <- call.cnas.with.pooled.normals(
+    normalized.data = NanoString.norm,
+    phenodata = PhenoData
+    );
+
+  # evaluate results
+  evaluation <- evaluate.replicates(
+    phenodata = PhenoData,
+    normalized.data = NanoString.norm,
+    cna.rounded = cnas$rounded
+    );
+
+  # plot data and results
+  visualize.results(
+    raw.data = NanoString,
+    normalized.data = NanoString.norm,
+    phenodata = PhenoData,
+    cna.rounded = cnas$rounded,
+    cna.raw = cnas$raw,
+    replicate.eval = evaluation,
+    max.cn = 5
+    );   
+}}

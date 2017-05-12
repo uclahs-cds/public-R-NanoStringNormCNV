@@ -36,3 +36,51 @@
 }
 \author{Cindy Yao and Emilie Lalonde}
 \seealso{NanoStringNorm::NanoStringNorm, \code{\link{normalize.per.chip}}}
+\examples{\dontrun{
+  # load data
+  data(NanoString);
+  data(PhenoData);
+
+  # perform only invariant probe normalization
+  NanoString.norm <- normalize.global(
+    raw.data = NanoString,
+    cc = 'none',
+    bc = 'none',
+    sc = 'none',
+    oth = 'none',
+    do.rcc.inv = TRUE,
+    covs = NA,
+    phenodata = PhenoData
+    );
+
+  ## accounting for batch effects
+  # include covariates for sample cartridge and sample type 
+  # must be binary as these are passed directly to NanoStringNorm 'traits'
+  covs <- as.data.frame(matrix(
+    1,
+    nrow = nrow(PhenoData),
+    ncol = length(unique(PhenoData$Cartridge)),
+    dimnames = list(
+      PhenoData$SampleID,
+      paste0("Cartridge", unique(PhenoData$Cartridge))
+      )
+    ));
+
+  for (n in 1:nrow(PhenoData)) {
+    covs[n, which(unique(PhenoData$Cartridge) == PhenoData$Cartridge[n])] <- 2;
+    }
+
+  covs$Type <- ifelse(PhenoData$Type == 'Reference', 1, 2);
+
+  # normalize
+  NanoString.norm <- normalize.global(
+    raw.data = NanoString,
+    cc = 'none',
+    bc = 'none',
+    sc = 'none',
+    oth = 'none',
+    do.rcc.inv = TRUE,
+    covs = covs,
+    phenodata = PhenoData
+    );
+}}

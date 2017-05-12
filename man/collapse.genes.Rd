@@ -11,3 +11,10 @@
 \details{Collapse counts for probes belonging to the same gene (only performed on 'Endogenous' or 'Housekeeping' probes). Collapsing is done by taking the mean count.}
 \value{A gene by sample data-frame of collapsed counts, where first three column names are 'CodeClass', 'Name', and 'Accession'.}
 \author{Cindy Yao}
+\examples{
+	# load normalized data
+	data(NanoString.norm);
+
+	# collapse probes by gene
+	NanoString.norm <- collapse.genes(normalized.data = NanoString.norm);
+}

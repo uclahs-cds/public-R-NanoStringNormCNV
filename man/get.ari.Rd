@@ -13,3 +13,44 @@ get.ari(data.to.cluster, feature, is.discrete = TRUE)
 \details{Determine the adjusted rand index of a feature using clustered data (continuous or discrete).}
 \value{The adjusted rand index of feature}
 \author{Cindy Yao and Emilie Lalonde}
+\examples{\dontrun{
+	# load data
+	data(NanoString.norm);
+	data(PhenoData);
+
+	# call CNAs
+	cnas <- call.cnas.with.pooled.normals(
+		normalized.data = NanoString.norm,
+		phenodata = PhenoData
+		);
+
+	# evaluate results using replicates
+	evaluation <- evaluate.replicates(
+		phenodata = PhenoData,
+		normalized.data = NanoString.norm,
+		cna.rounded = cnas$rounded
+		);
+	
+	## example 1
+	# determine how well the copy number calls cluster by sample patient
+	patient.ari <- get.ari(
+		data.to.cluster = evaluation$cna.calls,
+		feature = PhenoData[match(colnames(evaluation$cna.calls), PhenoData$SampleID),]$Patient,
+		is.discrete = TRUE
+		);
+
+	## example 2
+	# determine to what extent the normalized counts cluster by sample cartridge
+	# log values, if appropriate
+	if (all(unlist(NanoString.norm) >= 0)) {
+	    count.data <- log10(NanoString.norm[, -c(1:3)] + 1);
+	} else {
+	    count.data <- NanoString.norm[, -c(1:3)];
+	    }
+
+	cartridge.ari <- get.ari(
+	    data.to.cluster = count.data,
+	    feature = PhenoData$Cartridge[match(colnames(NanoString.norm[, -(1:3)]), PhenoData$SampleID)],
+	    is.discrete = FALSE
+	    );
+}}
