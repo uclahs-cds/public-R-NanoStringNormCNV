@@ -36,14 +36,14 @@ export(
 import(
 	"testthat",
 	"lattice",
-	"BoutrosLab.dist.overload",
 	"BoutrosLab.plotting.general", 
 	"NanoStringNorm",
 	"futile.logger",
 	"mclust",
 	"reshape2",
 	"gdata",
-	"vsn"
+	"vsn",
+	"vegan"
 	);
 importFrom(
 	"vegan",
