@@ -23,7 +23,7 @@ call.cnas.with.matched.normals(
 \value{A list containing 2 items: 1) a gene by sample data-frame of observed copy numbers rounded according to the method specified and 2) a gene by sample data-frame of raw (not rounded) observed copy numbers}
 \references{
   See NanoString website for PDFs on analysis guidelines:
-    \url{http://www.nanostring.com/support/prod-lit/}
+    \url{https://www.nanostring.com/support/product-support/support-documentation}
 
   The NanoString assay is described in the paper:
     Fortina, P. & Surrey, S. Digital mRNA profiling. Nature Biotechnology 26, 293-294 (2008).

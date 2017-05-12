@@ -28,11 +28,13 @@ call.cnas.with.pooled.normals(
 \cr4) raw copy number values for normal samples only}
 \references{
   See NanoString website for PDFs on analysis guidelines:
-    \url{http://www.nanostring.com/support/prod-lit/}
+    \url{https://www.nanostring.com/support/product-support/support-documentation}
 
   The NanoString assay is described in the paper:
     Fortina, P. & Surrey, S. Digital mRNA profiling. Nature Biotechnology 26, 293-294 (2008).
 }
+\author{Emilie Lalonde and Dorota Sendorek}
+\seealso{\code{\link{call.cnas.with.matched.normals}}}
 \examples{\dontrun{
   # load data
   data(NanoString.norm);
@@ -64,5 +66,3 @@ call.cnas.with.pooled.normals(
     use.sex.info = TRUE
     );  
 }}
-\author{Emilie Lalonde and Dorota Sendorek}
-\seealso{\code{\link{call.cnas.with.matched.normals}}}
