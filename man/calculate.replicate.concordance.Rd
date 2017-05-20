@@ -11,4 +11,5 @@ calculate.replicate.concordance(cna.rounded.reps, phenodata.reps)
 }
 \value{A gene by sample name data-frame of concordance values (1 signifies matching CN values, 0 signifies discordant CN values)}
 \author{Cindy Yao and Emilie Lalonde}
-\seealso{\code{\link{calculate.replicate.variance}}}
+\seealso{NanoStringNormCNV:::calculate.replicate.variance}
+\keyword{internal}

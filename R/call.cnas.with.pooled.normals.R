@@ -23,7 +23,7 @@ call.cnas.with.pooled.normals <- function(
 			}
 
 		# identify and process XY probes separately
-		xy.processed.data <- process.xy.probes(
+		xy.processed.data <- NanoStringNormCNV:::process.xy.probes(
 			normalized.data = normalized.data,
 			sex.info = phenodata[, c("SampleID", "Sex")]
 			);
@@ -42,7 +42,7 @@ call.cnas.with.pooled.normals <- function(
 	use.genes <- which(normalized.data$CodeClass %in% use.codeclass);
 
 	# calculate tumour:normal ratios (for autosome and female sex chrom probes)
-	cna.raw <- NanoStringNormCNV::call.copy.number.values(
+	cna.raw <- NanoStringNormCNV:::call.copy.number.values(
 		normalized.data = normalized.data[use.genes,],
 		reference = phenodata$SampleID[is.ref],
 		per.chip = per.chip,
@@ -54,7 +54,7 @@ call.cnas.with.pooled.normals <- function(
 
 	# calculate tumour:normal ratios (for male sex chrom probes)
 	if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0 && length(is.ref.XY) > 0) {
-		cna.raw.XY <- NanoStringNormCNV::call.copy.number.values(
+		cna.raw.XY <- NanoStringNormCNV:::call.copy.number.values(
 			normalized.data = normalized.data.XY[use.genes.XY,],
 			reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
 			per.chip = per.chip,
@@ -71,7 +71,7 @@ call.cnas.with.pooled.normals <- function(
 		}
 
 	# call CNAs in normals (for autosome and female sex chrom probes)
-	cna.normals.unadj <- NanoStringNormCNV::call.copy.number.values(
+	cna.normals.unadj <- NanoStringNormCNV:::call.copy.number.values(
 		normalized.data = normalized.data[, c(1:3, (is.ref + 3))],
 		reference = phenodata$SampleID[is.ref],
 		per.chip = FALSE,
@@ -103,7 +103,7 @@ call.cnas.with.pooled.normals <- function(
 			}
 
 		# call CNAs in tumours (for autosome and female sex chrom probes)
-		cna.rounded <- NanoStringNormCNV::call.copy.number.values(
+		cna.rounded <- NanoStringNormCNV:::call.copy.number.values(
 			normalized.data = normalized.data[use.genes,],
 			reference = phenodata$SampleID[is.ref],
 			per.chip = per.chip,
@@ -115,7 +115,7 @@ call.cnas.with.pooled.normals <- function(
 
 		# call CNAs in tumours (for male sex chrom probes)
 		if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0 && length(is.ref.XY) > 0) {
-			cna.rounded.XY <- NanoStringNormCNV::call.copy.number.values(
+			cna.rounded.XY <- NanoStringNormCNV:::call.copy.number.values(
 				normalized.data = normalized.data.XY[use.genes.XY,],
 				reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
 				per.chip = per.chip,
@@ -141,7 +141,7 @@ call.cnas.with.pooled.normals <- function(
 			}
 
 		# call CNAs in tumours (for autosome and female sex chrom probes)
-		cna.rounded <- NanoStringNormCNV::call.copy.number.values(
+		cna.rounded <- NanoStringNormCNV:::call.copy.number.values(
 			normalized.data = normalized.data[use.genes,],
 			reference = phenodata$SampleID[is.ref],
 			per.chip = per.chip,
@@ -154,7 +154,7 @@ call.cnas.with.pooled.normals <- function(
 
 		# call CNAs in tumours (for male sex chrom probes)
 		if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0 && length(is.ref.XY) > 0) {
-			cna.rounded.XY <- NanoStringNormCNV::call.copy.number.values(
+			cna.rounded.XY <- NanoStringNormCNV:::call.copy.number.values(
 				normalized.data = normalized.data.XY[use.genes.XY,],
 				reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
 				per.chip = per.chip,
@@ -176,7 +176,7 @@ call.cnas.with.pooled.normals <- function(
 
 	# call CNAs in normals (for male sex chrom probes)
 	if (!is.null(sex.probes) && ncol(normalized.data.XY) > 0 && length(use.genes.XY) > 0 && length(is.ref.XY) > 0) {
-		cna.normals.unadj.XY <- NanoStringNormCNV::call.copy.number.values(
+		cna.normals.unadj.XY <- NanoStringNormCNV:::call.copy.number.values(
 			normalized.data = normalized.data.XY[, c(1:3, (is.ref.XY + 3))],
 			reference = phenodata[phenodata$Sex %in% 'M',]$SampleID[is.ref.XY],
 			per.chip = FALSE,

@@ -11,5 +11,4 @@
 }
 \value{A gene by sample data-frame of tumour:normal ratios}
 \author{Emilie Lalonde}
-    
-
+\keyword{internal}

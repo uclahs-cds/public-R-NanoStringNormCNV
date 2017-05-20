@@ -32,7 +32,7 @@ call.copy.number.values <- function(
 		}
 
 	# get tumour:normal ratios
-	out.cna <- NanoStringNormCNV::get.tumour.normal.ratio(
+	out.cna <- NanoStringNormCNV:::get.tumour.normal.ratio(
 		normalized.data = normalized.data,
 		reference = reference,
 		chip.info = chip.info,
@@ -52,7 +52,7 @@ call.copy.number.values <- function(
 	if (thresh.method == 'round') {
 
 		# segment using set thresholds
-		out.cna.final <- NanoStringNormCNV::apply.ns.cna.thresh(
+		out.cna.final <- NanoStringNormCNV:::apply.ns.cna.thresh(
 			ratio.data = out.cna,
 			cna.thresh = cna.thresh
 			);
@@ -60,7 +60,7 @@ call.copy.number.values <- function(
 	} else if (thresh.method == 'KD') {
 
 		# segment using thresholds obtained through kernel density approach
-		out.cna.final <- NanoStringNormCNV::apply.kd.cna.thresh(
+		out.cna.final <- NanoStringNormCNV:::apply.kd.cna.thresh(
 			ratio.data = out.cna,
 			kd.values = kd.values,
 			neutral.cn = multi.factor

@@ -12,7 +12,7 @@ make.positive.control.plot <- function(correlations, covs = NULL, print.x.labels
 
 	if (!is.null(covs) & ncol(covs) > 1) {
 		# covariates
-		cov.objs <- NanoStringNormCNV::generate.plot.covariates(
+		cov.objs <- NanoStringNormCNV:::generate.plot.covariates(
 			plotting.data = correlations,
 			sample.covariates = covs
 			);
@@ -20,7 +20,7 @@ make.positive.control.plot <- function(correlations, covs = NULL, print.x.labels
 		
 		# legend
 		covs <- covs[, names(covs) != 'SampleID'];
-		covs.legend <- NanoStringNormCNV::generate.plot.legend(cov.info = as.list(covs));
+		covs.legend <- NanoStringNormCNV:::generate.plot.legend(cov.info = as.list(covs));
 
 		clust.dim <- 'columns';
 	} else {

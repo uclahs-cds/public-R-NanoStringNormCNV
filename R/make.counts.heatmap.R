@@ -34,7 +34,7 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 
 	if (!is.null(c.col) | !is.null(c.row)) {
 		# covariates
-		cov.objs <- NanoStringNormCNV::generate.plot.covariates(
+		cov.objs <- NanoStringNormCNV:::generate.plot.covariates(
 			plotting.data = nano.counts,
 			sample.covariates = c.row,
 			gene.covariates = c.col
@@ -52,7 +52,7 @@ make.counts.heatmap <- function(nano.counts, fname.stem = NULL, covs.rows = NULL
 			}
 			
 		cov.list <- cov.list[!(names(cov.list) %in% c('SampleID', 'Name'))];
-		covs.legend <- NanoStringNormCNV::generate.plot.legend(cov.info = cov.list);
+		covs.legend <- NanoStringNormCNV:::generate.plot.legend(cov.info = cov.list);
 	} else {
 		covs.legend <- NULL;
 		}

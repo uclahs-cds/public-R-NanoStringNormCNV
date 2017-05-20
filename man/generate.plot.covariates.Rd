@@ -13,4 +13,5 @@ generate.plot.covariates(plotting.data, sample.covariates = NULL, gene.covariate
 \details{Called by \code{\link{visualize.results}}, this function creates a covariate annotate (as a fully formed list) that can be passed onto a plot}
 \value{A list of 2 sub-lists that contain border colour and fill colour information for 1) sample covariates and 2) gene covariates}
 \author{Dorota Sendorek and Emilie Lalonde}
-\seealso{\code{\link{generate.plot.legend}}}
+\seealso{NanoStringNormCNV:::generate.plot.legend}
+\keyword{internal}

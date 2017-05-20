@@ -32,7 +32,7 @@ make.cna.heatmap <- function(nano.cnas, fname.stem = NULL, covs.rows = NULL, cov
 				}
 
 			# create covariates
-			cov.objs <- NanoStringNormCNV::generate.plot.covariates(
+			cov.objs <- NanoStringNormCNV:::generate.plot.covariates(
 				plotting.data = nano.cnas,
 				sample.covariates = c.row,
 				gene.covariates = c.col
@@ -50,7 +50,7 @@ make.cna.heatmap <- function(nano.cnas, fname.stem = NULL, covs.rows = NULL, cov
 				}
 
 			cov.list <- cov.list[!(names(cov.list) %in% c('SampleID', 'Name'))];
-			covs.legend <- NanoStringNormCNV::generate.plot.legend(cov.info = cov.list);
+			covs.legend <- NanoStringNormCNV:::generate.plot.legend(cov.info = cov.list);
 		} else {
 			covs.legend <- NULL;
 			}

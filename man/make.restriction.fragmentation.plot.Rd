@@ -12,3 +12,4 @@
 \details{This function is called by \code{\link{restriction.fragmentation.qc}}.}
 \value{None}
 \author{Cindy Yao and Emilie Lalonde}
+\keyword{internal}

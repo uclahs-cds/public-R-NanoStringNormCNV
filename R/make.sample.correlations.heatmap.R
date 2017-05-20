@@ -12,7 +12,7 @@ make.sample.correlations.heatmap <- function(nano.counts, cor.method = 'pearson'
 			}
 
 		# covariates
-		cov.objs <- NanoStringNormCNV::generate.plot.covariates(
+		cov.objs <- NanoStringNormCNV:::generate.plot.covariates(
 			plotting.data = nano.counts,
 			sample.covariates = covs
 			);
@@ -20,7 +20,7 @@ make.sample.correlations.heatmap <- function(nano.counts, cor.method = 'pearson'
 
 		# legend
 		covs <- covs[, names(covs) != 'SampleID', drop = FALSE];
-		covs.legend <- NanoStringNormCNV::generate.plot.legend(cov.info = as.list(covs));
+		covs.legend <- NanoStringNormCNV:::generate.plot.legend(cov.info = as.list(covs));
 	} else {
 		covs.legend <- NULL;
 		cov.obj <- NULL;

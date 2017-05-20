@@ -1,19 +1,9 @@
-exportPattern("^[[:alpha:]]+")
 export(
-	"apply.kd.cna.thresh",
-	"apply.ns.cna.thresh",
-	"calculate.replicate.concordance",
-	"calculate.replicate.variance",
 	"call.cnas.with.matched.normals",
 	"call.cnas.with.pooled.normals",
-	"call.copy.number.values",
 	"collapse.genes",
 	"evaluate.replicates",
-	"generate.plot.covariates",
-	"generate.plot.legend",
 	"get.ari",
-	"get.cna.thresholds",
-	"get.tumour.normal.ratio",
 	"invariant.probe.norm",
 	"load.phenodata",
 	"make.cna.densities.plots",
@@ -21,16 +11,11 @@ export(
 	"make.counts.heatmap",
 	"make.invariant.probe.plot",
 	"make.positive.control.plot",
-	"make.restriction.fragmentation.plot",
 	"make.sample.correlations.heatmap",
 	"normalize.global",
 	"normalize.per.chip",
 	"positive.control.qc",
-	"process.xy.probes",
 	"restriction.fragmentation.qc",
-	"score.runs",
-	"score.runs2",
-	"tumour.normal.ratio.to.cn.state",
 	"visualize.results"
 	);
 import(

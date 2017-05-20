@@ -12,4 +12,5 @@ calculate.replicate.variance(normalized.data.reps, phenodata.reps, var.function 
 }
 \value{A gene by sample name data-frame of variances}
 \author{Cindy Yao and Emilie Lalonde}
-\seealso{\code{\link{calculate.replicate.variance}}}
+\seealso{NanoStringNormCNV:::calculate.replicate.concordance}
+\keyword{internal}

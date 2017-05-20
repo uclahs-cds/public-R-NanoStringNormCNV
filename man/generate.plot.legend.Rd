@@ -11,4 +11,5 @@ generate.plot.legend(cov.info)
 \details{Called by \code{\link{visualize.results}}, this function creates a list defining the covariate legend that can be passed onto a plot}
 \value{A list where each item contains colour, label and title information for a given covariate}
 \author{Dorota Sendorek and Emilie Lalonde}
-\seealso{\code{\link{generate.plot.covariates}}}
+\seealso{NanoStringNormCNV:::generate.plot.covariates}
+\keyword{internal}

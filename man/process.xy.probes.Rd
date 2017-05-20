@@ -18,8 +18,9 @@ process.xy.probes(normalized.data, sex.info)
 	data(PhenoData);
 
 	# process chrX and chrY probes
-	processed.data <- process.xy.probes(
+	processed.data <- NanoStringNormCNV:::process.xy.probes(
 		normalized.data = NanoString.norm,
 		sex.info = PhenoData
 		);
 }
+\keyword{internal}
