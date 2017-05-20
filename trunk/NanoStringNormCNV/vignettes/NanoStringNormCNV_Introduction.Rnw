@@ -394,8 +394,66 @@ cartridge.ari <- get.ari(
 
 A number of plotting functions are provided. Diagnostic plots have been described previously (see section 'Quality Control Metrics'). Normalized and copy number data can also be visualized. The plotting wrapper function \Rfunction{visualize.results} will create figures using all available plotting functions.
 
-<<eg.vis, eval = FALSE>>=
-# plot results
+<<eg.vis1, eval = FALSE>>=
+# plot normalized NanoString counts
+make.counts.heatmap(
+	nano.counts = NanoString.norm[, -(1:3)],
+	fname.stem = 'normalized',
+	covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
+	covs.cols = NanoString[, c('Name', 'CodeClass')]
+	);
+
+# plot raw NanoString counts
+# make sure raw count data frame has gene names for rownames!
+NanoString.formatted <- NanoString[, -(1:3)];
+rownames(NanoString.formatted) <- NanoString$Name;
+
+make.counts.heatmap(
+	nano.counts = NanoString.formatted,
+	fname.stem = 'raw',
+	covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
+	covs.cols = NanoString[, c('Name', 'CodeClass')]
+	);
+@
+
+<<eg.vis2, eval = FALSE>>=
+# plot rounded copy number calls
+make.cna.heatmap(
+	nano.cnas = cnas$rounded,
+	fname.stem = 'round',
+	covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
+	covs.cols = NanoString[, c('Name', 'CodeClass')],
+	rounded = TRUE
+	);
+
+# plot raw (not rounded) copy number calls
+make.cna.heatmap(
+	nano.cnas = cnas$raw,
+	fname.stem = 'raw',
+	covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
+	covs.cols = NanoString[, c('Name', 'CodeClass')],
+	rounded = FALSE
+	);
+@
+
+<<eg.vis3, eval = FALSE>>=
+# plot copy number call density for rounded values
+# two plots: per gene and per sample
+make.cna.densities.plots(
+	nano.cnas = cnas$rounded
+	);
+@
+
+<<eg.vis4, eval = FALSE>>=
+# plot raw NanoString count correlations
+make.sample.correlations.heatmap(
+	nano.counts = NanoString.formatted,
+	covs = PhenoData[, c('SampleID', 'Cartridge', 'Type')]
+	);
+@
+
+<<eg.vis5, eval = FALSE>>=
+# plot all results using wrapper function
 visualize.results(
     raw.data = NanoString,
     normalized.data = NanoString.norm,
