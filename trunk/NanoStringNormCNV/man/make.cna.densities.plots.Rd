@@ -12,3 +12,21 @@ make.cna.densities.plots(nano.cnas, fname.stem = NULL)
 \details{Make density plots of copy number calls. Done separately for all genes and separately for all samples}
 \value{None}
 \author{Cindy Yao and Emilie Lalonde}
+\examples{\dontrun{
+  # load data
+  data(NanoString);
+  data(NanoString.norm);
+  data(PhenoData);
+
+  # call CNAs
+  cnas <- call.cnas.with.pooled.normals(
+    normalized.data = NanoString.norm,
+    phenodata = PhenoData
+    );
+  
+	# plot copy number call density for rounded values
+	# two plots: per gene and per sample
+	make.cna.densities.plots(
+		nano.cnas = cnas$rounded
+		);
+}}

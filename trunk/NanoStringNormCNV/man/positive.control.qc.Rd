@@ -28,10 +28,4 @@
 
 	# run QC
 	r.squared <- positive.control.qc(raw.data = NanoString);
-
-	# plot results
-	make.positive.control.plot(
-		correlations = r.squared,
-		covs = PhenoData
-		);
 }}
