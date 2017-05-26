@@ -92,8 +92,10 @@ call.cnas.with.pooled.normals <- function(
 			minimum.median <- median(apply(cna.normals.unadj, 2, min, na.rm = TRUE));
 			maximum.median <- median(apply(cna.normals.unadj, 2, max, na.rm = TRUE));
 
+			# determine offset (1 standard deviation)
+			thresh.offset <- sd(unlist(cna.normals.unadj), na.rm = TRUE);
+
 			# calculate threshold values
-			thresh.offset <- (maximum.median - minimum.median) * 0.15;
 			thresh <- c(
 				minimum.median,
 				minimum.median + thresh.offset,
