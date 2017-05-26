@@ -309,7 +309,7 @@ print(NanoString.norm.col[1:6, 1:6]);
 Two functions are provided to perform CNA calling on normalized data: \Rfunction{call.cnas.with.matched.normals} and \Rfunction{call.cnas.with.pooled.normals}. Tumour-normal ratios are calculated and converted to categorical CNA calls (0 to 4) by rounding. Ratios are rounded using 4 thresholds that represent a homozygous deletion, a heterozygous deletion, a single-copy gain and a multi-copy gain. Thresholds can be set using one of the three methods that are currently implemented:
 \\ \\
 a) thresholds derived from NanoString manual recommendations (0.4, 1.5, 2.5, 3.5)
-b) thresholds calculated using the minimum and maximum normal sample counts (only available for \Rfunction{call.cnas.pooled.normals})
+b) thresholds calculated using the (cohort median) minimum and maximum normal sample counts (min, min + SD, max - SD, max). This is only available for \Rfunction{call.cnas.pooled.normals})
 c) by applying the kernel-density approach (sample-specific if using \Rfunction{call.cnas.with.matched.normals} and cohort-specific if using \Rfunction{call.cnas.with.pooled.normals})
 \\ \\
 Calling can be performed on sex chromosome segments provided that sample sex information is provided in sample annotation.
