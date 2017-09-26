@@ -14,7 +14,7 @@
   \item{cc}{Requested CodeCount NSN normalization. Can be 'none', 'sum', and 'geo.mean'.}
   \item{bc}{Requested Background NSN normalization. Can be 'none', 'mean', 'mean.2sd' and 'max'.}
   \item{sc}{Requested SampleContent NSN normalization. Can be 'none', 'housekeeping.geo.mean', 'total.sum', 'top.geo.mean' and 'low.cv.geo.mean'. To run 'housekeeping.geo.mean', user must ensure the NanoString dataset includes probes belonging to the 'Housekeeping' code class. These can be probes that were found to have consistently low variance across data.}
-  \item{oth}{Requested OtherNorm NSN normalization. Can be 'none', 'vsn', 'quant' and 'rank'.}
+  \item{oth}{Requested OtherNorm NSN normalization. Can be 'none', 'vsn' and 'quant'.}
   \item{do.rcc.inv}{Whether or not to run invariant probe normalization. This method corrects for sample content and can be used in place of 'sc'. It is run separately from NSN and is the technique recommended in NanoString guidelines.}
   \item{covs}{A data-frame of covariates with which to assess batch effects in NanoStringNorm. Passed directly to NanoStringNorm::NanoStringNorm 'traits' argument (see function for specifics). Set to NA if none.}
   \item{transform.data}{Whether to transform data so output does not contain negative values. Defaults to TRUE}
