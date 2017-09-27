@@ -29,7 +29,7 @@ require('NanoStringNormCNV');
 
 # load raw count example dataset
 data("NanoString");
-print(NanoString[1:6, 1:6]);
+print(NanoString[1:6, 1:7]);
 
 
 ###################################################
