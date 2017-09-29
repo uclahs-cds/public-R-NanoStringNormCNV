@@ -63,4 +63,3 @@ importFrom(
 	"reshape2",
 	"melt"
 	);
-export("melt");
