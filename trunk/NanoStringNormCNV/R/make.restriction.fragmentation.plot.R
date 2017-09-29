@@ -1,8 +1,15 @@
 make.restriction.fragmentation.plot <- function(restr.data, low.ratio.samples = NULL){
 	# reformat for plotting
-	restr.df <- melt(data = t(restr.data));
+	restr.df <- reshape2::melt(data = t(restr.data));
 	colnames(restr.df) <- unlist(strsplit("sample site count","\\s"));
 	restr.df$sample.id <- rep(seq(1:ncol(restr.data)), 2);
+
+	# check for low quality samples that need to be highlighted
+	if (length(low.ratio.samples) == 0) {
+		add.rect <- FALSE;
+	} else {
+		add.rect <- TRUE;
+		}
 
 	# barplot first
 	bplot <- BoutrosLab.plotting.general::create.barplot(
@@ -13,9 +20,9 @@ make.restriction.fragmentation.plot <- function(restr.data, low.ratio.samples = 
 		xlimits = c(0.5, col(restr.data) + 0.5),
 		ylimits = c(0, max(restr.df$count) * 1.1),
 		xaxis.tck = 0.5,
-		border.col = default.colours(2),
-		col = default.colours(2),
-		add.rectangle = TRUE,
+		border.col = BoutrosLab.plotting.general::default.colours(2),
+		col = BoutrosLab.plotting.general::default.colours(2),
+		add.rectangle = add.rect,
 		col.rectangle = 'slategrey',
 		alpha.rectangle = 0.5,
 		xleft.rectangle = low.ratio.samples - 0.5,
@@ -31,7 +38,7 @@ make.restriction.fragmentation.plot <- function(restr.data, low.ratio.samples = 
 								 col = 'black',
 								 pch = 22,
 								 cex = 1.6,
-								 fill = default.colours(2)
+								 fill = BoutrosLab.plotting.general::default.colours(2)
 								 ),
 						   text = list(lab = c('A+B','C+D')),
 						   padding.text = 2,
