@@ -254,7 +254,7 @@ cnas <- call.cnas.with.pooled.normals(
 ### code chunk number 21: eg.write.cnas (eval = FALSE)
 ###################################################
 ## # write CNAs to file
-## write.table(x = cnas, file = "cnas.csv", sep = ",");
+## write.table(x = cnas$rounded, file = "cnas_rounded.csv", sep = ",");
 
 
 ###################################################
