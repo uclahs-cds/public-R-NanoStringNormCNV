@@ -38,12 +38,12 @@
 \seealso{NanoStringNorm::NanoStringNorm, \code{\link{normalize.global}}}
 \examples{\dontrun{
   # load data
-  data(NanoString);
+  data(NanoString.DNA.raw);
   data(PhenoData);
 
   ## perform only invariant probe normalization
-  NanoString.norm <- normalize.per.chip(
-    raw.data = NanoString,
+  NanoString.DNA.norm <- normalize.per.chip(
+    raw.data = NanoString.DNA.raw,
     cc = 'none',
     bc = 'none',
     sc = 'none',
@@ -73,8 +73,8 @@
   covs$Type <- ifelse(PhenoData$Type == 'Reference', 1, 2);
 
   # normalize
-  NanoString.norm <- normalize.per.chip(
-    raw.data = NanoString,
+  NanoString.DNA.norm <- normalize.per.chip(
+    raw.data = NanoString.DNA.raw,
     cc = 'none',
     bc = 'none',
     sc = 'none',

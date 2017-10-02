@@ -23,27 +23,27 @@ visualize.results(
 \author{Emilie Lalonde and Dorota Sendorek}
 \examples{\dontrun{
   # load data
-  data(NanoString);
-  data(NanoString.norm);
+  data(NanoString.DNA.raw);
+  data(NanoString.DNA.norm);
   data(PhenoData);
 
   # call CNAs
   cnas <- call.cnas.with.pooled.normals(
-    normalized.data = NanoString.norm,
+    normalized.data = NanoString.DNA.norm,
     phenodata = PhenoData
     );
 
   # evaluate results
   evaluation <- evaluate.replicates(
     phenodata = PhenoData,
-    normalized.data = NanoString.norm,
+    normalized.data = NanoString.DNA.norm,
     cna.rounded = cnas$rounded
     );
 
   # plot data and results
   visualize.results(
-    raw.data = NanoString,
-    normalized.data = NanoString.norm,
+    raw.data = NanoString.DNA.raw,
+    normalized.data = NanoString.DNA.norm,
     phenodata = PhenoData,
     cna.rounded = cnas$rounded,
     cna.raw = cnas$raw,

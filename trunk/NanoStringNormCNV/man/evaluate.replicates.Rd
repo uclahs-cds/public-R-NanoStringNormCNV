@@ -15,19 +15,19 @@ evaluate.replicates(phenodata, normalized.data = NULL, cna.rounded = NULL)
 \author{Emilie Lalonde and Dorota Sendorek}
 \examples{\dontrun{
 	# load data
-	data(NanoString.norm);
+	data(NanoString.DNA.norm);
 	data(PhenoData);
 
 	# call CNAs
 	cnas <- call.cnas.with.pooled.normals(
-		normalized.data = NanoString.norm,
+		normalized.data = NanoString.DNA.norm,
 		phenodata = PhenoData
 		);
 
 	# evaluate results using replicates
 	evaluation <- evaluate.replicates(
 		phenodata = PhenoData,
-		normalized.data = NanoString.norm,
+		normalized.data = NanoString.DNA.norm,
 		cna.rounded = cnas$rounded
 		);
 }}

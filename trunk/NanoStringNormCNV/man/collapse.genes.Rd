@@ -13,8 +13,8 @@
 \author{Cindy Yao}
 \examples{
 	# load normalized data
-	data(NanoString.norm);
+	data(NanoString.DNA.norm);
 
 	# collapse probes by gene
-	NanoString.norm <- collapse.genes(normalized.data = NanoString.norm);
+	NanoString.DNA.norm <- collapse.genes(normalized.data = NanoString.DNA.norm);
 }

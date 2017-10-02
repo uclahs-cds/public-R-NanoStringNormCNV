@@ -2,9 +2,9 @@
 \alias{PhenoData}
 \docType{data}
 \title{Dataset of sample annotation and phenotype information for 65 prostate cancer samples}
-\description{Sample annotation and phenotype information describing 65 NanoString prostate cancer samples. The same NanoString samples are found in the \code{\link{NanoString}} dataset.}
+\description{Sample annotation and phenotype information describing 65 NanoString prostate cancer samples. The same NanoString samples are found in the \code{\link{NanoString.DNA.raw}} dataset.}
 \format{
-	A data-frame with 9 columns and 65 rows. Each row indicates a different NanoString sample. The columns either annotate the sample or describe a feature of it:
+	A data-frame with 9 columns and 65 rows. Each row indicates a different NanoString DNA sample. The columns either annotate the sample or describe a feature of it:
 	\describe{
 		\item{SampleID}{The sample ID is unique to each row (or NanoString sample).}
 		\item{Patient}{The patient ID is specific to an individual patient that provided one or more tissue samples for the study.}
