@@ -1,0 +1,65 @@
+export(
+	"call.cnas.with.matched.normals",
+	"call.cnas.with.pooled.normals",
+	"collapse.genes",
+	"evaluate.replicates",
+	"get.ari",
+	"invariant.probe.norm",
+	"load.phenodata",
+	"make.cna.densities.plots",
+	"make.cna.heatmap",
+	"make.counts.heatmap",
+	"make.invariant.probe.plot",
+	"make.positive.control.plot",
+	"make.sample.correlations.heatmap",
+	"normalize.global",
+	"normalize.per.chip",
+	"positive.control.qc",
+	"restriction.fragmentation.qc",
+	"visualize.results"
+	);
+import(
+	"testthat",
+	"lattice",
+	"BoutrosLab.plotting.general", 
+	"NanoStringNorm",
+	"futile.logger",
+	"mclust",
+	"reshape2",
+	"gdata",
+	"vsn",
+	"vegan"
+	);
+importFrom(
+	"vegan",
+	"vegdist"
+	);
+importFrom(
+	"grDevices",
+	"dev.off",
+	"pdf",
+	"colours"
+	);
+importFrom(
+	"stats",
+	"aggregate",
+	"as.dist",
+	"cor",
+	"cutree",
+	"density",
+	"hclust",
+	"median",
+	"sd",
+	"na.omit"
+	);
+importFrom(
+	"utils",
+	"head",
+	"tail",
+	"read.csv",
+	"read.delim"
+	);
+importFrom(
+	"reshape2",
+	"melt"
+	);
