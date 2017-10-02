@@ -28,9 +28,9 @@ require("NanoStringNormCNV");
 require('NanoStringNormCNV');
 
 # load raw count example dataset
-data("NanoString");
-str(NanoString);
-print(NanoString[1:6, 1:7]);
+data("NanoString.DNA.raw");
+str(NanoString.DNA.raw);
+print(NanoString.DNA.raw[1:6, 1:7]);
 
 
 ###################################################
@@ -52,7 +52,7 @@ print(head(PhenoData));
 ### code chunk number 5: eg.positive.control.qc (eval = FALSE)
 ###################################################
 ## # quality control using positive controls
-## r.squared <- positive.control.qc(raw.data = NanoString);
+## r.squared <- positive.control.qc(raw.data = NanoString.DNA.raw);
 ## 
 ## # plot R squared values
 ## make.positive.control.plot(correlations = r.squared, covs = PhenoData);
@@ -64,7 +64,7 @@ print(head(PhenoData));
 ## # correctly running QC on AluI-digested samples only
 ## excl.samples <- PhenoData$SampleID[PhenoData$Fragmentation != "AluI"];
 ## probe.ratios <- restriction.fragmentation.qc(
-## 	raw.data = NanoString[, ! names(NanoString) %in% excl.samples]
+## 	raw.data = NanoString.DNA.raw[, ! names(NanoString.DNA.raw) %in% excl.samples]
 ## 	);
 
 
@@ -73,7 +73,7 @@ print(head(PhenoData));
 ###################################################
 ## # running QC on all available samples (\textit{i.e.} AluI-digested and sonicated)
 ## probe.ratios <- restriction.fragmentation.qc(
-## 	raw.data = NanoString
+## 	raw.data = NanoString.DNA.raw
 ## 	);
 
 
@@ -82,7 +82,7 @@ print(head(PhenoData));
 ###################################################
 ## # plotting invariant probes
 ## make.invariant.probe.plot(
-## 	inv.probe.counts = NanoString[NanoString$CodeClass == 'Invariant', -(1:3)],
+## 	inv.probe.counts = NanoString.DNA.raw[NanoString.DNA.raw$CodeClass == 'Invariant', -(1:3)],
 ## 	tissue.type = PhenoData
 ## 	);
 
@@ -90,9 +90,9 @@ print(head(PhenoData));
 ###################################################
 ### code chunk number 9: eg.remove.low.qual
 ###################################################
-low.quality <- c('CPCG0266B.M1', 'CPCG0248B.M2');
-NanoString  <- NanoString[, !names(NanoString) %in% low.quality];
-PhenoData   <- PhenoData[!PhenoData$SampleID %in% low.quality,];
+low.quality 		<- c('CPCG0266B.M1', 'CPCG0248B.M2');
+NanoString.DNA.raw  <- NanoString.DNA.raw[, !names(NanoString.DNA.raw) %in% low.quality];
+PhenoData   		<- PhenoData[!PhenoData$SampleID %in% low.quality,];
 
 
 ###################################################
@@ -104,10 +104,10 @@ PhenoData[PhenoData$SampleID %in% c('CPCG0266B.M2', 'CPCG0248B.M1'),]$HasReplica
 
 
 ###################################################
-### code chunk number 11: eg.write.updated.data (eval = FALSE)
+### code chunk number 11: eg.write.updated.phenodata (eval = FALSE)
 ###################################################
-# write updates to file
-write.table(x = PhenoData, file = "PhenoData.csv", sep = ",");
+## # write updates to file
+## write.table(x = PhenoData, file = "PhenoData_updated.csv", sep = ",");
 
 
 ###################################################
@@ -115,8 +115,8 @@ write.table(x = PhenoData, file = "PhenoData.csv", sep = ",");
 ###################################################
 # example 1
 # perform invariant probe normalization only --cartridges combined
-NanoString.norm <- normalize.global(
-	raw.data = NanoString,
+NanoString.DNA.norm <- normalize.global(
+	raw.data = NanoString.DNA.raw,
 	cc = 'none',
 	bc = 'none',
 	sc = 'none',
@@ -132,8 +132,8 @@ NanoString.norm <- normalize.global(
 ###################################################
 # example 2
 # perform invariant probe normalization only --cartridges individually
-NanoString.norm <- normalize.per.chip(
-	raw.data = NanoString,
+NanoString.DNA.norm <- normalize.per.chip(
+	raw.data = NanoString.DNA.raw,
 	cc = 'none',
 	bc = 'none',
 	sc = 'none',
@@ -166,8 +166,8 @@ for (n in 1:nrow(PhenoData)) {
 
 covs$Type <- ifelse(PhenoData$Type == 'Reference', 1, 2);
 
-NanoString.norm <- normalize.global(
-	raw.data = NanoString,
+NanoString.DNA.norm <- normalize.global(
+	raw.data = NanoString.DNA.raw,
 	cc = 'none',
 	bc = 'none',
 	sc = 'none',
@@ -182,8 +182,8 @@ NanoString.norm <- normalize.global(
 ### code chunk number 15: eg.norm4
 ###################################################
 # same as above but per chip
-NanoString.norm <- normalize.per.chip(
-	raw.data = NanoString,
+NanoString.DNA.norm <- normalize.per.chip(
+	raw.data = NanoString.DNA.raw,
 	cc = 'none',
 	bc = 'none',
 	sc = 'none',
@@ -195,18 +195,32 @@ NanoString.norm <- normalize.per.chip(
 
 
 ###################################################
-### code chunk number 16: eg.collapse.genes
+### code chunk number 16: eg.write.normalized (eval = FALSE)
 ###################################################
-NanoString.norm.col <- collapse.genes(normalized.data = NanoString.norm);
-print(NanoString.norm.col[1:6, 1:6]);
+## # write normalized counts to file
+## write.table(x = NanoString.DNA.norm, file = "normalized_counts.csv", sep = ",");
 
 
 ###################################################
-### code chunk number 17: call.cnas.matched.ref
+### code chunk number 17: eg.collapse.genes
+###################################################
+NanoString.DNA.norm.col <- collapse.genes(normalized.data = NanoString.DNA.norm);
+print(NanoString.DNA.norm.col[1:6, 1:6]);
+
+
+###################################################
+### code chunk number 18: eg.write.collapsed (eval = FALSE)
+###################################################
+## # write collapsed data to file
+## write.table(x = NanoString.DNA.norm.col, file = "normalized_collapsed_counts.csv", sep = ",");
+
+
+###################################################
+### code chunk number 19: call.cnas.matched.ref
 ###################################################
 # Option 1: call using matched normal reference
 cnas <- call.cnas.with.matched.normals(
-	normalized.data = NanoString.norm,
+	normalized.data = NanoString.DNA.norm,
 	phenodata = PhenoData,
 	per.chip = FALSE,
 	call.method = 2,
@@ -216,11 +230,11 @@ cnas <- call.cnas.with.matched.normals(
 
 
 ###################################################
-### code chunk number 18: call.cnas.pooled.ref
+### code chunk number 20: call.cnas.pooled.ref
 ###################################################
 # Option 2: call using a pooled normals reference
 cnas <- call.cnas.with.pooled.normals(
-	normalized.data = NanoString.norm,
+	normalized.data = NanoString.DNA.norm,
 	phenodata = PhenoData,
 	per.chip = FALSE,
 	call.method = 3,
@@ -228,7 +242,7 @@ cnas <- call.cnas.with.pooled.normals(
 	);
 # Option 3: call using a pooled normals reference
 cnas <- call.cnas.with.pooled.normals(
-	normalized.data = NanoString.norm,
+	normalized.data = NanoString.DNA.norm,
 	phenodata = PhenoData,
 	per.chip = FALSE,
 	call.method = 1,
@@ -237,18 +251,25 @@ cnas <- call.cnas.with.pooled.normals(
 
 
 ###################################################
-### code chunk number 19: eg.eval.reps
+### code chunk number 21: eg.write.cnas (eval = FALSE)
+###################################################
+## # write CNAs to file
+## write.table(x = cnas, file = "cnas.csv", sep = ",");
+
+
+###################################################
+### code chunk number 22: eg.eval.reps
 ###################################################
 # if technical replicates are available
 evaluation <- evaluate.replicates(
 	phenodata = PhenoData,
-	normalized.data = NanoString.norm,
+	normalized.data = NanoString.DNA.norm,
 	cna.rounded = cnas$rounded
 	);
 
 
 ###################################################
-### code chunk number 20: eg.ari1
+### code chunk number 23: eg.ari1
 ###################################################
 # how well does the data cluster around the patients from which samples were obtained
 patient.ari <- get.ari(
@@ -259,66 +280,66 @@ patient.ari <- get.ari(
 
 
 ###################################################
-### code chunk number 21: eg.ari2
+### code chunk number 24: eg.ari2
 ###################################################
 # how much does the data cluster around the cartridges on which the samples were processed
 # log values, if appropriate
-if (all(unlist(NanoString.norm) >= 0)) {
-    count.data <- log10(NanoString.norm[, -c(1:3)] + 1);
+if (all(unlist(NanoString.DNA.norm) >= 0)) {
+    count.data <- log10(NanoString.DNA.norm[, -c(1:3)] + 1);
 } else {
-    count.data <- NanoString.norm[, -c(1:3)];
+    count.data <- NanoString.DNA.norm[, -c(1:3)];
     }
 
 cartridge.ari <- get.ari(
     data.to.cluster = count.data,
-    feature = PhenoData$Cartridge[match(colnames(NanoString.norm[, -(1:3)]), PhenoData$SampleID)],
+    feature = PhenoData$Cartridge[match(colnames(NanoString.DNA.norm[, -(1:3)]), PhenoData$SampleID)],
     is.discrete = FALSE
     );
 
 
 ###################################################
-### code chunk number 22: eg.vis1a (eval = FALSE)
+### code chunk number 25: eg.vis1a (eval = FALSE)
 ###################################################
 ## # plot normalized NanoString counts
 ## make.counts.heatmap(
-## 	nano.counts = NanoString.norm[, -(1:3)],
+## 	nano.counts = NanoString.DNA.norm[, -(1:3)],
 ## 	fname.stem = 'normalized',
 ## 	covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
-## 	covs.cols = NanoString[, c('Name', 'CodeClass')]
+## 	covs.cols = NanoString.DNA.raw[, c('Name', 'CodeClass')]
 ## 	);
 
 
 ###################################################
-### code chunk number 23: eg.vis1b (eval = FALSE)
+### code chunk number 26: eg.vis1b (eval = FALSE)
 ###################################################
 ## # plot raw NanoString counts
 ## # make sure raw count data frame has gene names for row names!
-## NanoString.formatted <- NanoString[, -(1:3)];
-## rownames(NanoString.formatted) <- NanoString$Name;
+## NanoString.DNA.formatted <- NanoString.DNA.raw[, -(1:3)];
+## rownames(NanoString.DNA.formatted) <- NanoString.DNA.raw$Name;
 ## 
 ## make.counts.heatmap(
-## 	nano.counts = NanoString.formatted,
+## 	nano.counts = NanoString.DNA.formatted,
 ## 	fname.stem = 'raw',
 ## 	covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
-## 	covs.cols = NanoString[, c('Name', 'CodeClass')]
+## 	covs.cols = NanoString.DNA.raw[, c('Name', 'CodeClass')]
 ## 	);
 
 
 ###################################################
-### code chunk number 24: eg.vis2a (eval = FALSE)
+### code chunk number 27: eg.vis2a (eval = FALSE)
 ###################################################
 ## # plot rounded copy number calls
 ## make.cna.heatmap(
 ## 	nano.cnas = cnas$rounded,
 ## 	fname.stem = 'round',
 ## 	covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
-## 	covs.cols = NanoString[, c('Name', 'CodeClass')],
+## 	covs.cols = NanoString.DNA.raw[, c('Name', 'CodeClass')],
 ## 	rounded = TRUE
 ## 	);
 
 
 ###################################################
-### code chunk number 25: eg.vis2b (eval = FALSE)
+### code chunk number 28: eg.vis2b (eval = FALSE)
 ###################################################
 ## # plot raw (not rounded) copy number calls
 ## # first, setting max copy number value at 5
@@ -329,13 +350,13 @@ cartridge.ari <- get.ari(
 ## 	nano.cnas = cnas.raw.max5,
 ## 	fname.stem = 'raw',
 ## 	covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
-## 	covs.cols = NanoString[, c('Name', 'CodeClass')],
+## 	covs.cols = NanoString.DNA.raw[, c('Name', 'CodeClass')],
 ## 	rounded = FALSE
 ## 	);
 
 
 ###################################################
-### code chunk number 26: eg.vis3 (eval = FALSE)
+### code chunk number 29: eg.vis3 (eval = FALSE)
 ###################################################
 ## # plot copy number call density for rounded values
 ## # two plots: per gene and per sample
@@ -345,22 +366,22 @@ cartridge.ari <- get.ari(
 
 
 ###################################################
-### code chunk number 27: eg.vis4 (eval = FALSE)
+### code chunk number 30: eg.vis4 (eval = FALSE)
 ###################################################
 ## # plot raw NanoString count correlations
 ## make.sample.correlations.heatmap(
-## 	nano.counts = NanoString.formatted,
+## 	nano.counts = NanoString.DNA.formatted,
 ## 	covs = PhenoData[, c('SampleID', 'Cartridge', 'Type')]
 ## 	);
 
 
 ###################################################
-### code chunk number 28: eg.vis5 (eval = FALSE)
+### code chunk number 31: eg.vis5 (eval = FALSE)
 ###################################################
 ## # alternatively, plot all results using wrapper function
 ## visualize.results(
-##     raw.data = NanoString,
-##     normalized.data = NanoString.norm,
+##     raw.data = NanoString.DNA.raw,
+##     normalized.data = NanoString.DNA.norm,
 ##     phenodata = PhenoData,
 ##     cna.rounded = cnas$rounded,
 ##     cna.raw = cnas$raw,
