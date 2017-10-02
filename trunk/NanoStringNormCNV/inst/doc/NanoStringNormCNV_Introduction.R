@@ -29,6 +29,7 @@ require('NanoStringNormCNV');
 
 # load raw count example dataset
 data("NanoString");
+str(NanoString);
 print(NanoString[1:6, 1:7]);
 
 
@@ -103,7 +104,14 @@ PhenoData[PhenoData$SampleID %in% c('CPCG0266B.M2', 'CPCG0248B.M1'),]$HasReplica
 
 
 ###################################################
-### code chunk number 11: eg.norm1
+### code chunk number 11: eg.write.updated.data (eval = FALSE)
+###################################################
+# write updates to file
+write.table(x = PhenoData, file = "PhenoData.csv", sep = ",");
+
+
+###################################################
+### code chunk number 12: eg.norm1
 ###################################################
 # example 1
 # perform invariant probe normalization only --cartridges combined
@@ -120,7 +128,7 @@ NanoString.norm <- normalize.global(
 
 
 ###################################################
-### code chunk number 12: eg.norm2
+### code chunk number 13: eg.norm2
 ###################################################
 # example 2
 # perform invariant probe normalization only --cartridges individually
@@ -137,7 +145,7 @@ NanoString.norm <- normalize.per.chip(
 
 
 ###################################################
-### code chunk number 13: eg.norm3
+### code chunk number 14: eg.norm3
 ###################################################
 # example 3
 # include covariates for sample cartridge and sample type 
@@ -171,7 +179,7 @@ NanoString.norm <- normalize.global(
 
 
 ###################################################
-### code chunk number 14: eg.norm4
+### code chunk number 15: eg.norm4
 ###################################################
 # same as above but per chip
 NanoString.norm <- normalize.per.chip(
@@ -187,14 +195,14 @@ NanoString.norm <- normalize.per.chip(
 
 
 ###################################################
-### code chunk number 15: eg.collapse.genes
+### code chunk number 16: eg.collapse.genes
 ###################################################
 NanoString.norm.col <- collapse.genes(normalized.data = NanoString.norm);
 print(NanoString.norm.col[1:6, 1:6]);
 
 
 ###################################################
-### code chunk number 16: call.cnas.matched.ref
+### code chunk number 17: call.cnas.matched.ref
 ###################################################
 # Option 1: call using matched normal reference
 cnas <- call.cnas.with.matched.normals(
@@ -208,7 +216,7 @@ cnas <- call.cnas.with.matched.normals(
 
 
 ###################################################
-### code chunk number 17: call.cnas.pooled.ref
+### code chunk number 18: call.cnas.pooled.ref
 ###################################################
 # Option 2: call using a pooled normals reference
 cnas <- call.cnas.with.pooled.normals(
@@ -229,7 +237,7 @@ cnas <- call.cnas.with.pooled.normals(
 
 
 ###################################################
-### code chunk number 18: eg.eval.reps
+### code chunk number 19: eg.eval.reps
 ###################################################
 # if technical replicates are available
 evaluation <- evaluate.replicates(
@@ -240,7 +248,7 @@ evaluation <- evaluate.replicates(
 
 
 ###################################################
-### code chunk number 19: eg.ari1
+### code chunk number 20: eg.ari1
 ###################################################
 # how well does the data cluster around the patients from which samples were obtained
 patient.ari <- get.ari(
@@ -251,7 +259,7 @@ patient.ari <- get.ari(
 
 
 ###################################################
-### code chunk number 20: eg.ari2
+### code chunk number 21: eg.ari2
 ###################################################
 # how much does the data cluster around the cartridges on which the samples were processed
 # log values, if appropriate
@@ -269,7 +277,7 @@ cartridge.ari <- get.ari(
 
 
 ###################################################
-### code chunk number 21: eg.vis1a (eval = FALSE)
+### code chunk number 22: eg.vis1a (eval = FALSE)
 ###################################################
 ## # plot normalized NanoString counts
 ## make.counts.heatmap(
@@ -281,7 +289,7 @@ cartridge.ari <- get.ari(
 
 
 ###################################################
-### code chunk number 22: eg.vis1b (eval = FALSE)
+### code chunk number 23: eg.vis1b (eval = FALSE)
 ###################################################
 ## # plot raw NanoString counts
 ## # make sure raw count data frame has gene names for row names!
@@ -297,7 +305,7 @@ cartridge.ari <- get.ari(
 
 
 ###################################################
-### code chunk number 23: eg.vis2a (eval = FALSE)
+### code chunk number 24: eg.vis2a (eval = FALSE)
 ###################################################
 ## # plot rounded copy number calls
 ## make.cna.heatmap(
@@ -310,7 +318,7 @@ cartridge.ari <- get.ari(
 
 
 ###################################################
-### code chunk number 24: eg.vis2b (eval = FALSE)
+### code chunk number 25: eg.vis2b (eval = FALSE)
 ###################################################
 ## # plot raw (not rounded) copy number calls
 ## # first, setting max copy number value at 5
@@ -327,7 +335,7 @@ cartridge.ari <- get.ari(
 
 
 ###################################################
-### code chunk number 25: eg.vis3 (eval = FALSE)
+### code chunk number 26: eg.vis3 (eval = FALSE)
 ###################################################
 ## # plot copy number call density for rounded values
 ## # two plots: per gene and per sample
@@ -337,7 +345,7 @@ cartridge.ari <- get.ari(
 
 
 ###################################################
-### code chunk number 26: eg.vis4 (eval = FALSE)
+### code chunk number 27: eg.vis4 (eval = FALSE)
 ###################################################
 ## # plot raw NanoString count correlations
 ## make.sample.correlations.heatmap(
@@ -347,7 +355,7 @@ cartridge.ari <- get.ari(
 
 
 ###################################################
-### code chunk number 27: eg.vis5 (eval = FALSE)
+### code chunk number 28: eg.vis5 (eval = FALSE)
 ###################################################
 ## # alternatively, plot all results using wrapper function
 ## visualize.results(
