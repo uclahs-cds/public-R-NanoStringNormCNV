@@ -21,7 +21,7 @@
 \usepackage[%
 baseurl={http://cran.r-project.org/},%
 pdftitle={Introduction to analyzing NanoString nCounter data using the NanoStringNormCNV package},%
-pdfauthor={Dorota Sendorek},%
+pdfauthor={Emilie Lalonde \& Dorota Sendorek},%
 pdfsubject={NanoStringNormCNV},%
 pdfkeywords={NanoString},%
 pagebackref,bookmarks,colorlinks,linkcolor=darkblue,citecolor=darkblue,%
@@ -34,6 +34,8 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 \newcommand{\Rclass}[1]{\textit{#1}}
 \newcommand{\Rfunction}[1]{{\small\texttt{#1}}}
 
+\captionsetup[figure]{labelfont=bf}
+
 %------------------------------------------------------------
 % start document
 %------------------------------------------------------------
@@ -41,7 +43,7 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 \begin{document}
 %----------------------------------------------------------------------------------------
 \title{Introduction to analyzing NanoString nCounter data using the NanoStringNormCNV package}
-\author{Dorota Sendorek}
+\author{Emilie Lalonde \& Dorota Sendorek}
 %----------------------------------------------------------------------------------------
 \maketitle
 \tableofcontents
@@ -68,29 +70,30 @@ openBitmap = function(nm, rows=1, cols=1) {
 %------------------------------------------------------------
 \section{Getting started}\label{sec:started}
 %------------------------------------------------------------ 
-NanoStringNormCNV is a suite of tools used to perform quality control, pre-processing, copy number calling and visualization on NanoString nCounter DNA data. NanoString is a medium-throughput platform which first gained popularity through gene expression quantification and now has extended its functionality to copy number variation (CNV) detection in genomic DNA. NanoString holds a number of advantages over traditional assays and these include its ability to handle lower quality samples, measure DNA without necessary amplification, and produce an absolute nucleic acid count \cite{nanostring}. Given this, the applications of this technology are wide-ranging, from validation to clinical.
+NanoStringNormCNV is a suite of tools used to perform quality control, pre-processing, copy number calling and visualization on NanoString nCounter DNA data. NanoString is a medium-throughput platform which first gained popularity through mRNA abundance quantification and now has extended its functionality to copy number variation (CNV) detection in genomic DNA. NanoString holds a number of advantages over traditional assays and these include its ability to handle lower quality samples, measure DNA without necessary amplification and produce an absolute nucleic acid count \cite{nanostring}. Given this, the applications of this technology are wide-ranging, from discovery to validation to clinical application.
 \\ \\
-NanoStringNormCNV has been created to aid users in identifying optimal CNV data processing techniques for their datasets, as well as providing a data analysis foundation for the community to build on. The package both implements NanoString-recommended data processing instructions \cite{nscnv} and includes additional processing options and features. NanoStringNormCNV extends the NanoStringNorm package \cite{nsn}, enabling the utilization and expansion of those pre-processing techniques too.
+NanoStringNormCNV has been created to aid users in identifying optimal CNV data processing techniques for their datasets, as well as to provide a data analysis foundation for the community to build on. The package implements NanoString-recommended data processing instructions \cite{nscnv}. It includes additional processing options and features. NanoStringNormCNV extends the NanoStringNorm package \cite{nsn}, enabling the utilization and expansion of those pre-processing techniques too.
 \\ \\
-This vignette details the workflow of NanoStringNormCNV. Basic steps include loading the data, running quality control metrics, pre-processing the raw data, calling CNVs, and evaluating and visualizing results. Small example datasets are provided for learning purposes.
+This vignette details the workflow of NanoStringNormCNV. Basic steps include loading the data, running quality control metrics, pre-processing the raw data, calling CNVs and evaluating and visualizing results. Small example datasets are provided for learning purposes.
 
 <<load.package, results = hide, echo = FALSE >>=
 require("NanoStringNormCNV");
 @
 
 %------------------------------------------------------------
-\section{Setting Up Data}\label{sec:setup}
+\section{Data Import}\label{sec:setup}
 %------------------------------------------------------------
 
 Raw NanoString data is often provided in RCC file format. These files can be imported using \Rfunction{NanoStringNorm::read.markup.RCC} or \Rfunction{NanoStringNorm::read.xls.RCC}. 
 \\ \\
-Alternatively, data can be read in from a raw text file as a data frame and manually formatted to fit NanoStringNormCNV specifications. The user must ensure that the first three columns of the data frame are 'CodeClass' (probe type), 'Name' (unique probe name), and 'Accession' (name of corresponding gene or genomic segment). The following columns must hold raw sample counts with sample IDs for column names. An example dataset for NanoString raw counts is provided here.
+Alternatively, data can be read in from a raw text file as a data frame and manually formatted to fit NanoStringNormCNV specifications. The user must ensure that the first three columns of the data frame are 'CodeClass' (probe type), 'Name' (unique probe name) and 'Accession' (name of corresponding gene or genomic segment). The following columns must hold raw sample counts with sample IDs for column names. We provide an example dataset of NanoString raw counts.
 
 <<eg.load.raw.data>>=
 require('NanoStringNormCNV');
 
 # load raw count example dataset
 data("NanoString");
+str(NanoString);
 print(NanoString[1:6, 1:7]);
 @
 
@@ -137,7 +140,7 @@ make.positive.control.plot(correlations = r.squared, covs = PhenoData);
 
 \begin{center}
 	\includegraphics[width=0.6\textwidth]{positive-control-correlations_zoomed-in.png}  
-	\captionof{figure}{R squared values across all samples. All samples are well above the 0.95 cutoff.}
+	\captionof{figure}{\textbf{Positive control diagnostic plot.} R squared values across all samples. All samples are well above the 0.95 cutoff.}
 \end{center}
 
 \vspace{5mm}
@@ -158,7 +161,7 @@ probe.ratios <- restriction.fragmentation.qc(
 
 \begin{center}
 	\includegraphics[width=0.75\textwidth]{restriction-fragmentation-ratios_multiplot.png}
-	\captionof{figure}{Top plot displays restriction fragmentation probe ratios. All sample ratios are well above the minimum of 10 (denoted by the dashed line). The bottom plot displays raw restriction fragmentation probe counts. All samples have $C+D$ counts of over 200.}
+	\captionof{figure}{\textbf{Restriction fragmentation control diagnostic plots for AluI-digested samples.} Top plot displays restriction fragmentation probe ratios. All sample ratios are well above the minimum of 10 (denoted by the dashed line). The bottom plot displays raw restriction fragmentation probe counts. All samples have $C+D$ counts of over 200.}
 \end{center}
 
 \vspace{5mm}
@@ -173,14 +176,14 @@ probe.ratios <- restriction.fragmentation.qc(
 
 \begin{center}
 	\includegraphics[width=0.75\textwidth]{restriction-fragmentation-ratios_multiplot_all.png}
-	\captionof{figure}{Samples that did not undergo enzyme digestion fail this step. DNA from samples fragmented by sonication (as opposed to AluI digestion) have small \( \frac{C+D}{A+B} \) probe ratios and can be identified by red dots in the top plot and grey highlighting in the bottom plot.}
+	\captionof{figure}{\textbf{Restriction fragmentation control diagnostic plots for all samples.} Samples that did not undergo enzyme digestion fail this step. DNA from samples fragmented by sonication (as opposed to AluI digestion) have small \( \frac{C+D}{A+B} \) probe ratios and can be identified by red dots in the top plot and grey highlighting in the bottom plot.}
 \end{center}
 
 \vspace{5mm}
 
 \subsection{Invariant controls}
 
-The third quality control step involves plotting invariant control probe counts. Samples found to have mean invariant counts of less than 100 are considered low quality \cite{nscnv}. Low counts in normal reference samples are especially problematic as they lead to exaggerated copy number calls. 
+The third quality control step involves plotting invariant control probe counts. Samples found to have mean invariant counts of less than 100 are considered low quality \cite{nscnv}. Low counts in normal reference samples are especially problematic as they can lead to exaggerated copy number calls. 
 
 <<eg.invariant.control.qc, eval = FALSE>>=
 # plotting invariant probes
@@ -190,18 +193,22 @@ make.invariant.probe.plot(
 	);
 @
 
-If there are low count invariant probes, two diagnostic plots are produced. One of these is a barplot showing samples with invariant probe counts of less than 100.
-
 \vspace{5mm}
 
 \begin{center}
 	\includegraphics[width=0.6\textwidth]{all-invariant-probe-counts_scatterplot.png}  
-	\captionof{figure}{Invariant counts per probe across all samples. Counts that fall under the recommended minimum of 100 are in red.}
+	\captionof{figure}{\textbf{Invariant control diagnostic plot showing invariant counts per probe across all samples.} Counts that fall under the recommended minimum of 100 are in red.}
 \end{center}
+
+\vspace{5mm}
+
+If there are any low count invariant probes, an additional diagnostic plot is produced displaying the samples with invariant probe counts of less than 100.
+
+\vspace{5mm}
 
 \begin{center}
 	\includegraphics[width=0.6\textwidth]{low-invariant-probe-counts_barplot.png}  
-	\captionof{figure}{The number of probes with low counts per sample. Normal reference sample bars are in red and tumour sample bars are in black. Low counts are most problematic in reference samples when calling copy number downstream.}
+	\captionof{figure}{\textbf{Invariant control diagnostic plot showing the number of probes with low counts per sample.} Normal reference sample bars are in red and tumour sample bars are in black. Low counts are most problematic in reference samples when calling copy number downstream.}
 \end{center}
 
 \vspace{5mm}
@@ -222,6 +229,15 @@ PhenoData[PhenoData$SampleID == 'CPCG0248F1',]$ReferenceID <- 'missing';
 PhenoData[PhenoData$SampleID %in% c('CPCG0266B.M2', 'CPCG0248B.M1'),]$HasReplicate <- 0;
 @
 
+<<eg.write.updated.data, eval = FALSE>>==
+# write updates to file
+write.table(
+	x = PhenoData,
+	file = "PhenoData.csv",
+	sep = ","
+	);
+@
+
 %------------------------------------------------------------
 \section{Normalization Methods}\label{sec:normalization}
 %------------------------------------------------------------
@@ -229,9 +245,7 @@ PhenoData[PhenoData$SampleID %in% c('CPCG0266B.M2', 'CPCG0248B.M1'),]$HasReplica
 Most of the normalization options available in NanoStringNormCNV are accessed through NanoStringNorm. The options are briefly outlined below but for full details please see the NanoStringNorm vignette 'Introduction to analyzing NanoString nCounter data using the NanoStringNorm package' \cite{nsn}. 
 
 \subsection{Code Count Correction}
-The first option is code count correction ('cc'). Positive controls (PC) are used to minimize any lane-to-lane variation. A normalization factor (NF) is calculated from the PC counts by summarizing the counts using summation ('sum') or by taking the geometric mean ('geo.mean'). All raw counts are then multiplied by the NF. To skip this step, specify 'none'.
-
-Code count correction using summation for probe summarization:
+The first option is code count correction ('cc'). Positive controls (PC) are used to minimize any lane-to-lane variation. A normalization factor (NF) is calculated from the PC counts by summarizing the counts using summation ('sum') or by taking the geometric mean ('geo.mean'). All raw counts are then multiplied by the NF. To skip this step, specify 'none'. The equations for code count correction using summation for probe summarization are:
 
 \begin{equation}
 	\begin{split}
@@ -241,12 +255,10 @@ Code count correction using summation for probe summarization:
 	\end{split}
 \end{equation}
 
-Where x = data matrix[g,s], s = sample index, g = gene index, $n_S$ = number of samples and $n_G$ = number of genes.
+\noindent where x = data matrix[g,s], s = sample index, g = gene index, $n_S$ = number of samples and $n_G$ = number of genes.
 
 \subsection{Background Correction}
-The second option is background correction ('bc'). Negative controls (NC) are used to account for non-specific binding to probes. To calculate background noise, NC are summarized either by taking the mean ('mean'), the maximum ('max') or the mean plus two standard deviations ('mean.2sd'). The background is then subtracted from each sample. To skip, specify 'none'.
-
-Background correction using mean plus 2 standard deviations for probe summarization:
+The second option is background correction ('bc'). Negative controls (NC) are used to account for non-specific binding to probes. To calculate background noise, NC are summarized either by taking the mean ('mean'), the maximum ('max') or the mean plus two standard deviations ('mean.2sd'). The background is then subtracted from each sample. To skip, specify 'none'. The equations for background correction using mean plus 2 standard deviations for probe summarization are:
 
 \begin{equation}
 	\begin{split}
@@ -257,7 +269,7 @@ Background correction using mean plus 2 standard deviations for probe summarizat
 	\end{split}
 \end{equation}
 
-Where $\overline{NC}$ = mean of negative control counts, $\sigma_{NC}$ = standard deviation of negative control counts, x = data matrix[g,s], s = sample index, g = gene index, $n_S$ = number of samples and $n_G$ = number of genes.
+\noindent where $\overline{NC}$ = mean of negative control counts, $\sigma_{NC}$ = standard deviation of negative control counts, x = data matrix[g,s], s = sample index, g = gene index, $n_S$ = number of samples and $n_G$ = number of genes.
 
 \subsection{Sample Content Correction}
 The third option is sample content correction ('sc'). Housekeeping genes (HK) are used to normalize for genomic DNA input amounts (\textit{e.g.} differences due to pipetting fluctuations). To normalize, HK counts are summarized to calculate a normalization factor (NF) by which all counts are multiplied. A number of options are available for probe summarization: 'housekeeping.geo.mean', total.sum', 'top.geo.mean', 'low.cv.geo.mean'. To skip, specify 'none'.
@@ -266,7 +278,7 @@ For 'housekeeping.geo.mean', NanoStringNorm requires probes of code class 'House
 \\\\
 Method 'top.geo.mean' uses the geometric mean of the top 75 expressed genes whereas 'low.cv.geo.mean' uses the geometric mean of the genes with the lowest coefficients of variation (recommended if outliers are present). Finally, 'total.sum' uses the sum of all the probes.
 \\\\
-Sample content correction using geometric mean for probe summarization:
+The equations for sample content correction using geometric mean for probe summarization are:
 
 \begin{equation}
 	\begin{split}
@@ -276,11 +288,9 @@ Sample content correction using geometric mean for probe summarization:
 	\end{split}
 \end{equation}
 
-Where x = data matrix[g,s], s = sample index, g = gene index, $n_S$ = number of samples and $n_G$ = number of genes.
+\noindent where x = data matrix[g,s], s = sample index, g = gene index, $n_S$ = number of samples and $n_G$ = number of genes.
 \\ \\
-A new option for sample content correction (not implemented in NanoStringNorm) makes use of the invariant control (IC) probes. This method can be run directly with \Rfunction{invariant.probe.norm} or in combination with the other normalization techniques. Invariant probe normalization is the method outlined in NanoString guidelines for CNV analysis \cite{nscnv} and therefore recommended here for sample content correction.
-\\\\
-Invariant probe normalization:
+A new option for sample content correction (not implemented in NanoStringNorm) makes use of the invariant control (IC) probes. This method can be run directly with \Rfunction{invariant.probe.norm} or in combination with the other normalization techniques. Invariant probe normalization is the method outlined in NanoString guidelines for CNV analysis \cite{nscnv} and therefore recommended here for sample content correction. The equations for invariant probe normalization are:
 
 \begin{equation}
 	\begin{split}
@@ -290,7 +300,7 @@ Invariant probe normalization:
 	\end{split}
 \end{equation}
 
-Where $\overline{IC}$ = mean of invariant control counts, x = data matrix[g,s], s = sample index, g = gene index, $n_S$ = number of samples, $n_G$ = number of genes and NF = normalization factor.
+\noindent where $\overline{IC}$ = mean of invariant control counts, x = data matrix[g,s], s = sample index, g = gene index, $n_S$ = number of samples, $n_G$ = number of genes and NF = normalization factor.
 \\ \\
 Ultimately, invariant and/or housekeeping probes are selected so as to have negligible variability in probe count across samples and experiments. Practically speaking, this is not always the case and excessive variability in these probes should be checked. Since CNA calling is performed on these probe types, users may use the results to identify probes with extreme values as an additional quality-control step. 
 
@@ -396,7 +406,7 @@ For each probe ('Endogenous', 'Invariant', 'Housekeeping'), tumour-normal ratios
 	TN_{g,s} = \frac{T_{g,s}}{R_{g,s}}
 \end{equation}
 
-Where TN = tumour-normal ratio, T = tumour count data matrix[g,s], R = reference count data matrix[g,s], s = sample index and g = gene index.
+\noindent where TN = tumour-normal ratio, T = tumour count data matrix[g,s], R = reference count data matrix[g,s], s = sample index and g = gene index.
 \\ \\
 If calling using pooled normals, each tumour sample probe is divided by the normal cohort's mean count of the corresponding probe. 
 
@@ -404,7 +414,7 @@ If calling using pooled normals, each tumour sample probe is divided by the norm
 	TN_{g,s} = \frac{T_{g,s}}{\bar{R}_{g}}
 \end{equation}
 
-Where TN = tumour-normal ratio, T = tumour count data matrix[g,s], $\bar{R}$ = mean reference count, s = sample index and g = gene index.
+\noindent where TN = tumour-normal ratio, T = tumour count data matrix[g,s], $\bar{R}$ = mean reference count, s = sample index and g = gene index.
 \\ \\
 Additionally for pooled normals, ratios for normal sample probes are also calculated. 
 
@@ -412,7 +422,7 @@ Additionally for pooled normals, ratios for normal sample probes are also calcul
 	NN_{g,s} = \frac{R_{g,s}}{\bar{R}_{g}}
 \end{equation}
 
-Where NN = normal-normal$_{mean}$ ratio, R = reference count data matrix[g,s], $\bar{R}$ = mean reference count, s = sample index and g = gene index.
+\noindent where NN = normal-normal$_{mean}$ ratio, R = reference count data matrix[g,s], $\bar{R}$ = mean reference count, s = sample index and g = gene index.
 \\ \\
 As suggested by NanoString guidelines \cite{nscnv}, tumour-normal ratios are then boosted by a multiplication factor. For autosomal chromosome probe ratios, this is a multiplication factor of two, representing the diploid nature of the genome. This also applies to chromosome X probes in female samples. For sex chromosome probes in male samples, a multiplication factor of one is used instead. Furthermore, when calling copy number with pooled normals, ratios are additionally adjusted so that median sample copy number is equal to the multiplication factor.
 
@@ -423,7 +433,7 @@ As suggested by NanoString guidelines \cite{nscnv}, tumour-normal ratios are the
 	\end{split}
 \end{equation}
 
-Where X = sample tumour-normal ratios, $\tilde{X}$ = median sample tumour-normal ratio and MF = multiplication factor.
+\noindent where X = sample tumour-normal ratios, $\tilde{X}$ = median sample tumour-normal ratio and MF = multiplication factor.
 \\ \\
 Next, ratios are converted to categorical CNA calls (0 to 4) by rounding. Rounding is performed using four thresholds representing 1) a homozygous deletion, 2) a heterozygous deletion, 3) a single-copy gain and 4) a multi-copy gain. Currently, there are three options available for setting the CNA thresholds:
 
@@ -529,7 +539,7 @@ make.counts.heatmap(
 
 \begin{center}
 	\includegraphics[width=0.5\textwidth]{normalized-logged_counts-heatmap.png}
-	\captionof{figure}{Normalized NanoString counts}
+	\captionof{figure}{\textbf{Normalized NanoString counts.}}
 \end{center}
 
 \clearpage
@@ -552,7 +562,7 @@ make.counts.heatmap(
 
 \begin{center}
 	\includegraphics[width=0.5\textwidth]{raw-logged_counts-heatmap.png}
-	\captionof{figure}{Raw NanoString counts}
+	\captionof{figure}{\textbf{Raw NanoString counts.}}
 \end{center}
 
 \clearpage
@@ -572,7 +582,7 @@ make.cna.heatmap(
 
 \begin{center}
 	\includegraphics[width=0.5\textwidth]{rounded-cna-calls_cna-heatmap.png}
-	\captionof{figure}{Rounded CNA calls}
+	\captionof{figure}{\textbf{Rounded CNA calls.}}
 \end{center}
 
 \clearpage
@@ -596,7 +606,7 @@ make.cna.heatmap(
 
 \begin{center}
 	\includegraphics[width=0.5\textwidth]{raw-cna-calls_cna-heatmap.png}
-	\captionof{figure}{Raw CNA calls}
+	\captionof{figure}{\textbf{Raw CNA calls.}}
 \end{center}
 
 \clearpage
@@ -615,7 +625,7 @@ make.cna.densities.plots(
 	\centering
 	\includegraphics[width=0.4\textwidth]{rounded-cna-calls_gene-densityplot.png}
 	\includegraphics[width=0.4\textwidth]{rounded-cna-calls_sample-densityplot.png}
-	\caption{Rounded CNA call densities per gene (left) and per sample (right)}
+	\caption{\textbf{Rounded CNA call densities.} Densities per gene (left) and densities per sample (right).}
 \end{figure}
 
 \clearpage
@@ -632,7 +642,7 @@ make.sample.correlations.heatmap(
 
 \begin{center}
 	\includegraphics[width=0.5\textwidth]{raw-count_inter-sample-correlation-heatmap.png}
-	\captionof{figure}{Raw NanoString count inter-sample correlations}
+	\captionof{figure}{\textbf{Raw NanoString count inter-sample correlations.}}
 \end{center}
 
 \clearpage
@@ -654,7 +664,7 @@ visualize.results(
 
 \begin{center}
 	\includegraphics[width=0.5\textwidth]{norm-count_inter-sample-correlation-heatmap.png}
-	\captionof{figure}{Normalized NanoString count inter-sample correlations}
+	\captionof{figure}{\textbf{Normalized NanoString count inter-sample correlations.}}
 \end{center}
 
 \vspace{5mm}
@@ -663,49 +673,49 @@ visualize.results(
 	\centering
 	\includegraphics[width=0.4\textwidth]{raw-cna-calls_gene-densityplot.png}
 	\includegraphics[width=0.4\textwidth]{raw-cna-calls_sample-densityplot.png}
-	\caption{Raw CNA call densities per gene (left) and per sample (right)}
+	\caption{\textbf{Raw CNA call densities.} Densities per gene (left) and densities per sample (right).}
 \end{figure}
 
 \vspace{5mm}
 
 \begin{center}
 	\includegraphics[width=0.5\textwidth]{replicate_raw-logged_counts-heatmap.png}
-	\captionof{figure}{Raw counts for replicate samples}
+	\captionof{figure}{\textbf{Raw counts for replicate samples.}}
 \end{center}
 
 \vspace{5mm}
 
 \begin{center}
 	\includegraphics[width=0.5\textwidth]{replicate_norm-logged_counts-heatmap.png}
-	\captionof{figure}{Normalized counts for replicate samples}
+	\captionof{figure}{\textbf{Normalized counts for replicate samples.}}
 \end{center}
 
 \vspace{5mm}
 
 \begin{center}
 	\includegraphics[width=0.5\textwidth]{replicate_norm-count_inter-sample-correlation-heatmap.png}
-	\captionof{figure}{Normalized count inter-sample correlations for replicate samples}
+	\captionof{figure}{\textbf{Normalized count inter-sample correlations for replicate samples.}}
 \end{center}
 
 \vspace{5mm}
 
 \begin{center}
 	\includegraphics[width=0.5\textwidth]{replicate_tumour-only_norm-count_inter-sample-correlation-heatmap.png}
-	\captionof{figure}{Normalized count inter-sample correlations for replicate samples, tumour only}
+	\captionof{figure}{\textbf{Normalized count inter-sample correlations for replicate samples, tumour only.}}
 \end{center}
 
 \vspace{5mm}
 
 \begin{center}
 	\includegraphics[width=0.5\textwidth]{replicate_cna-calls_cna-heatmap.png}
-	\captionof{figure}{CNA calls for replicate samples}
+	\captionof{figure}{\textbf{CNA calls for replicate samples.}}
 \end{center}
 
 \vspace{5mm}
 
 \begin{center}
 	\includegraphics[width=0.5\textwidth]{replicate_cna-concordance_counts-heatmap.png}
-	\captionof{figure}{Copy number concordance across replicate samples}
+	\captionof{figure}{\textbf{Copy number concordance across replicate samples.}}
 \end{center}
 
 \pagebreak
