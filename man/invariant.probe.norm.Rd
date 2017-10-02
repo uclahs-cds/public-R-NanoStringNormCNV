@@ -27,12 +27,12 @@ invariant.probe.norm(nanostring.data, phenodata = NULL)
 \seealso{NanoStringNorm::sample.content.normalization}
 \examples{\dontrun{
 	# load raw data
-	data(NanoString);
+	data(NanoString.DNA.raw);
 	data(PhenoData)
 
 	# normalize
 	normalized.data <- invariant.probe.norm(
-		nanostring.data = NanoString,
+		nanostring.data = NanoString.DNA.raw,
 		phenodata = PhenoData
 		);	
 }}

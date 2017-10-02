@@ -18,16 +18,16 @@ make.sample.correlations.heatmap(
 \author{Cindy Yao and Emilie Lalonde}
 \examples{\dontrun{
   # load data
-  data(NanoString);
+  data(NanoString.DNA.raw);
   data(PhenoData);
 
 	# make sure raw count data frame has gene names for rownames!
-	NanoString.formatted <- NanoString[, -(1:3)];
-	rownames(NanoString.formatted) <- NanoString$Name;
+	NanoString.DNA.formatted <- NanoString.DNA.raw[, -(1:3)];
+	rownames(NanoString.DNA.formatted) <- NanoString.DNA.raw$Name;
 
 	# plot raw NanoString count correlations
 	make.sample.correlations.heatmap(
-		nano.counts = NanoString.formatted,
+		nano.counts = NanoString.DNA.formatted,
 		covs = PhenoData[, c('SampleID', 'Cartridge', 'Type')]
 		);
 }}

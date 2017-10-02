@@ -22,27 +22,27 @@ make.counts.heatmap(
 \author{Cindy Yao and Emilie Lalonde}
 \examples{\dontrun{
   # load data
-  data(NanoString);
-  data(NanoString.norm);
+  data(NanoString.DNA.raw);
+  data(NanoString.DNA.norm);
   data(PhenoData);
 
   # plot normalized NanoString counts
   make.counts.heatmap(
-    nano.counts = NanoString.norm[, -(1:3)],
+    nano.counts = NanoString.DNA.norm[, -(1:3)],
     fname.stem = 'normalized',
     covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
-    covs.cols = NanoString[, c('Name', 'CodeClass')]
+    covs.cols = NanoString.DNA.raw[, c('Name', 'CodeClass')]
     ); 
 
   # plot raw NanoString counts
   # make sure raw count data frame has gene names for rownames!
-  NanoString.formatted <- NanoString[, -(1:3)];
-  rownames(NanoString.formatted) <- NanoString$Name;
+  NanoString.DNA.formatted <- NanoString.DNA.raw[, -(1:3)];
+  rownames(NanoString.DNA.formatted) <- NanoString.DNA.raw$Name;
 
   make.counts.heatmap(
-    nano.counts = NanoString.formatted,
+    nano.counts = NanoString.DNA.formatted,
     fname.stem = 'raw',
     covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
-    covs.cols = NanoString[, c('Name', 'CodeClass')]
+    covs.cols = NanoString.DNA.raw[, c('Name', 'CodeClass')]
     );
 }}

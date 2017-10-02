@@ -24,13 +24,13 @@ make.cna.heatmap(
 \author{Cindy Yao and Emilie Lalonde}
 \examples{\dontrun{
   # load data
-  data(NanoString);
-  data(NanoString.norm);
+  data(NanoString.DNA.raw);
+  data(NanoString.DNA.norm);
   data(PhenoData);
 
   # call CNAs
   cnas <- call.cnas.with.pooled.normals(
-    normalized.data = NanoString.norm,
+    normalized.data = NanoString.DNA.norm,
     phenodata = PhenoData
     );
   
@@ -39,7 +39,7 @@ make.cna.heatmap(
     nano.cnas = cnas$rounded,
     fname.stem = 'round',
     covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
-    covs.cols = NanoString[, c('Name', 'CodeClass')],
+    covs.cols = NanoString.DNA.raw[, c('Name', 'CodeClass')],
     rounded = TRUE
     );
 
@@ -48,7 +48,7 @@ make.cna.heatmap(
     nano.cnas = cnas$raw,
     fname.stem = 'raw',
     covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
-    covs.cols = NanoString[, c('Name', 'CodeClass')],
+    covs.cols = NanoString.DNA.raw[, c('Name', 'CodeClass')],
     rounded = FALSE
     );
 }}

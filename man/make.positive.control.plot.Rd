@@ -15,11 +15,11 @@ make.positive.control.plot(correlations, covs = NULL, print.x.labels = TRUE)
 \author{Cindy Yao and Emilie Lalonde}
 \examples{\dontrun{
 	#load raw data
-	data(NanoString);
+	data(NanoString.DNA.raw);
 	data(PhenoData);
 
 	# run QC
-	r.squared <- positive.control.qc(raw.data = NanoString);
+	r.squared <- positive.control.qc(raw.data = NanoString.DNA.raw);
 
 	# plot results
 	make.positive.control.plot(

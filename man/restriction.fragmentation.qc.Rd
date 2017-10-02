@@ -23,8 +23,8 @@
 \author{Cindy Yao and Emilie Lalonde}
 \examples{\dontrun{
 	# load raw data
-	data(NanoString);
+	data(NanoString.DNA.raw);
 
 	# run QC
-	qc.results <- restriction.fragmentation.qc(raw.data = NanoString);
+	qc.results <- restriction.fragmentation.qc(raw.data = NanoString.DNA.raw);
 }}

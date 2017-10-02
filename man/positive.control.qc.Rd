@@ -23,9 +23,9 @@
 \seealso{\code{\link{make.positive.control.plot}}}
 \examples{\dontrun{
 	#load raw data
-	data(NanoString);
+	data(NanoString.DNA.raw);
 	data(PhenoData);
 
 	# run QC
-	r.squared <- positive.control.qc(raw.data = NanoString);
+	r.squared <- positive.control.qc(raw.data = NanoString.DNA.raw);
 }}

@@ -14,12 +14,12 @@ process.xy.probes(normalized.data, sex.info)
 \author{Dorota Sendorek}
 \examples{
 	# load data
-	data(NanoString.norm);
+	data(NanoString.DNA.norm);
 	data(PhenoData);
 
 	# process chrX and chrY probes
 	processed.data <- NanoStringNormCNV:::process.xy.probes(
-		normalized.data = NanoString.norm,
+		normalized.data = NanoString.DNA.norm,
 		sex.info = PhenoData
 		);
 }

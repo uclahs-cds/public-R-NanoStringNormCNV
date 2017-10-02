@@ -33,12 +33,12 @@ call.cnas.with.matched.normals(
 \seealso{\code{\link{call.cnas.with.pooled.normals}}}
 \examples{\dontrun{
   # load data
-  data(NanoString.norm);
+  data(NanoString.DNA.norm);
   data(PhenoData);
 
   # call CNAs by rounding ratios to thresholds derived from NanoString recommendations
   cnas <- call.cnas.with.matched.normals(
-    normalized.data = NanoString.norm,
+    normalized.data = NanoString.DNA.norm,
     phenodata = PhenoData,
     call.method = 1,
     use.sex.info = TRUE    
@@ -46,7 +46,7 @@ call.cnas.with.matched.normals(
 
   # call CNAs using kernel density method
   cnas <- call.cnas.with.matched.normals(
-    normalized.data = NanoString.norm,
+    normalized.data = NanoString.DNA.norm,
     phenodata = PhenoData,
     call.method = 2,
     kd.values = c(0.99, 0.87, 0.89, 0.96),
