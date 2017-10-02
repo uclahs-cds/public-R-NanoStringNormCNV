@@ -41,10 +41,10 @@ pagecolor=darkblue,raiselinks,plainpages,pdftex]{hyperref}
 %------------------------------------------------------------
 
 \begin{document}
-%----------------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------------------
 \title{Introduction to analyzing NanoString nCounter data using the NanoStringNormCNV package}
 \author{Emilie Lalonde \& Dorota Sendorek}
-%----------------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------------------
 \maketitle
 \tableofcontents
 %\listoffigures
@@ -92,9 +92,9 @@ Alternatively, data can be read in from a raw text file as a data frame and manu
 require('NanoStringNormCNV');
 
 # load raw count example dataset
-data("NanoString");
-str(NanoString);
-print(NanoString[1:6, 1:7]);
+data("NanoString.DNA.raw");
+str(NanoString.DNA.raw);
+print(NanoString.DNA.raw[1:6, 1:7]);
 @
 
 The sample annotation file (csv or tab-delimited) is loaded separately. It is recommended to use \Rfunction{load.phenodata} as this function checks that the information and formatting meets package requirements for downstream processing. See "PhenoData" man page for details on formatting requirements.
@@ -130,7 +130,7 @@ Samples with R squared values that fall below 0.95 are flagged. Additionally, di
 
 <<eg.positive.control.qc, eval = FALSE>>=
 # quality control using positive controls
-r.squared <- positive.control.qc(raw.data = NanoString);
+r.squared <- positive.control.qc(raw.data = NanoString.DNA.raw);
 
 # plot R squared values
 make.positive.control.plot(correlations = r.squared, covs = PhenoData);
@@ -153,7 +153,7 @@ Restriction fragmentation controls are used to determine whether DNA denaturatio
 # correctly running QC on AluI-digested samples only
 excl.samples <- PhenoData$SampleID[PhenoData$Fragmentation != "AluI"];
 probe.ratios <- restriction.fragmentation.qc(
-	raw.data = NanoString[, ! names(NanoString) %in% excl.samples]
+	raw.data = NanoString.DNA.raw[, ! names(NanoString.DNA.raw) %in% excl.samples]
 	);
 @
 
@@ -168,7 +168,7 @@ probe.ratios <- restriction.fragmentation.qc(
 <<eg.restriction.fragmentation.control.qc.all, eval = FALSE>>=
 # running QC on all available samples (\textit{i.e.} AluI-digested and sonicated)
 probe.ratios <- restriction.fragmentation.qc(
-	raw.data = NanoString
+	raw.data = NanoString.DNA.raw
 	);
 @
 
@@ -188,7 +188,7 @@ The third quality control step involves plotting invariant control probe counts.
 <<eg.invariant.control.qc, eval = FALSE>>=
 # plotting invariant probes
 make.invariant.probe.plot(
-	inv.probe.counts = NanoString[NanoString$CodeClass == 'Invariant', -(1:3)],
+	inv.probe.counts = NanoString.DNA.raw[NanoString.DNA.raw$CodeClass == 'Invariant', -(1:3)],
 	tissue.type = PhenoData
 	);
 @
@@ -216,9 +216,9 @@ If there are any low count invariant probes, an additional diagnostic plot is pr
 In this example, samples CPCG0266B.M1 and CPCG0248B.M2 are found to have unusually large numbers of low count probes. As such, here we remove these poor quality reference samples from both the raw count and annotation datasets.
 
 <<eg.remove.low.qual>>=
-low.quality <- c('CPCG0266B.M1', 'CPCG0248B.M2');
-NanoString  <- NanoString[, !names(NanoString) %in% low.quality];
-PhenoData   <- PhenoData[!PhenoData$SampleID %in% low.quality,];
+low.quality 		<- c('CPCG0266B.M1', 'CPCG0248B.M2');
+NanoString.DNA.raw  <- NanoString.DNA.raw[, !names(NanoString.DNA.raw) %in% low.quality];
+PhenoData   		<- PhenoData[!PhenoData$SampleID %in% low.quality,];
 @
 
 It is important to remember that the annotation data must be updated to reflect these changes prior to continuing with data processing. As CPCG0248B.M2 was the matched normal for tumour sample CPCG0248F1, the reference ID for CPCG0248F1 must be set to 'missing'. Additionally, since both removed samples had replicates, the 'HasReplicate' column must also be updated.    
@@ -229,13 +229,9 @@ PhenoData[PhenoData$SampleID == 'CPCG0248F1',]$ReferenceID <- 'missing';
 PhenoData[PhenoData$SampleID %in% c('CPCG0266B.M2', 'CPCG0248B.M1'),]$HasReplicate <- 0;
 @
 
-<<eg.write.updated.data, eval = FALSE>>==
+<<eg.write.updated.phenodata, eval = FALSE>>==
 # write updates to file
-write.table(
-	x = PhenoData,
-	file = "PhenoData.csv",
-	sep = ","
-	);
+write.table(x = PhenoData, file = "PhenoData_updated.csv", sep = ",");
 @
 
 %------------------------------------------------------------
@@ -313,8 +309,8 @@ Finally, to maximize flexibility, NanoString cartridges can either be processed 
 <<eg.norm1>>=
 # example 1
 # perform invariant probe normalization only --cartridges combined
-NanoString.norm <- normalize.global(
-	raw.data = NanoString,
+NanoString.DNA.norm <- normalize.global(
+	raw.data = NanoString.DNA.raw,
 	cc = 'none',
 	bc = 'none',
 	sc = 'none',
@@ -328,8 +324,8 @@ NanoString.norm <- normalize.global(
 <<eg.norm2>>=
 # example 2
 # perform invariant probe normalization only --cartridges individually
-NanoString.norm <- normalize.per.chip(
-	raw.data = NanoString,
+NanoString.DNA.norm <- normalize.per.chip(
+	raw.data = NanoString.DNA.raw,
 	cc = 'none',
 	bc = 'none',
 	sc = 'none',
@@ -360,8 +356,8 @@ for (n in 1:nrow(PhenoData)) {
 
 covs$Type <- ifelse(PhenoData$Type == 'Reference', 1, 2);
 
-NanoString.norm <- normalize.global(
-	raw.data = NanoString,
+NanoString.DNA.norm <- normalize.global(
+	raw.data = NanoString.DNA.raw,
 	cc = 'none',
 	bc = 'none',
 	sc = 'none',
@@ -374,8 +370,8 @@ NanoString.norm <- normalize.global(
 
 <<eg.norm4>>=
 # same as above but per chip
-NanoString.norm <- normalize.per.chip(
-	raw.data = NanoString,
+NanoString.DNA.norm <- normalize.per.chip(
+	raw.data = NanoString.DNA.raw,
 	cc = 'none',
 	bc = 'none',
 	sc = 'none',
@@ -386,12 +382,22 @@ NanoString.norm <- normalize.per.chip(
 	);
 @
 
+<<eg.write.normalized, eval = FALSE>>==
+# write normalized counts to file
+write.table(x = NanoString.DNA.norm, file = "normalized_counts.csv", sep = ",");
+@
+
 \subsection{Collapsing Probes}
 Post-normalization, for datasets where there are multiple probes per gene/genomic segment, one may choose to collapse probes to a single value. Probes with matching 'Accession' values are collapsed by taking the mean of their counts. Unique probe 'Name' values are substituted with 'Accession' values.
 
 <<eg.collapse.genes>>=
-NanoString.norm.col <- collapse.genes(normalized.data = NanoString.norm);
-print(NanoString.norm.col[1:6, 1:6]);
+NanoString.DNA.norm.col <- collapse.genes(normalized.data = NanoString.DNA.norm);
+print(NanoString.DNA.norm.col[1:6, 1:6]);
+@
+
+<<eg.write.collapsed, eval = FALSE>>==
+# write collapsed data to file
+write.table(x = NanoString.DNA.norm.col, file = "normalized_collapsed_counts.csv", sep = ",");
 @
 
 %------------------------------------------------------------
@@ -446,7 +452,7 @@ Next, ratios are converted to categorical CNA calls (0 to 4) by rounding. Roundi
 <<call.cnas.matched.ref>>=
 # Option 1: call using matched normal reference
 cnas <- call.cnas.with.matched.normals(
-	normalized.data = NanoString.norm,
+	normalized.data = NanoString.DNA.norm,
 	phenodata = PhenoData,
 	per.chip = FALSE,
 	call.method = 2,
@@ -458,7 +464,7 @@ cnas <- call.cnas.with.matched.normals(
 <<call.cnas.pooled.ref>>=
 # Option 2: call using a pooled normals reference
 cnas <- call.cnas.with.pooled.normals(
-	normalized.data = NanoString.norm,
+	normalized.data = NanoString.DNA.norm,
 	phenodata = PhenoData,
 	per.chip = FALSE,
 	call.method = 3,
@@ -466,12 +472,17 @@ cnas <- call.cnas.with.pooled.normals(
 	);
 # Option 3: call using a pooled normals reference
 cnas <- call.cnas.with.pooled.normals(
-	normalized.data = NanoString.norm,
+	normalized.data = NanoString.DNA.norm,
 	phenodata = PhenoData,
 	per.chip = FALSE,
 	call.method = 1,
 	use.sex.info = TRUE
 	);
+@
+
+<<eg.write.cnas, eval = FALSE>>==
+# write CNAs to file
+write.table(x = cnas, file = "cnas.csv", sep = ",");
 @
 
 %------------------------------------------------------------
@@ -485,7 +496,7 @@ Information from replicate samples can be used to determine the concordance of c
 # if technical replicates are available
 evaluation <- evaluate.replicates(
 	phenodata = PhenoData,
-	normalized.data = NanoString.norm,
+	normalized.data = NanoString.DNA.norm,
 	cna.rounded = cnas$rounded
 	);
 @
@@ -504,15 +515,15 @@ patient.ari <- get.ari(
 <<eg.ari2>>=
 # how much does the data cluster around the cartridges on which the samples were processed
 # log values, if appropriate
-if (all(unlist(NanoString.norm) >= 0)) {
-    count.data <- log10(NanoString.norm[, -c(1:3)] + 1);
+if (all(unlist(NanoString.DNA.norm) >= 0)) {
+    count.data <- log10(NanoString.DNA.norm[, -c(1:3)] + 1);
 } else {
-    count.data <- NanoString.norm[, -c(1:3)];
+    count.data <- NanoString.DNA.norm[, -c(1:3)];
     }
 
 cartridge.ari <- get.ari(
     data.to.cluster = count.data,
-    feature = PhenoData$Cartridge[match(colnames(NanoString.norm[, -(1:3)]), PhenoData$SampleID)],
+    feature = PhenoData$Cartridge[match(colnames(NanoString.DNA.norm[, -(1:3)]), PhenoData$SampleID)],
     is.discrete = FALSE
     );
 @
@@ -528,10 +539,10 @@ A number of plotting functions are provided. Diagnostic plots have been describe
 <<eg.vis1a, eval = FALSE>>=
 # plot normalized NanoString counts
 make.counts.heatmap(
-	nano.counts = NanoString.norm[, -(1:3)],
+	nano.counts = NanoString.DNA.norm[, -(1:3)],
 	fname.stem = 'normalized',
 	covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
-	covs.cols = NanoString[, c('Name', 'CodeClass')]
+	covs.cols = NanoString.DNA.raw[, c('Name', 'CodeClass')]
 	);
 @
 
@@ -547,14 +558,14 @@ make.counts.heatmap(
 <<eg.vis1b, eval = FALSE>>=
 # plot raw NanoString counts
 # make sure raw count data frame has gene names for row names!
-NanoString.formatted <- NanoString[, -(1:3)];
-rownames(NanoString.formatted) <- NanoString$Name;
+NanoString.DNA.formatted <- NanoString.DNA.raw[, -(1:3)];
+rownames(NanoString.DNA.formatted) <- NanoString.DNA.raw$Name;
 
 make.counts.heatmap(
-	nano.counts = NanoString.formatted,
+	nano.counts = NanoString.DNA.formatted,
 	fname.stem = 'raw',
 	covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
-	covs.cols = NanoString[, c('Name', 'CodeClass')]
+	covs.cols = NanoString.DNA.raw[, c('Name', 'CodeClass')]
 	);
 @
 
@@ -573,7 +584,7 @@ make.cna.heatmap(
 	nano.cnas = cnas$rounded,
 	fname.stem = 'round',
 	covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
-	covs.cols = NanoString[, c('Name', 'CodeClass')],
+	covs.cols = NanoString.DNA.raw[, c('Name', 'CodeClass')],
 	rounded = TRUE
 	);
 @
@@ -597,7 +608,7 @@ make.cna.heatmap(
 	nano.cnas = cnas.raw.max5,
 	fname.stem = 'raw',
 	covs.rows = PhenoData[, c('SampleID', 'Type', 'Cartridge')],
-	covs.cols = NanoString[, c('Name', 'CodeClass')],
+	covs.cols = NanoString.DNA.raw[, c('Name', 'CodeClass')],
 	rounded = FALSE
 	);
 @
@@ -633,7 +644,7 @@ make.cna.densities.plots(
 <<eg.vis4, eval = FALSE>>=
 # plot raw NanoString count correlations
 make.sample.correlations.heatmap(
-	nano.counts = NanoString.formatted,
+	nano.counts = NanoString.DNA.formatted,
 	covs = PhenoData[, c('SampleID', 'Cartridge', 'Type')]
 	);
 @
@@ -650,8 +661,8 @@ make.sample.correlations.heatmap(
 <<eg.vis5, eval = FALSE>>=
 # alternatively, plot all results using wrapper function
 visualize.results(
-    raw.data = NanoString,
-    normalized.data = NanoString.norm,
+    raw.data = NanoString.DNA.raw,
+    normalized.data = NanoString.DNA.norm,
     phenodata = PhenoData,
     cna.rounded = cnas$rounded,
     cna.raw = cnas$raw,
