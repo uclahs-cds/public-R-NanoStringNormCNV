@@ -1,8 +1,8 @@
 Package: NanoStringNormCNV
 Type: Package
 Title: Helper Functions to Normalize NanoString CNV Data
-Version: 1.1.1
-Date: 2017-09-29
+Version: 1.1.2
+Date: 2017-11-07
 Author: Cindy Yao, Emilie Lalonde, Dorota Sendorek
 Maintainer: Paul Boutros <Paul.Boutros@oicr.on.ca>
 Depends: R (>= 3.0.2),lattice (>= 0.20-27), BoutrosLab.plotting.general (>= 3.6.20), mclust (>= 4.4), gdata (>= 2.8.2)
