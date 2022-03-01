@@ -1,0 +1,20 @@
+---
+name: R-CMD-check
+
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  R-CMD-check:
+    runs-on: ubuntu-latest
+
+    container:
+      image: blcdsdockerregistry/bl-r-devel:latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: NanoStringNorm
+      - run: R CMD build --compact-vignettes="gs+qpdf" NanoStringNormCNV
+      - run: R CMD check --as-cran --run-donttest NanoStringNormCNV_*.tar.gz
