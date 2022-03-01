@@ -1,0 +1,57 @@
+NanoStringNormCNV 1.1.0 2017-05-20
+
+CHANGE
+* Remove exports for helper functions
+
+-------------------------------------------------------------------------- 
+NanoStringNormCNV 1.0.8 2017-05-18
+
+CHANGE
+* Minor changes to manual and vignettes
+
+--------------------------------------------------------------------------
+NanoStringNormCNV 1.0.7 2017-05-10
+
+CHANGE
+* Minor changes to manual and vignettes
+
+--------------------------------------------------------------------------
+NanoStringNormCNV 1.0.6 2017-04-12
+
+BUG
+* Fix normalize.per.chip
+
+--------------------------------------------------------------------------
+NanoStringNormCNV 1.0.5 2017-04-11
+
+UPDATE
+* Create vignette rough drafts
+
+--------------------------------------------------------------------------
+NanoStringNormCNV 1.0.4 2017-04-04
+
+REMOVE
+* Removed do.nsn argument from normalize functions for clarity
+
+--------------------------------------------------------------------------
+NanoStringNormCNV 1.0.3 2017-04-02
+
+UPDATE
+* Added score.runs2 for alternative scoring metrics
+
+--------------------------------------------------------------------------
+NanoStringNormCNV 1.0.2 2017-03-31
+
+REMOVE
+* Remove unnecessary function collapse.replicates
+
+--------------------------------------------------------------------------
+NanoStringNormCNV 1.0.1 2017-03-29
+
+BUG
+* Fix score.runs
+
+--------------------------------------------------------------------------
+NanoStringNormCNV 1.0.0 2017-03-28
+
+Initial release
