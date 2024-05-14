@@ -1,0 +1,7 @@
+---
+Category: 'tool'
+Description: 'Helper functions to normalize NanoString CNV data'
+Maintainers: ['danknight@mednet.ucla.edu']
+Languages: 'R'
+Dependencies: 'R'
+References: ''
