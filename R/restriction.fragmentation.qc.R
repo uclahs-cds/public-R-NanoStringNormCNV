@@ -49,7 +49,7 @@ restriction.fragmentation.qc <- function(raw.data){
         }
 
 	# plot the ratios
-	NanoStringNormCNV:::make.restriction.fragmentation.plot(
+	make.restriction.fragmentation.plot(
 		restr.data = nano.restr.avg,
 		low.ratio.samples = which.low
 		);
