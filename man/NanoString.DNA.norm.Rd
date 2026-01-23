@@ -3,7 +3,7 @@
 \docType{data}
 \title{Dataset of normalized NanoString DNA counts from prostate cancer patients}
 \description{
-Normalized NanoString DNA counts from 349 probes across 65 NanoString samples. The NanoString samples are the same as those found in the \code{\link{NanoString}} dataset. Invariant probe normalization was applied to raw counts using \code{\link{normalize.global}}. For additional sample information, refer to the \code{\link{PhenoData}} dataset.
+Normalized NanoString DNA counts from 349 probes across 65 NanoString samples. The NanoString samples are the same as those found in the \code{\link{NanoString.DNA.raw}} dataset. Invariant probe normalization was applied to raw counts using \code{\link{normalize.global}}. For additional sample information, refer to the \code{\link{PhenoData}} dataset.
 }
 \format{
 	A data-frame with 68 columns and 349 rows. The first three columns provide probe information:

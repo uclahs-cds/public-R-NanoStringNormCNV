@@ -1,3 +1,9 @@
+NanoStringNormCNV 1.1.3 2026-01-22
+
+CHANGE
+* Updated maintainer email
+
+--------------------------------------------------------------------------
 NanoStringNormCNV 1.1.0 2017-05-20
 
 CHANGE
@@ -54,4 +60,5 @@ BUG
 --------------------------------------------------------------------------
 NanoStringNormCNV 1.0.0 2017-03-28
 
-Initial release
+NEW
+* Initial release

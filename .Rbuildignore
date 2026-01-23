@@ -1,3 +1,4 @@
 ^\.github$
 ^metadata\.yaml$
 ^LICENSE\.md$
+^\.cicd-env$
